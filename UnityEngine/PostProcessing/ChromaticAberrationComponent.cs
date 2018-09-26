@@ -1,0 +1,65 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: UnityEngine.PostProcessing.ChromaticAberrationComponent
+// Assembly: Assembly-CSharp, Version=11.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 51F4D31F-B166-4C43-9BCF-DD08031E944E
+// Assembly location: C:\Users\Kostya12rus\Desktop\Cheat\TextureLoger\Assembly-CSharp.dll
+
+namespace UnityEngine.PostProcessing
+{
+  public sealed class ChromaticAberrationComponent : PostProcessingComponentRenderTexture<ChromaticAberrationModel>
+  {
+    private Texture2D m_SpectrumLut;
+
+    public override bool active
+    {
+      get
+      {
+        if (this.model.enabled && (double) this.model.settings.intensity > 0.0)
+          return !this.context.interrupted;
+        return false;
+      }
+    }
+
+    public override void OnDisable()
+    {
+      GraphicsUtils.Destroy((Object) this.m_SpectrumLut);
+      this.m_SpectrumLut = (Texture2D) null;
+    }
+
+    public override void Prepare(Material uberMaterial)
+    {
+      ChromaticAberrationModel.Settings settings = this.model.settings;
+      Texture2D texture2D1 = settings.spectralTexture;
+      if (Object.op_Equality((Object) texture2D1, (Object) null))
+      {
+        if (Object.op_Equality((Object) this.m_SpectrumLut, (Object) null))
+        {
+          Texture2D texture2D2 = new Texture2D(3, 1, (TextureFormat) 3, false);
+          ((Object) texture2D2).set_name("Chromatic Aberration Spectrum Lookup");
+          ((Texture) texture2D2).set_filterMode((FilterMode) 1);
+          ((Texture) texture2D2).set_wrapMode((TextureWrapMode) 1);
+          ((Texture) texture2D2).set_anisoLevel(0);
+          ((Object) texture2D2).set_hideFlags((HideFlags) 52);
+          this.m_SpectrumLut = texture2D2;
+          this.m_SpectrumLut.SetPixels(new Color[3]
+          {
+            new Color(1f, 0.0f, 0.0f),
+            new Color(0.0f, 1f, 0.0f),
+            new Color(0.0f, 0.0f, 1f)
+          });
+          this.m_SpectrumLut.Apply();
+        }
+        texture2D1 = this.m_SpectrumLut;
+      }
+      uberMaterial.EnableKeyword("CHROMATIC_ABERRATION");
+      uberMaterial.SetFloat(ChromaticAberrationComponent.Uniforms._ChromaticAberration_Amount, settings.intensity * 0.03f);
+      uberMaterial.SetTexture(ChromaticAberrationComponent.Uniforms._ChromaticAberration_Spectrum, (Texture) texture2D1);
+    }
+
+    private static class Uniforms
+    {
+      internal static readonly int _ChromaticAberration_Amount = Shader.PropertyToID(nameof (_ChromaticAberration_Amount));
+      internal static readonly int _ChromaticAberration_Spectrum = Shader.PropertyToID(nameof (_ChromaticAberration_Spectrum));
+    }
+  }
+}

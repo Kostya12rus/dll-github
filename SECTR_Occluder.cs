@@ -1,0 +1,134 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: SECTR_Occluder
+// Assembly: Assembly-CSharp, Version=11.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 51F4D31F-B166-4C43-9BCF-DD08031E944E
+// Assembly location: C:\Users\Kostya12rus\Desktop\Cheat\TextureLoger\Assembly-CSharp.dll
+
+using System.Collections.Generic;
+using UnityEngine;
+
+[AddComponentMenu("SECTR/Vis/SECTR Occluder")]
+[RequireComponent(typeof (SECTR_Member))]
+public class SECTR_Occluder : SECTR_Hull
+{
+  private static List<SECTR_Occluder> allOccluders = new List<SECTR_Occluder>(32);
+  private static Dictionary<SECTR_Sector, List<SECTR_Occluder>> occluderTable = new Dictionary<SECTR_Sector, List<SECTR_Occluder>>(32);
+  private List<SECTR_Sector> currentSectors = new List<SECTR_Sector>(4);
+  private SECTR_Member cachedMember;
+  [SECTR_ToolTip("The axes that should orient towards the camera during culling (if any).")]
+  public SECTR_Occluder.OrientationAxis AutoOrient;
+
+  public static List<SECTR_Occluder> All
+  {
+    get
+    {
+      return SECTR_Occluder.allOccluders;
+    }
+  }
+
+  public static List<SECTR_Occluder> GetOccludersInSector(SECTR_Sector sector)
+  {
+    List<SECTR_Occluder> sectrOccluderList = (List<SECTR_Occluder>) null;
+    SECTR_Occluder.occluderTable.TryGetValue(sector, out sectrOccluderList);
+    return sectrOccluderList;
+  }
+
+  public SECTR_Member Member
+  {
+    get
+    {
+      return this.cachedMember;
+    }
+  }
+
+  public Vector3 MeshNormal
+  {
+    get
+    {
+      this.ComputeVerts();
+      return this.meshNormal;
+    }
+  }
+
+  public Matrix4x4 GetCullingMatrix(Vector3 cameraPos)
+  {
+    if (this.AutoOrient == SECTR_Occluder.OrientationAxis.None)
+      return ((Component) this).get_transform().get_localToWorldMatrix();
+    this.ComputeVerts();
+    Vector3 position = ((Component) this).get_transform().get_position();
+    Vector3 vector3 = Vector3.op_Subtraction(cameraPos, position);
+    switch (this.AutoOrient)
+    {
+      case SECTR_Occluder.OrientationAxis.XZ:
+        vector3.y = (__Null) 0.0;
+        break;
+      case SECTR_Occluder.OrientationAxis.XY:
+        vector3.z = (__Null) 0.0;
+        break;
+      case SECTR_Occluder.OrientationAxis.YZ:
+        vector3.x = (__Null) 0.0;
+        break;
+    }
+    return Matrix4x4.TRS(position, Quaternion.FromToRotation(this.meshNormal, vector3), ((Component) this).get_transform().get_lossyScale());
+  }
+
+  private void OnEnable()
+  {
+    this.cachedMember = (SECTR_Member) ((Component) this).GetComponent<SECTR_Member>();
+    this.cachedMember.Changed += new SECTR_Member.MembershipChanged(this._MembershipChanged);
+    SECTR_Occluder.allOccluders.Add(this);
+  }
+
+  private void OnDisable()
+  {
+    SECTR_Occluder.allOccluders.Remove(this);
+    this.cachedMember.Changed -= new SECTR_Member.MembershipChanged(this._MembershipChanged);
+    this.cachedMember = (SECTR_Member) null;
+  }
+
+  private void _MembershipChanged(List<SECTR_Sector> left, List<SECTR_Sector> joined)
+  {
+    if (joined != null)
+    {
+      int count = joined.Count;
+      for (int index = 0; index < count; ++index)
+      {
+        SECTR_Sector key = joined[index];
+        if (Object.op_Implicit((Object) key))
+        {
+          List<SECTR_Occluder> sectrOccluderList;
+          if (!SECTR_Occluder.occluderTable.TryGetValue(key, out sectrOccluderList))
+          {
+            sectrOccluderList = new List<SECTR_Occluder>(4);
+            SECTR_Occluder.occluderTable[key] = sectrOccluderList;
+          }
+          sectrOccluderList.Add(this);
+          this.currentSectors.Add(key);
+        }
+      }
+    }
+    if (left == null)
+      return;
+    int count1 = left.Count;
+    for (int index = 0; index < count1; ++index)
+    {
+      SECTR_Sector key = left[index];
+      if (Object.op_Implicit((Object) key) && this.currentSectors.Contains(key))
+      {
+        List<SECTR_Occluder> sectrOccluderList;
+        if (SECTR_Occluder.occluderTable.TryGetValue(key, out sectrOccluderList))
+          sectrOccluderList.Remove(this);
+        this.currentSectors.Remove(key);
+      }
+    }
+  }
+
+  public enum OrientationAxis
+  {
+    None,
+    XYZ,
+    XZ,
+    XY,
+    YZ,
+  }
+}

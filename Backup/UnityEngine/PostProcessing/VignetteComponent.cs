@@ -1,0 +1,51 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: UnityEngine.PostProcessing.VignetteComponent
+// Assembly: Assembly-CSharp, Version=11.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 51F4D31F-B166-4C43-9BCF-DD08031E944E
+// Assembly location: C:\Users\Kostya12rus\Desktop\Cheat\TextureLoger\Assembly-CSharp.dll
+
+namespace UnityEngine.PostProcessing
+{
+  public sealed class VignetteComponent : PostProcessingComponentRenderTexture<VignetteModel>
+  {
+    public override bool active
+    {
+      get
+      {
+        if (this.model.enabled)
+          return !this.context.interrupted;
+        return false;
+      }
+    }
+
+    public override void Prepare(Material uberMaterial)
+    {
+      VignetteModel.Settings settings = this.model.settings;
+      uberMaterial.SetColor(VignetteComponent.Uniforms._Vignette_Color, settings.color);
+      if (settings.mode == VignetteModel.Mode.Classic)
+      {
+        uberMaterial.SetVector(VignetteComponent.Uniforms._Vignette_Center, Vector4.op_Implicit(settings.center));
+        uberMaterial.EnableKeyword("VIGNETTE_CLASSIC");
+        float num = (float) ((1.0 - (double) settings.roundness) * 6.0) + settings.roundness;
+        uberMaterial.SetVector(VignetteComponent.Uniforms._Vignette_Settings, new Vector4(settings.intensity * 3f, settings.smoothness * 5f, num, !settings.rounded ? 0.0f : 1f));
+      }
+      else
+      {
+        if (settings.mode != VignetteModel.Mode.Masked || !Object.op_Inequality((Object) settings.mask, (Object) null) || (double) settings.opacity <= 0.0)
+          return;
+        uberMaterial.EnableKeyword("VIGNETTE_MASKED");
+        uberMaterial.SetTexture(VignetteComponent.Uniforms._Vignette_Mask, settings.mask);
+        uberMaterial.SetFloat(VignetteComponent.Uniforms._Vignette_Opacity, settings.opacity);
+      }
+    }
+
+    private static class Uniforms
+    {
+      internal static readonly int _Vignette_Color = Shader.PropertyToID(nameof (_Vignette_Color));
+      internal static readonly int _Vignette_Center = Shader.PropertyToID(nameof (_Vignette_Center));
+      internal static readonly int _Vignette_Settings = Shader.PropertyToID(nameof (_Vignette_Settings));
+      internal static readonly int _Vignette_Mask = Shader.PropertyToID(nameof (_Vignette_Mask));
+      internal static readonly int _Vignette_Opacity = Shader.PropertyToID(nameof (_Vignette_Opacity));
+    }
+  }
+}
