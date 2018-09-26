@@ -8,14 +8,9 @@ using UnityEngine;
 
 public class ButtonWallAdjuster : MonoBehaviour
 {
+  public float offset = 0.1f;
   public bool onAwake;
   private bool _adjusted;
-  public float offset;
-
-  public ButtonWallAdjuster()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
@@ -29,13 +24,11 @@ public class ButtonWallAdjuster : MonoBehaviour
     if (this._adjusted && !this.onAwake)
       return;
     this._adjusted = true;
-    Transform transform1 = ((Component) this).get_transform();
-    transform1.set_position(Vector3.op_Addition(transform1.get_position(), ((Component) this).get_transform().get_up()));
-    RaycastHit raycastHit;
-    if (!Physics.Raycast(new Ray(((Component) this).get_transform().get_position(), Vector3.op_UnaryNegation(((Component) this).get_transform().get_up())), ref raycastHit, 2.5f))
+    this.transform.position += this.transform.up;
+    RaycastHit hitInfo;
+    if (!Physics.Raycast(new Ray(this.transform.position, -this.transform.up), out hitInfo, 2.5f))
       return;
-    ((Component) this).get_transform().set_position(((RaycastHit) ref raycastHit).get_point());
-    Transform transform2 = ((Component) this).get_transform();
-    transform2.set_position(Vector3.op_Subtraction(transform2.get_position(), Vector3.op_Multiply(Vector3.op_Multiply(((Component) this).get_transform().get_up(), this.offset), 0.1f)));
+    this.transform.position = hitInfo.point;
+    this.transform.position -= this.transform.up * this.offset * 0.1f;
   }
 }

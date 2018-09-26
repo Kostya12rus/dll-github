@@ -19,7 +19,9 @@ public class Inventory : NetworkBehaviour
 {
   public static float targetCrosshairAlpha = 1f;
   private static int kCmdCmdSetUnic = 1995465433;
-  public Inventory.SyncListItemInfo items;
+  public Inventory.SyncListItemInfo items = new Inventory.SyncListItemInfo();
+  private int prevIt = -10;
+  private float crosshairAlpha = 1f;
   public Item[] availableItems;
   private AnimationController ac;
   private WeaponManager weaponManager;
@@ -34,18 +36,11 @@ public class Inventory : NetworkBehaviour
   private CharacterClassManager ccm;
   private static int uniqid;
   public static bool collectionModified;
-  private int prevIt;
-  private float crosshairAlpha;
   private bool gotO5;
   private float pickupanimation;
   private static int kListitems;
   private static int kCmdCmdSyncItem;
   private static int kCmdCmdDropItem;
-
-  public Inventory()
-  {
-    base.\u002Ector();
-  }
 
   public void SetUniq(int i)
   {
@@ -62,7 +57,7 @@ public class Inventory : NetworkBehaviour
   {
     for (int index = 0; index < this.availableItems.Length; ++index)
       this.availableItems[index].id = index;
-    ((SyncList<Inventory.SyncItemInfo>) this.items).InitializeBehaviour((NetworkBehaviour) this, Inventory.kListitems);
+    this.items.InitializeBehaviour((NetworkBehaviour) this, Inventory.kListitems);
   }
 
   private void Log(string msg)
@@ -71,7 +66,7 @@ public class Inventory : NetworkBehaviour
 
   public void SetCurItem(int ci)
   {
-    if (((MicroHID_GFX) ((Component) this).GetComponent<MicroHID_GFX>()).onFire)
+    if (this.GetComponent<MicroHID_GFX>().onFire)
       return;
     this.NetworkcurItem = ci;
   }
@@ -87,16 +82,16 @@ public class Inventory : NetworkBehaviour
 
   private void Start()
   {
-    this.weaponManager = (WeaponManager) ((Component) this).GetComponent<WeaponManager>();
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    this.crosshair = (RawImage) GameObject.Find("CrosshairImage").GetComponent<RawImage>();
-    this.ac = (AnimationController) ((Component) this).GetComponent<AnimationController>();
-    if (!this.get_isLocalPlayer())
+    this.weaponManager = this.GetComponent<WeaponManager>();
+    this.ccm = this.GetComponent<CharacterClassManager>();
+    this.crosshair = GameObject.Find("CrosshairImage").GetComponent<RawImage>();
+    this.ac = this.GetComponent<AnimationController>();
+    if (!this.isLocalPlayer)
       return;
     Pickup.inv = this;
     Pickup.instances = new List<Pickup>();
-    Timing.RunCoroutine(this._RefreshPickups(), (Segment) 1);
-    ((InventoryDisplay) Object.FindObjectOfType<InventoryDisplay>()).localplayer = this;
+    Timing.RunCoroutine(this._RefreshPickups(), Segment.FixedUpdate);
+    Object.FindObjectOfType<InventoryDisplay>().localplayer = this;
   }
 
   private void RefreshModels()
@@ -105,7 +100,7 @@ public class Inventory : NetworkBehaviour
     {
       try
       {
-        this.availableItems[index].firstpersonModel.SetActive(this.get_isLocalPlayer() & index == this.curItem);
+        this.availableItems[index].firstpersonModel.SetActive(this.isLocalPlayer & index == this.curItem);
       }
       catch
       {
@@ -115,50 +110,41 @@ public class Inventory : NetworkBehaviour
 
   public void DropItem(int id)
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
-    if (((SyncList<Inventory.SyncItemInfo>) this.items).get_Item(id).id == this.curItem)
+    if (this.items[id].id == this.curItem)
       this.NetworkcurItem = -1;
-    this.CallCmdDropItem(id, ((SyncList<Inventory.SyncItemInfo>) this.items).get_Item(id).id);
+    this.CallCmdDropItem(id, this.items[id].id);
   }
 
   public void ServerDropAll()
   {
-    using (IEnumerator<Inventory.SyncItemInfo> enumerator = ((SyncList<Inventory.SyncItemInfo>) this.items).GetEnumerator())
-    {
-      while (enumerator.MoveNext())
-      {
-        Inventory.SyncItemInfo current = enumerator.Current;
-        this.SetPickup(current.id, current.durability, ((Component) this).get_transform().get_position(), this.camera.get_transform().get_rotation());
-      }
-    }
-    AmmoBox component = (AmmoBox) ((Component) this).GetComponent<AmmoBox>();
+    foreach (Inventory.SyncItemInfo syncItemInfo in (SyncList<Inventory.SyncItemInfo>) this.items)
+      this.SetPickup(syncItemInfo.id, syncItemInfo.durability, this.transform.position, this.camera.transform.rotation);
+    AmmoBox component = this.GetComponent<AmmoBox>();
     for (int type = 0; type < 3; ++type)
     {
       if (component.GetAmmo(type) != 0)
-        this.SetPickup(component.types[type].inventoryID, (float) component.GetAmmo(type), ((Component) this).get_transform().get_position(), this.camera.get_transform().get_rotation());
+        this.SetPickup(component.types[type].inventoryID, (float) component.GetAmmo(type), this.transform.position, this.camera.transform.rotation);
     }
-    ((SyncList<Inventory.SyncItemInfo>) this.items).Clear();
+    this.items.Clear();
     component.Networkamount = "0:0:0";
   }
 
   public void Clear()
   {
-    ((SyncList<Inventory.SyncItemInfo>) this.items).Clear();
-    ((AmmoBox) ((Component) this).GetComponent<AmmoBox>()).Networkamount = "0:0:0";
+    this.items.Clear();
+    this.GetComponent<AmmoBox>().Networkamount = "0:0:0";
   }
 
   public int GetItemIndex()
   {
     int num = 0;
-    using (IEnumerator<Inventory.SyncItemInfo> enumerator = ((SyncList<Inventory.SyncItemInfo>) this.items).GetEnumerator())
+    foreach (Inventory.SyncItemInfo syncItemInfo in (SyncList<Inventory.SyncItemInfo>) this.items)
     {
-      while (enumerator.MoveNext())
-      {
-        if (this.itemUniq == enumerator.Current.uniq)
-          return num;
-        ++num;
-      }
+      if (this.itemUniq == syncItemInfo.uniq)
+        return num;
+      ++num;
     }
     return -1;
   }
@@ -168,16 +154,16 @@ public class Inventory : NetworkBehaviour
     ++Inventory.uniqid;
     if (TutorialManager.status)
     {
-      PickupTrigger[] objectsOfType = (PickupTrigger[]) Object.FindObjectsOfType<PickupTrigger>();
+      PickupTrigger[] objectsOfType = Object.FindObjectsOfType<PickupTrigger>();
       PickupTrigger pickupTrigger1 = (PickupTrigger) null;
       foreach (PickupTrigger pickupTrigger2 in objectsOfType)
       {
-        if ((pickupTrigger2.filter == -1 || pickupTrigger2.filter == id) && (Object.op_Equality((Object) pickupTrigger1, (Object) null) || pickupTrigger2.prioirty < pickupTrigger1.prioirty))
+        if ((pickupTrigger2.filter == -1 || pickupTrigger2.filter == id) && ((Object) pickupTrigger1 == (Object) null || pickupTrigger2.prioirty < pickupTrigger1.prioirty))
           pickupTrigger1 = pickupTrigger2;
       }
       try
       {
-        if (Object.op_Inequality((Object) pickupTrigger1, (Object) null))
+        if ((Object) pickupTrigger1 != (Object) null)
           pickupTrigger1.Trigger(id);
       }
       catch
@@ -186,11 +172,11 @@ public class Inventory : NetworkBehaviour
       }
     }
     Item obj = new Item(this.availableItems[id]);
-    if (this.items.get_Count() >= (ushort) 8 && !obj.noEquipable)
+    if (this.items.Count >= (ushort) 8 && !obj.noEquipable)
       return;
     if ((double) dur != -465664671744.0)
       obj.durability = dur;
-    ((SyncList<Inventory.SyncItemInfo>) this.items).Add(new Inventory.SyncItemInfo()
+    this.items.Add(new Inventory.SyncItemInfo()
     {
       id = obj.id,
       durability = obj.durability,
@@ -201,15 +187,12 @@ public class Inventory : NetworkBehaviour
   [Command(channel = 3)]
   private void CmdSyncItem(int i)
   {
-    using (IEnumerator<Inventory.SyncItemInfo> enumerator = ((SyncList<Inventory.SyncItemInfo>) this.items).GetEnumerator())
+    foreach (Inventory.SyncItemInfo syncItemInfo in (SyncList<Inventory.SyncItemInfo>) this.items)
     {
-      while (enumerator.MoveNext())
+      if (syncItemInfo.id == i)
       {
-        if (enumerator.Current.id == i)
-        {
-          this.NetworkcurItem = i;
-          return;
-        }
+        this.NetworkcurItem = i;
+        return;
       }
     }
     this.NetworkcurItem = -1;
@@ -217,41 +200,41 @@ public class Inventory : NetworkBehaviour
 
   private void Update()
   {
-    if (this.get_isLocalPlayer())
+    if (this.isLocalPlayer)
     {
       if ((double) this.pickupanimation > 0.0)
-        this.pickupanimation -= Time.get_deltaTime();
+        this.pickupanimation -= Time.deltaTime;
       if (!this.gotO5 && this.curItem == 11)
       {
         this.gotO5 = true;
         AchievementManager.Achieve("power");
       }
-      Inventory.inventoryCooldown -= Time.get_deltaTime();
+      Inventory.inventoryCooldown -= Time.deltaTime;
       this.CallCmdSyncItem(this.curItem);
       int index = Mathf.Clamp(this.curItem, 0, this.availableItems.Length - 1);
       if (this.ccm.curClass >= 0 && this.ccm.klasy[this.ccm.curClass].forcedCrosshair != -1)
         index = this.ccm.klasy[this.ccm.curClass].forcedCrosshair;
-      this.crosshairAlpha = Mathf.Lerp(this.crosshairAlpha, Inventory.targetCrosshairAlpha, Time.get_deltaTime() * 5f);
-      this.crosshair.set_texture(this.availableItems[index].crosshair);
-      ((Graphic) this.crosshair).set_color(Color.Lerp(Color.get_clear(), this.availableItems[index].crosshairColor, this.crosshairAlpha));
+      this.crosshairAlpha = Mathf.Lerp(this.crosshairAlpha, Inventory.targetCrosshairAlpha, Time.deltaTime * 5f);
+      this.crosshair.texture = this.availableItems[index].crosshair;
+      this.crosshair.color = Color.Lerp(Color.clear, this.availableItems[index].crosshairColor, this.crosshairAlpha);
     }
     if (this.prevIt == this.curItem)
       return;
     this.RefreshModels();
     this.prevIt = this.curItem;
-    if (this.get_isLocalPlayer())
+    if (this.isLocalPlayer)
     {
       foreach (WeaponManager.Weapon weapon in this.weaponManager.weapons)
       {
         if (weapon.inventoryID == this.curItem)
         {
           if (weapon.useProceduralPickupAnimation)
-            this.weaponManager.weaponInventoryGroup.set_localPosition(Vector3.op_Multiply(Vector3.get_down(), 0.4f));
+            this.weaponManager.weaponInventoryGroup.localPosition = Vector3.down * 0.4f;
           this.pickupanimation = 4f;
         }
       }
     }
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     this.RefreshWeapon();
   }
@@ -264,7 +247,7 @@ public class Inventory : NetworkBehaviour
   [ServerCallback]
   private void RefreshWeapon()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     int num1 = 0;
     int num2 = -1;
@@ -280,39 +263,35 @@ public class Inventory : NetworkBehaviour
   [Command(channel = 2)]
   private void CmdDropItem(int itemInventoryIndex, int itemId)
   {
-    if (((SyncList<Inventory.SyncItemInfo>) this.items).get_Item(itemInventoryIndex).id != itemId)
+    if (this.items[itemInventoryIndex].id != itemId)
       return;
-    this.SetPickup(itemId, ((SyncList<Inventory.SyncItemInfo>) this.items).get_Item(itemInventoryIndex).durability, ((Component) this).get_transform().get_position(), this.camera.get_transform().get_rotation());
-    ((SyncList<Inventory.SyncItemInfo>) this.items).RemoveAt(itemInventoryIndex);
+    this.SetPickup(itemId, this.items[itemInventoryIndex].durability, this.transform.position, this.camera.transform.rotation);
+    this.items.RemoveAt(itemInventoryIndex);
   }
 
   public void SetPickup(int dropedItemID, float dur, Vector3 pos, Quaternion rot)
   {
-    GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) this.pickupPrefab);
+    GameObject gameObject = Object.Instantiate<GameObject>(this.pickupPrefab);
     NetworkServer.Spawn(gameObject);
-    ((Pickup) gameObject.GetComponent<Pickup>()).SetupPickup(new Pickup.PickupInfo()
+    gameObject.GetComponent<Pickup>().SetupPickup(new Pickup.PickupInfo()
     {
       position = pos,
       rotation = rot,
       itemId = dropedItemID,
       durability = dur,
-      ownerPlayerID = ((QueryProcessor) ((Component) this).GetComponent<QueryProcessor>()).PlayerId
+      ownerPlayerID = this.GetComponent<QueryProcessor>().PlayerId
     });
   }
 
   static Inventory()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Inventory), Inventory.kCmdCmdSetUnic, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdSetUnic)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Inventory), Inventory.kCmdCmdSetUnic, new NetworkBehaviour.CmdDelegate(Inventory.InvokeCmdCmdSetUnic));
     Inventory.kCmdCmdSyncItem = 2140153578;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Inventory), Inventory.kCmdCmdSyncItem, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdSyncItem)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Inventory), Inventory.kCmdCmdSyncItem, new NetworkBehaviour.CmdDelegate(Inventory.InvokeCmdCmdSyncItem));
     Inventory.kCmdCmdDropItem = -109121218;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Inventory), Inventory.kCmdCmdDropItem, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdDropItem)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Inventory), Inventory.kCmdCmdDropItem, new NetworkBehaviour.CmdDelegate(Inventory.InvokeCmdCmdDropItem));
     Inventory.kListitems = 1683194626;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterSyncListDelegate(typeof (Inventory), Inventory.kListitems, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeSyncListitems)));
+    NetworkBehaviour.RegisterSyncListDelegate(typeof (Inventory), Inventory.kListitems, new NetworkBehaviour.CmdDelegate(Inventory.InvokeSyncListitems));
     NetworkCRC.RegisterBehaviour(nameof (Inventory), 0);
   }
 
@@ -331,13 +310,13 @@ public class Inventory : NetworkBehaviour
       int num1 = value;
       ref int local = ref this.curItem;
       int num2 = 2;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetCurItem(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<int>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<int>(num1, ref local, (uint) num2);
     }
   }
 
@@ -352,27 +331,27 @@ public class Inventory : NetworkBehaviour
       int num1 = value;
       ref int local = ref this.itemUniq;
       int num2 = 4;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetUniq(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<int>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<int>(num1, ref local, (uint) num2);
     }
   }
 
   protected static void InvokeSyncListitems(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "SyncList items called on server.");
     else
-      ((SyncList<Inventory.SyncItemInfo>) ((Inventory) obj).items).HandleMsg(reader);
+      ((Inventory) obj).items.HandleMsg(reader);
   }
 
   protected static void InvokeCmdCmdSetUnic(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdSetUnic called on client.");
     else
       ((Inventory) obj).CmdSetUnic((int) reader.ReadPackedUInt32());
@@ -380,7 +359,7 @@ public class Inventory : NetworkBehaviour
 
   protected static void InvokeCmdCmdSyncItem(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdSyncItem called on client.");
     else
       ((Inventory) obj).CmdSyncItem((int) reader.ReadPackedUInt32());
@@ -388,7 +367,7 @@ public class Inventory : NetworkBehaviour
 
   protected static void InvokeCmdCmdDropItem(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdDropItem called on client.");
     else
       ((Inventory) obj).CmdDropItem((int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32());
@@ -396,66 +375,66 @@ public class Inventory : NetworkBehaviour
 
   public void CallCmdSetUnic(int i)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdSetUnic called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdSetUnic(i);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Inventory.kCmdCmdSetUnic);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) i);
-      this.SendCommandInternal(networkWriter, 2, "CmdSetUnic");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Inventory.kCmdCmdSetUnic);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) i);
+      this.SendCommandInternal(writer, 2, "CmdSetUnic");
     }
   }
 
   public void CallCmdSyncItem(int i)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdSyncItem called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdSyncItem(i);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Inventory.kCmdCmdSyncItem);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) i);
-      this.SendCommandInternal(networkWriter, 3, "CmdSyncItem");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Inventory.kCmdCmdSyncItem);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) i);
+      this.SendCommandInternal(writer, 3, "CmdSyncItem");
     }
   }
 
   public void CallCmdDropItem(int itemInventoryIndex, int itemId)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdDropItem called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdDropItem(itemInventoryIndex, itemId);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Inventory.kCmdCmdDropItem);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) itemInventoryIndex);
-      networkWriter.WritePackedUInt32((uint) itemId);
-      this.SendCommandInternal(networkWriter, 2, "CmdDropItem");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Inventory.kCmdCmdDropItem);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) itemInventoryIndex);
+      writer.WritePackedUInt32((uint) itemId);
+      this.SendCommandInternal(writer, 2, "CmdDropItem");
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -465,39 +444,39 @@ public class Inventory : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       GeneratedNetworkCode._WriteStructSyncListItemInfo_Inventory(writer, this.items);
     }
-    if (((int) this.get_syncVarDirtyBits() & 2) != 0)
+    if (((int) this.syncVarDirtyBits & 2) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.WritePackedUInt32((uint) this.curItem);
     }
-    if (((int) this.get_syncVarDirtyBits() & 4) != 0)
+    if (((int) this.syncVarDirtyBits & 4) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.WritePackedUInt32((uint) this.itemUniq);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {
@@ -528,33 +507,23 @@ public class Inventory : NetworkBehaviour
 
   public class SyncListItemInfo : SyncListStruct<Inventory.SyncItemInfo>
   {
-    public SyncListItemInfo()
-    {
-      base.\u002Ector();
-    }
-
     public void ModifyDuration(int index, float value)
     {
-      Inventory.SyncItemInfo syncItemInfo = ((SyncList<Inventory.SyncItemInfo>) this).get_Item(index);
+      Inventory.SyncItemInfo syncItemInfo = this[index];
       syncItemInfo.durability = value;
-      ((SyncList<Inventory.SyncItemInfo>) this).set_Item(index, syncItemInfo);
+      this[index] = syncItemInfo;
     }
 
-    public virtual void SerializeItem(NetworkWriter writer, Inventory.SyncItemInfo item)
+    public override void SerializeItem(NetworkWriter writer, Inventory.SyncItemInfo item)
     {
       writer.WritePackedUInt32((uint) item.id);
       writer.Write(item.durability);
       writer.WritePackedUInt32((uint) item.uniq);
     }
 
-    public virtual Inventory.SyncItemInfo DeserializeItem(NetworkReader reader)
+    public override Inventory.SyncItemInfo DeserializeItem(NetworkReader reader)
     {
-      return new Inventory.SyncItemInfo()
-      {
-        id = (int) reader.ReadPackedUInt32(),
-        durability = reader.ReadSingle(),
-        uniq = (int) reader.ReadPackedUInt32()
-      };
+      return new Inventory.SyncItemInfo() { id = (int) reader.ReadPackedUInt32(), durability = reader.ReadSingle(), uniq = (int) reader.ReadPackedUInt32() };
     }
   }
 }

@@ -8,26 +8,20 @@ using UnityEngine;
 
 public class ItemBob : MonoBehaviour
 {
+  public float speedScale = 1f;
   private FirstPersonController fpc;
   private Animator anim;
-  public float speedScale;
   private float lerp;
-
-  public ItemBob()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this.anim = (Animator) ((Component) this).GetComponent<Animator>();
-    this.fpc = (FirstPersonController) ((Component) this).GetComponentInParent<FirstPersonController>();
+    this.anim = this.GetComponent<Animator>();
+    this.fpc = this.GetComponentInParent<FirstPersonController>();
   }
 
   private void Update()
   {
-    Vector3 vector3 = Vector3.op_Addition((Vector3) this.fpc.m_MoveDir, Vector3.op_Multiply(Vector3.get_up(), 10f));
-    this.lerp = ((Vector3) ref vector3).get_magnitude() * this.speedScale;
+    this.lerp = (this.fpc.m_MoveDir + Vector3.up * 10f).magnitude * this.speedScale;
     this.anim.SetFloat("speed", this.lerp);
   }
 }

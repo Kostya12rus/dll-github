@@ -14,14 +14,9 @@ public class CustomVisibility : NetworkBehaviour
 {
   public float visRange;
 
-  public CustomVisibility()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    Timing.RunCoroutine(this._Start(), (Segment) 0);
+    Timing.RunCoroutine(this._Start(), Segment.Update);
   }
 
   [DebuggerHidden]
@@ -31,13 +26,13 @@ public class CustomVisibility : NetworkBehaviour
     return (IEnumerator<float>) new CustomVisibility.\u003C_Start\u003Ec__Iterator0() { \u0024this = this };
   }
 
-  public virtual bool OnRebuildObservers(HashSet<NetworkConnection> observers, bool initialize)
+  public override bool OnRebuildObservers(HashSet<NetworkConnection> observers, bool initialize)
   {
-    foreach (Component component1 in Physics.OverlapSphere(((Component) this).get_transform().get_position(), this.visRange))
+    foreach (Component component1 in Physics.OverlapSphere(this.transform.position, this.visRange))
     {
-      NetworkIdentity component2 = (NetworkIdentity) component1.GetComponent<NetworkIdentity>();
-      if (Object.op_Inequality((Object) component2, (Object) null) && component2.get_connectionToClient() != null)
-        observers.Add(component2.get_connectionToClient());
+      NetworkIdentity component2 = component1.GetComponent<NetworkIdentity>();
+      if ((Object) component2 != (Object) null && component2.connectionToClient != null)
+        observers.Add(component2.connectionToClient);
     }
     return true;
   }
@@ -46,13 +41,13 @@ public class CustomVisibility : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

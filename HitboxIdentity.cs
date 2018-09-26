@@ -9,9 +9,4 @@ using UnityEngine;
 public class HitboxIdentity : MonoBehaviour
 {
   public string id;
-
-  public HitboxIdentity()
-  {
-    base.\u002Ector();
-  }
 }

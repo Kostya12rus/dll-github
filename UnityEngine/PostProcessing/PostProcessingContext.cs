@@ -34,7 +34,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        return this.camera.get_actualRenderingPath() == 3;
+        return this.camera.actualRenderingPath == RenderingPath.DeferredShading;
       }
     }
 
@@ -42,7 +42,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        return this.camera.get_allowHDR();
+        return this.camera.allowHDR;
       }
     }
 
@@ -50,7 +50,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        return this.camera.get_pixelWidth();
+        return this.camera.pixelWidth;
       }
     }
 
@@ -58,7 +58,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        return this.camera.get_pixelHeight();
+        return this.camera.pixelHeight;
       }
     }
 
@@ -66,7 +66,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        return this.camera.get_rect();
+        return this.camera.rect;
       }
     }
   }

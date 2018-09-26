@@ -14,11 +14,6 @@ public class SpectatorInterface : MonoBehaviour
   public TextMeshProUGUI playerInfo;
   public static SpectatorInterface singleton;
 
-  public SpectatorInterface()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     SpectatorInterface.singleton = this;

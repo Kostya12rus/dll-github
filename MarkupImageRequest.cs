@@ -21,11 +21,6 @@ public class MarkupImageRequest : MonoBehaviour
   public Image dimmerImage;
   private RawImage targetImage;
 
-  public MarkupImageRequest()
-  {
-    base.\u002Ector();
-  }
-
   public bool VerifyURL(string url)
   {
     if (url.StartsWith("https://"))
@@ -54,15 +49,15 @@ public class MarkupImageRequest : MonoBehaviour
 
   public void DownloadImage(string url, Color c)
   {
-    this.targetImage = (RawImage) ((Component) this).GetComponent<RawImage>();
+    this.targetImage = this.GetComponent<RawImage>();
     foreach (MarkupImageRequest.CachedImage cachedImage in MarkupImageRequest.cachedImages)
     {
       if (cachedImage.url == url)
       {
-        ((Graphic) this.targetImage).set_color(c);
-        this.targetImage.set_texture(cachedImage.texture);
-        ((Behaviour) this.dimmerImage).set_enabled(false);
-        ((Behaviour) this.progressImage).set_enabled(false);
+        this.targetImage.color = c;
+        this.targetImage.texture = cachedImage.texture;
+        this.dimmerImage.enabled = false;
+        this.progressImage.enabled = false;
         return;
       }
     }
@@ -73,9 +68,9 @@ public class MarkupImageRequest : MonoBehaviour
     }
     else
     {
-      this.targetImage.set_texture(this.errorTexture);
-      ((Graphic) this.dimmerImage).set_color(Color.get_clear());
-      ((Behaviour) this.progressImage).set_enabled(false);
+      this.targetImage.texture = this.errorTexture;
+      this.dimmerImage.color = Color.clear;
+      this.progressImage.enabled = false;
       Debug.Log((object) "Verification failed");
     }
   }
@@ -84,12 +79,7 @@ public class MarkupImageRequest : MonoBehaviour
   private IEnumerator RequestImage(string url, Color col)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new MarkupImageRequest.\u003CRequestImage\u003Ec__Iterator0()
-    {
-      url = url,
-      col = col,
-      \u0024this = this
-    };
+    return (IEnumerator) new MarkupImageRequest.\u003CRequestImage\u003Ec__Iterator0() { url = url, col = col, \u0024this = this };
   }
 
   [Serializable]

@@ -11,11 +11,6 @@ public class ToggleableLight : MonoBehaviour
   public GameObject[] allLights;
   public bool isAlarm;
 
-  public ToggleableLight()
-  {
-    base.\u002Ector();
-  }
-
   public void SetLights(bool b)
   {
     foreach (GameObject allLight in this.allLights)

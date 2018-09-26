@@ -10,24 +10,24 @@ namespace TMPro.Examples
 {
   public class CameraController : MonoBehaviour
   {
+    public float FollowDistance = 30f;
+    public float MaxFollowDistance = 100f;
+    public float MinFollowDistance = 2f;
+    public float ElevationAngle = 30f;
+    public float MaxElevationAngle = 85f;
+    public bool MovementSmoothing = true;
+    public float MovementSmoothingValue = 25f;
+    public float RotationSmoothingValue = 5f;
+    public float MoveSensitivity = 2f;
+    private Vector3 currentVelocity = Vector3.zero;
     private Transform cameraTransform;
     private Transform dummyTarget;
     public Transform CameraTarget;
-    public float FollowDistance;
-    public float MaxFollowDistance;
-    public float MinFollowDistance;
-    public float ElevationAngle;
-    public float MaxElevationAngle;
     public float MinElevationAngle;
     public float OrbitalAngle;
     public CameraController.CameraModes CameraMode;
-    public bool MovementSmoothing;
     public bool RotationSmoothing;
     private bool previousSmoothing;
-    public float MovementSmoothingValue;
-    public float RotationSmoothingValue;
-    public float MoveSensitivity;
-    private Vector3 currentVelocity;
     private Vector3 desiredPosition;
     private float mouseX;
     private float mouseY;
@@ -36,63 +36,52 @@ namespace TMPro.Examples
     private const string event_SmoothingValue = "Slider - Smoothing Value";
     private const string event_FollowDistance = "Slider - Camera Zoom";
 
-    public CameraController()
-    {
-      base.\u002Ector();
-    }
-
     private void Awake()
     {
-      if (QualitySettings.get_vSyncCount() > 0)
-        Application.set_targetFrameRate(60);
-      else
-        Application.set_targetFrameRate(-1);
-      if (Application.get_platform() == 8 || Application.get_platform() == 11)
-        Input.set_simulateMouseWithTouches(false);
-      this.cameraTransform = ((Component) this).get_transform();
+      Application.targetFrameRate = QualitySettings.vSyncCount <= 0 ? -1 : 60;
+      if (Application.platform == RuntimePlatform.IPhonePlayer || Application.platform == RuntimePlatform.Android)
+        Input.simulateMouseWithTouches = false;
+      this.cameraTransform = this.transform;
       this.previousSmoothing = this.MovementSmoothing;
     }
 
     private void Start()
     {
-      if (!Object.op_Equality((Object) this.CameraTarget, (Object) null))
+      if (!((Object) this.CameraTarget == (Object) null))
         return;
-      this.dummyTarget = new GameObject("Camera Target").get_transform();
+      this.dummyTarget = new GameObject("Camera Target").transform;
       this.CameraTarget = this.dummyTarget;
     }
 
     private void LateUpdate()
     {
       this.GetPlayerInput();
-      if (!Object.op_Inequality((Object) this.CameraTarget, (Object) null))
+      if (!((Object) this.CameraTarget != (Object) null))
         return;
       if (this.CameraMode == CameraController.CameraModes.Isometric)
-        this.desiredPosition = Vector3.op_Addition(this.CameraTarget.get_position(), Quaternion.op_Multiply(Quaternion.Euler(this.ElevationAngle, this.OrbitalAngle, 0.0f), new Vector3(0.0f, 0.0f, -this.FollowDistance)));
+        this.desiredPosition = this.CameraTarget.position + Quaternion.Euler(this.ElevationAngle, this.OrbitalAngle, 0.0f) * new Vector3(0.0f, 0.0f, -this.FollowDistance);
       else if (this.CameraMode == CameraController.CameraModes.Follow)
-        this.desiredPosition = Vector3.op_Addition(this.CameraTarget.get_position(), this.CameraTarget.TransformDirection(Quaternion.op_Multiply(Quaternion.Euler(this.ElevationAngle, this.OrbitalAngle, 0.0f), new Vector3(0.0f, 0.0f, -this.FollowDistance))));
-      if (this.MovementSmoothing)
-        this.cameraTransform.set_position(Vector3.SmoothDamp(this.cameraTransform.get_position(), this.desiredPosition, ref this.currentVelocity, this.MovementSmoothingValue * Time.get_fixedDeltaTime()));
-      else
-        this.cameraTransform.set_position(this.desiredPosition);
+        this.desiredPosition = this.CameraTarget.position + this.CameraTarget.TransformDirection(Quaternion.Euler(this.ElevationAngle, this.OrbitalAngle, 0.0f) * new Vector3(0.0f, 0.0f, -this.FollowDistance));
+      this.cameraTransform.position = !this.MovementSmoothing ? this.desiredPosition : Vector3.SmoothDamp(this.cameraTransform.position, this.desiredPosition, ref this.currentVelocity, this.MovementSmoothingValue * Time.fixedDeltaTime);
       if (this.RotationSmoothing)
-        this.cameraTransform.set_rotation(Quaternion.Lerp(this.cameraTransform.get_rotation(), Quaternion.LookRotation(Vector3.op_Subtraction(this.CameraTarget.get_position(), this.cameraTransform.get_position())), this.RotationSmoothingValue * Time.get_deltaTime()));
+        this.cameraTransform.rotation = Quaternion.Lerp(this.cameraTransform.rotation, Quaternion.LookRotation(this.CameraTarget.position - this.cameraTransform.position), this.RotationSmoothingValue * Time.deltaTime);
       else
         this.cameraTransform.LookAt(this.CameraTarget);
     }
 
     private void GetPlayerInput()
     {
-      this.moveVector = Vector3.get_zero();
+      this.moveVector = Vector3.zero;
       this.mouseWheel = Input.GetAxis("Mouse ScrollWheel");
-      float touchCount = (float) Input.get_touchCount();
-      if (Input.GetKey((KeyCode) 304) || Input.GetKey((KeyCode) 303) || (double) touchCount > 0.0)
+      float touchCount = (float) Input.touchCount;
+      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || (double) touchCount > 0.0)
       {
         this.mouseWheel *= 10f;
-        if (Input.GetKeyDown((KeyCode) 105))
+        if (Input.GetKeyDown(KeyCode.I))
           this.CameraMode = CameraController.CameraModes.Isometric;
-        if (Input.GetKeyDown((KeyCode) 102))
+        if (Input.GetKeyDown(KeyCode.F))
           this.CameraMode = CameraController.CameraModes.Follow;
-        if (Input.GetKeyDown((KeyCode) 115))
+        if (Input.GetKeyDown(KeyCode.S))
           this.MovementSmoothing = !this.MovementSmoothing;
         if (Input.GetMouseButton(1))
         {
@@ -112,57 +101,52 @@ namespace TMPro.Examples
               this.OrbitalAngle += 360f;
           }
         }
-        if ((double) touchCount == 1.0)
+        if ((double) touchCount == 1.0 && Input.GetTouch(0).phase == TouchPhase.Moved)
         {
-          Touch touch1 = Input.GetTouch(0);
-          if (((Touch) ref touch1).get_phase() == 1)
+          Vector2 deltaPosition = Input.GetTouch(0).deltaPosition;
+          if ((double) deltaPosition.y > 0.00999999977648258 || (double) deltaPosition.y < -0.00999999977648258)
           {
-            Touch touch2 = Input.GetTouch(0);
-            Vector2 deltaPosition = ((Touch) ref touch2).get_deltaPosition();
-            if (deltaPosition.y > 0.00999999977648258 || deltaPosition.y < -0.00999999977648258)
-            {
-              this.ElevationAngle -= (float) (deltaPosition.y * 0.100000001490116);
-              this.ElevationAngle = Mathf.Clamp(this.ElevationAngle, this.MinElevationAngle, this.MaxElevationAngle);
-            }
-            if (deltaPosition.x > 0.00999999977648258 || deltaPosition.x < -0.00999999977648258)
-            {
-              this.OrbitalAngle += (float) (deltaPosition.x * 0.100000001490116);
-              if ((double) this.OrbitalAngle > 360.0)
-                this.OrbitalAngle -= 360f;
-              if ((double) this.OrbitalAngle < 0.0)
-                this.OrbitalAngle += 360f;
-            }
+            this.ElevationAngle -= deltaPosition.y * 0.1f;
+            this.ElevationAngle = Mathf.Clamp(this.ElevationAngle, this.MinElevationAngle, this.MaxElevationAngle);
+          }
+          if ((double) deltaPosition.x > 0.00999999977648258 || (double) deltaPosition.x < -0.00999999977648258)
+          {
+            this.OrbitalAngle += deltaPosition.x * 0.1f;
+            if ((double) this.OrbitalAngle > 360.0)
+              this.OrbitalAngle -= 360f;
+            if ((double) this.OrbitalAngle < 0.0)
+              this.OrbitalAngle += 360f;
           }
         }
-        RaycastHit raycastHit;
-        if (Input.GetMouseButton(0) && Physics.Raycast(Camera.get_main().ScreenPointToRay(Input.get_mousePosition()), ref raycastHit, 300f, 23552))
+        RaycastHit hitInfo;
+        if (Input.GetMouseButton(0) && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, 300f, 23552))
         {
-          if (Object.op_Equality((Object) ((RaycastHit) ref raycastHit).get_transform(), (Object) this.CameraTarget))
+          if ((Object) hitInfo.transform == (Object) this.CameraTarget)
           {
             this.OrbitalAngle = 0.0f;
           }
           else
           {
-            this.CameraTarget = ((RaycastHit) ref raycastHit).get_transform();
+            this.CameraTarget = hitInfo.transform;
             this.OrbitalAngle = 0.0f;
             this.MovementSmoothing = this.previousSmoothing;
           }
         }
         if (Input.GetMouseButton(2))
         {
-          if (Object.op_Equality((Object) this.dummyTarget, (Object) null))
+          if ((Object) this.dummyTarget == (Object) null)
           {
-            this.dummyTarget = new GameObject("Camera Target").get_transform();
-            this.dummyTarget.set_position(this.CameraTarget.get_position());
-            this.dummyTarget.set_rotation(this.CameraTarget.get_rotation());
+            this.dummyTarget = new GameObject("Camera Target").transform;
+            this.dummyTarget.position = this.CameraTarget.position;
+            this.dummyTarget.rotation = this.CameraTarget.rotation;
             this.CameraTarget = this.dummyTarget;
             this.previousSmoothing = this.MovementSmoothing;
             this.MovementSmoothing = false;
           }
-          else if (Object.op_Inequality((Object) this.dummyTarget, (Object) this.CameraTarget))
+          else if ((Object) this.dummyTarget != (Object) this.CameraTarget)
           {
-            this.dummyTarget.set_position(this.CameraTarget.get_position());
-            this.dummyTarget.set_rotation(this.CameraTarget.get_rotation());
+            this.dummyTarget.position = this.CameraTarget.position;
+            this.dummyTarget.rotation = this.CameraTarget.rotation;
             this.CameraTarget = this.dummyTarget;
             this.previousSmoothing = this.MovementSmoothing;
             this.MovementSmoothing = false;
@@ -170,18 +154,14 @@ namespace TMPro.Examples
           this.mouseY = Input.GetAxis("Mouse Y");
           this.mouseX = Input.GetAxis("Mouse X");
           this.moveVector = this.cameraTransform.TransformDirection(this.mouseX, this.mouseY, 0.0f);
-          this.dummyTarget.Translate(Vector3.op_UnaryNegation(this.moveVector), (Space) 0);
+          this.dummyTarget.Translate(-this.moveVector, Space.World);
         }
       }
       if ((double) touchCount == 2.0)
       {
         Touch touch1 = Input.GetTouch(0);
         Touch touch2 = Input.GetTouch(1);
-        Vector2 vector2_1 = Vector2.op_Subtraction(Vector2.op_Subtraction(((Touch) ref touch1).get_position(), ((Touch) ref touch1).get_deltaPosition()), Vector2.op_Subtraction(((Touch) ref touch2).get_position(), ((Touch) ref touch2).get_deltaPosition()));
-        float magnitude1 = ((Vector2) ref vector2_1).get_magnitude();
-        Vector2 vector2_2 = Vector2.op_Subtraction(((Touch) ref touch1).get_position(), ((Touch) ref touch2).get_position());
-        float magnitude2 = ((Vector2) ref vector2_2).get_magnitude();
-        float num = magnitude1 - magnitude2;
+        float num = (touch1.position - touch1.deltaPosition - (touch2.position - touch2.deltaPosition)).magnitude - (touch1.position - touch2.position).magnitude;
         if ((double) num > 0.00999999977648258 || (double) num < -0.00999999977648258)
         {
           this.FollowDistance += num * 0.25f;

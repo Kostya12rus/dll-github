@@ -10,38 +10,33 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Drawing_EnhancedComics : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 1f)]
+  public float DotSize = 0.15f;
+  [Range(0.0f, 1f)]
+  public float _ColorR = 0.9f;
+  [Range(0.0f, 1f)]
+  public float _ColorG = 0.4f;
+  [Range(0.0f, 1f)]
+  public float _ColorB = 0.4f;
+  [Range(0.0f, 1f)]
+  public float _Blood = 0.5f;
+  [Range(0.0f, 1f)]
+  public float _SmoothStart = 0.02f;
+  [Range(0.0f, 1f)]
+  public float _SmoothEnd = 0.1f;
+  public Color ColorRGB = new Color(1f, 0.0f, 0.0f);
   public Shader SCShader;
-  private float TimeX;
   private Material SCMaterial;
-  [Range(0.0f, 1f)]
-  public float DotSize;
-  [Range(0.0f, 1f)]
-  public float _ColorR;
-  [Range(0.0f, 1f)]
-  public float _ColorG;
-  [Range(0.0f, 1f)]
-  public float _ColorB;
-  [Range(0.0f, 1f)]
-  public float _Blood;
-  [Range(0.0f, 1f)]
-  public float _SmoothStart;
-  [Range(0.0f, 1f)]
-  public float _SmoothEnd;
-  public Color ColorRGB;
-
-  public CameraFilterPack_Drawing_EnhancedComics()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -50,16 +45,16 @@ public class CameraFilterPack_Drawing_EnhancedComics : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Drawing_EnhancedComics");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -83,7 +78,7 @@ public class CameraFilterPack_Drawing_EnhancedComics : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

@@ -17,11 +17,6 @@ public class TextLanguageReplacer : MonoBehaviour
   public string keyName;
   public int index;
 
-  public TextLanguageReplacer()
-  {
-    base.\u002Ector();
-  }
-
   public void UpdateString()
   {
     string str = TranslationReader.Get(this.keyName, this.index);
@@ -32,10 +27,10 @@ public class TextLanguageReplacer : MonoBehaviour
       Debug.Log((object) ("Missing translation! " + this.keyName + (object) this.index));
       str = this.englishVersion;
     }
-    if (Object.op_Inequality((Object) ((Component) this).GetComponent<TextMeshProUGUI>(), (Object) null))
-      ((TMP_Text) ((Component) this).GetComponent<TextMeshProUGUI>()).set_text(str);
+    if ((Object) this.GetComponent<TextMeshProUGUI>() != (Object) null)
+      this.GetComponent<TextMeshProUGUI>().text = str;
     else
-      ((Text) ((Component) this).GetComponent<Text>()).set_text(str);
+      this.GetComponent<Text>().text = str;
   }
 
   private void Awake()

@@ -10,13 +10,8 @@ using UnityEngine;
 
 public class RoundPlayerHistory : MonoBehaviour
 {
+  public List<RoundPlayerHistory.PlayerHistoryLog> historyLogs = new List<RoundPlayerHistory.PlayerHistoryLog>();
   public static RoundPlayerHistory singleton;
-  public List<RoundPlayerHistory.PlayerHistoryLog> historyLogs;
-
-  public RoundPlayerHistory()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {

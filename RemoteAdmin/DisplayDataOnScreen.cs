@@ -14,11 +14,6 @@ namespace RemoteAdmin
   {
     public static DisplayDataOnScreen singleton;
 
-    public DisplayDataOnScreen()
-    {
-      base.\u002Ector();
-    }
-
     private void Awake()
     {
       DisplayDataOnScreen.singleton = this;
@@ -26,17 +21,17 @@ namespace RemoteAdmin
 
     public void Show(Text text, string content)
     {
-      text.set_text(content);
+      text.text = content;
     }
 
     public void Show(TextMeshProUGUI text, string content)
     {
-      ((TMP_Text) text).set_text(content);
+      text.text = content;
     }
 
     public void Show(int menuId, string content)
     {
-      ((TMP_Text) ((SubmenuSelector) ((Component) this).GetComponent<SubmenuSelector>()).menus[menuId].optionalDisplay).set_text(content);
+      this.GetComponent<SubmenuSelector>().menus[menuId].optionalDisplay.text = content;
     }
   }
 }

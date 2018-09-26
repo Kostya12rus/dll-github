@@ -17,18 +17,13 @@ namespace IESLights
     private Material _fadeSpotlightEdgesMaterial;
     private Material _verticalFlipMaterial;
 
-    public IESToSpotlightCookie()
-    {
-      base.\u002Ector();
-    }
-
     private void OnDestroy()
     {
-      if (Object.op_Inequality((Object) this._spotlightMaterial, (Object) null))
+      if ((Object) this._spotlightMaterial != (Object) null)
         Object.Destroy((Object) this._spotlightMaterial);
-      if (Object.op_Inequality((Object) this._fadeSpotlightEdgesMaterial, (Object) null))
+      if ((Object) this._fadeSpotlightEdgesMaterial != (Object) null)
         Object.Destroy((Object) this._fadeSpotlightEdgesMaterial);
-      if (!Object.op_Inequality((Object) this._verticalFlipMaterial, (Object) null))
+      if (!((Object) this._verticalFlipMaterial != (Object) null))
         return;
       Object.Destroy((Object) this._verticalFlipMaterial);
     }
@@ -37,7 +32,7 @@ namespace IESLights
     {
       if (iesData.PhotometricType != PhotometricType.TypeA)
       {
-        if (Object.op_Equality((Object) this._spotlightMaterial, (Object) null))
+        if ((Object) this._spotlightMaterial == (Object) null)
           this._spotlightMaterial = new Material(Shader.Find("Hidden/IES/IESToSpotlightCookie"));
         this.CalculateAndSetSpotHeight(iesData);
         this.SetShaderKeywords(iesData, applyVignette);
@@ -45,11 +40,11 @@ namespace IESLights
       }
       else
       {
-        if (Object.op_Equality((Object) this._fadeSpotlightEdgesMaterial, (Object) null))
+        if ((Object) this._fadeSpotlightEdgesMaterial == (Object) null)
           this._fadeSpotlightEdgesMaterial = new Material(Shader.Find("Hidden/IES/FadeSpotlightCookieEdges"));
         float verticalCenter = !applyVignette ? 0.0f : this.CalculateCookieVerticalCenter(iesData);
-        Vector2 vector2 = !applyVignette ? Vector2.get_zero() : this.CalculateCookieFadeEllipse(iesData);
-        cookie = this.BlitToTargetSize(iesTexture, resolution, (float) vector2.x, (float) vector2.y, verticalCenter, applyVignette, flipVertically);
+        Vector2 vector2 = !applyVignette ? Vector2.zero : this.CalculateCookieFadeEllipse(iesData);
+        cookie = this.BlitToTargetSize(iesTexture, resolution, vector2.x, vector2.y, verticalCenter, applyVignette, flipVertically);
       }
     }
 
@@ -69,25 +64,25 @@ namespace IESLights
 
     private Texture2D CreateTexture(Texture2D iesTexture, int resolution, bool flipVertically)
     {
-      RenderTexture temporary1 = RenderTexture.GetTemporary(resolution, resolution, 0, (RenderTextureFormat) 11, (RenderTextureReadWrite) 1);
-      ((Texture) temporary1).set_filterMode((FilterMode) 2);
+      RenderTexture temporary1 = RenderTexture.GetTemporary(resolution, resolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+      temporary1.filterMode = FilterMode.Trilinear;
       temporary1.DiscardContents();
-      RenderTexture.set_active(temporary1);
+      RenderTexture.active = temporary1;
       Graphics.Blit((Texture) iesTexture, this._spotlightMaterial);
       if (flipVertically)
       {
-        RenderTexture temporary2 = RenderTexture.GetTemporary(resolution, resolution, 0, (RenderTextureFormat) 11, (RenderTextureReadWrite) 1);
+        RenderTexture temporary2 = RenderTexture.GetTemporary(resolution, resolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         Graphics.Blit((Texture) temporary1, temporary2);
         this.FlipVertically((Texture) temporary2, temporary1);
         RenderTexture.ReleaseTemporary(temporary2);
       }
-      Texture2D texture2D1 = new Texture2D(resolution, resolution, (TextureFormat) 20, false, true);
-      ((Texture) texture2D1).set_filterMode((FilterMode) 2);
+      Texture2D texture2D1 = new Texture2D(resolution, resolution, TextureFormat.RGBAFloat, false, true);
+      texture2D1.filterMode = FilterMode.Trilinear;
       Texture2D texture2D2 = texture2D1;
-      ((Texture) texture2D2).set_wrapMode((TextureWrapMode) 1);
+      texture2D2.wrapMode = TextureWrapMode.Clamp;
       texture2D2.ReadPixels(new Rect(0.0f, 0.0f, (float) resolution, (float) resolution), 0, 0);
       texture2D2.Apply();
-      RenderTexture.set_active((RenderTexture) null);
+      RenderTexture.active = (RenderTexture) null;
       RenderTexture.ReleaseTemporary(temporary1);
       return texture2D2;
     }
@@ -100,32 +95,32 @@ namespace IESLights
         this._fadeSpotlightEdgesMaterial.SetFloat("_VerticalFadeDistance", verticalFadeDistance);
         this._fadeSpotlightEdgesMaterial.SetFloat("_VerticalCenter", verticalCenter);
       }
-      RenderTexture temporary = RenderTexture.GetTemporary(resolution, resolution, 0, (RenderTextureFormat) 11, (RenderTextureReadWrite) 1);
-      ((Texture) temporary).set_filterMode((FilterMode) 2);
+      RenderTexture temporary = RenderTexture.GetTemporary(resolution, resolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+      temporary.filterMode = FilterMode.Trilinear;
       temporary.DiscardContents();
       if (applyVignette)
       {
-        RenderTexture.set_active(temporary);
+        RenderTexture.active = temporary;
         Graphics.Blit((Texture) iesTexture, this._fadeSpotlightEdgesMaterial);
       }
       else if (flipVertically)
         this.FlipVertically((Texture) iesTexture, temporary);
       else
         Graphics.Blit((Texture) iesTexture, temporary);
-      Texture2D texture2D1 = new Texture2D(resolution, resolution, (TextureFormat) 20, false, true);
-      ((Texture) texture2D1).set_filterMode((FilterMode) 2);
+      Texture2D texture2D1 = new Texture2D(resolution, resolution, TextureFormat.RGBAFloat, false, true);
+      texture2D1.filterMode = FilterMode.Trilinear;
       Texture2D texture2D2 = texture2D1;
-      ((Texture) texture2D2).set_wrapMode((TextureWrapMode) 1);
+      texture2D2.wrapMode = TextureWrapMode.Clamp;
       texture2D2.ReadPixels(new Rect(0.0f, 0.0f, (float) resolution, (float) resolution), 0, 0);
       texture2D2.Apply();
-      RenderTexture.set_active((RenderTexture) null);
+      RenderTexture.active = (RenderTexture) null;
       RenderTexture.ReleaseTemporary(temporary);
       return texture2D2;
     }
 
     private void FlipVertically(Texture iesTexture, RenderTexture renderTarget)
     {
-      if (Object.op_Equality((Object) this._verticalFlipMaterial, (Object) null))
+      if ((Object) this._verticalFlipMaterial == (Object) null)
         this._verticalFlipMaterial = new Material(Shader.Find("Hidden/IES/VerticalFlip"));
       Graphics.Blit(iesTexture, renderTarget, this._verticalFlipMaterial);
     }

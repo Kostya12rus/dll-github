@@ -11,11 +11,11 @@ using UnityEngine;
 [RequireComponent(typeof (SECTR_FPSController))]
 public class SECTR_DemoUI : MonoBehaviour
 {
+  protected SECTR_DemoUI.WatermarkLocation watermarkLocation = SECTR_DemoUI.WatermarkLocation.UpperRight;
+  private List<SECTR_DemoUI.DemoButton> demoButtons = new List<SECTR_DemoUI.DemoButton>(4);
   protected bool passedIntro;
   protected SECTR_FPSController cachedController;
   protected GUIStyle demoButtonStyle;
-  protected SECTR_DemoUI.WatermarkLocation watermarkLocation;
-  private List<SECTR_DemoUI.DemoButton> demoButtons;
   [SECTR_ToolTip("Texture to display as a watermark.")]
   public Texture2D Watermark;
   [SECTR_ToolTip("Link to a controllable ghost/spectator camera.")]
@@ -26,42 +26,37 @@ public class SECTR_DemoUI : MonoBehaviour
   [SECTR_ToolTip("Disables HUD for video captures.")]
   public bool CaptureMode;
 
-  public SECTR_DemoUI()
-  {
-    base.\u002Ector();
-  }
-
   public bool PipActive
   {
     get
     {
-      if (Object.op_Implicit((Object) this.PipController))
-        return ((Behaviour) this.PipController).get_enabled();
+      if ((bool) ((Object) this.PipController))
+        return this.PipController.enabled;
       return false;
     }
   }
 
   protected virtual void OnEnable()
   {
-    if (Object.op_Implicit((Object) this.PipController))
+    if ((bool) ((Object) this.PipController))
     {
-      ((Behaviour) this.PipController).set_enabled(false);
-      this.AddButton((KeyCode) 112, "Control Player", "Control PiP", new SECTR_DemoUI.DemoButtonPressedDelegate(this.PressedPip));
+      this.PipController.enabled = false;
+      this.AddButton(KeyCode.P, "Control Player", "Control PiP", new SECTR_DemoUI.DemoButtonPressedDelegate(this.PressedPip));
     }
-    this.cachedController = (SECTR_FPSController) ((Component) this).GetComponent<SECTR_FPSController>();
+    this.cachedController = this.GetComponent<SECTR_FPSController>();
     this.passedIntro = string.IsNullOrEmpty(this.DemoMessage) || this.CaptureMode;
     if (this.passedIntro)
       return;
-    ((Behaviour) this.cachedController).set_enabled(false);
-    if (!Object.op_Implicit((Object) this.PipController))
+    this.cachedController.enabled = false;
+    if (!(bool) ((Object) this.PipController))
       return;
-    ((Behaviour) ((Component) this.PipController).GetComponent<Camera>()).set_enabled(false);
+    this.PipController.GetComponent<Camera>().enabled = false;
   }
 
   protected virtual void OnDisable()
   {
-    if (Object.op_Implicit((Object) this.PipController))
-      ((Behaviour) this.PipController).set_enabled(false);
+    if ((bool) ((Object) this.PipController))
+      this.PipController.enabled = false;
     this.cachedController = (SECTR_FPSController) null;
     this.demoButtons.Clear();
   }
@@ -71,97 +66,92 @@ public class SECTR_DemoUI : MonoBehaviour
     if (this.CaptureMode)
       return;
     float num1 = 25f;
-    if (Object.op_Implicit((Object) this.Watermark))
+    if ((bool) ((Object) this.Watermark))
     {
-      float num2 = (float) Screen.get_height() * 0.1f;
-      float num3 = (float) ((Texture) this.Watermark).get_width() / (float) ((Texture) this.Watermark).get_height() * num2;
-      GUI.set_color(new Color(1f, 1f, 1f, 0.2f));
+      float height = (float) Screen.height * 0.1f;
+      float width = (float) this.Watermark.width / (float) this.Watermark.height * height;
+      GUI.color = new Color(1f, 1f, 1f, 0.2f);
       switch (this.watermarkLocation)
       {
         case SECTR_DemoUI.WatermarkLocation.UpperLeft:
-          GUI.DrawTexture(new Rect(num1, num1, num3, num2), (Texture) this.Watermark);
+          GUI.DrawTexture(new Rect(num1, num1, width, height), (Texture) this.Watermark);
           break;
         case SECTR_DemoUI.WatermarkLocation.UpperCenter:
-          GUI.DrawTexture(new Rect((float) ((double) Screen.get_width() * 0.5 - (double) num3 * 0.5), num1, num3, num2), (Texture) this.Watermark);
+          GUI.DrawTexture(new Rect((float) ((double) Screen.width * 0.5 - (double) width * 0.5), num1, width, height), (Texture) this.Watermark);
           break;
         case SECTR_DemoUI.WatermarkLocation.UpperRight:
-          GUI.DrawTexture(new Rect((float) Screen.get_width() - num1 - num3, num1, num3, num2), (Texture) this.Watermark);
+          GUI.DrawTexture(new Rect((float) Screen.width - num1 - width, num1, width, height), (Texture) this.Watermark);
           break;
       }
-      GUI.set_color(Color.get_white());
+      GUI.color = Color.white;
     }
     if (this.demoButtonStyle == null)
     {
-      this.demoButtonStyle = new GUIStyle(GUI.get_skin().get_box());
-      this.demoButtonStyle.set_alignment((TextAnchor) 1);
-      this.demoButtonStyle.set_wordWrap(true);
-      this.demoButtonStyle.set_fontSize(20);
-      this.demoButtonStyle.get_normal().set_textColor(Color.get_white());
+      this.demoButtonStyle = new GUIStyle(GUI.skin.box);
+      this.demoButtonStyle.alignment = TextAnchor.UpperCenter;
+      this.demoButtonStyle.wordWrap = true;
+      this.demoButtonStyle.fontSize = 20;
+      this.demoButtonStyle.normal.textColor = Color.white;
     }
     if (!this.passedIntro)
     {
-      Cursor.set_lockState((CursorLockMode) 1);
-      Cursor.set_visible(false);
+      Cursor.lockState = CursorLockMode.Locked;
+      Cursor.visible = false;
       string demoMessage = this.DemoMessage;
-      GUIContent guiContent = new GUIContent(!Input.get_multiTouchEnabled() || Application.get_isEditor() ? demoMessage + "\n\nPress Any Key to Continue" : demoMessage + "\n\nPress to Continue");
-      float num2 = (float) Screen.get_width() * 0.75f;
-      float num3 = this.demoButtonStyle.CalcHeight(guiContent, num2);
-      Rect rect;
-      ((Rect) ref rect).\u002Ector((float) ((double) Screen.get_width() * 0.5 - (double) num2 * 0.5), (float) ((double) Screen.get_height() * 0.5 - (double) num3 * 0.5), num2, num3);
-      GUI.Box(rect, guiContent, this.demoButtonStyle);
-      if (Event.get_current().get_type() != 4)
+      GUIContent content = new GUIContent(!Input.multiTouchEnabled || Application.isEditor ? demoMessage + "\n\nPress Any Key to Continue" : demoMessage + "\n\nPress to Continue");
+      float width = (float) Screen.width * 0.75f;
+      float height = this.demoButtonStyle.CalcHeight(content, width);
+      GUI.Box(new Rect((float) ((double) Screen.width * 0.5 - (double) width * 0.5), (float) ((double) Screen.height * 0.5 - (double) height * 0.5), width, height), content, this.demoButtonStyle);
+      if (Event.current.type != EventType.KeyDown)
         return;
       this.passedIntro = true;
-      ((Behaviour) this.cachedController).set_enabled(true);
-      if (!Object.op_Implicit((Object) this.PipController))
+      this.cachedController.enabled = true;
+      if (!(bool) ((Object) this.PipController))
         return;
-      ((Behaviour) ((Component) this.PipController).GetComponent<Camera>()).set_enabled(true);
+      this.PipController.GetComponent<Camera>().enabled = true;
     }
     else
     {
       if (this.demoButtons.Count <= 0)
         return;
       int count = this.demoButtons.Count;
-      float num2 = Mathf.Min(150f, (float) (Screen.get_width() / count) - num1 * 2f);
-      float num3 = (float) ((double) Screen.get_width() * 0.5 - ((double) count * (double) num2 + (double) (count - 1) * (double) num1) * 0.5);
+      float width1 = Mathf.Min(150f, (float) (Screen.width / count) - num1 * 2f);
+      float num2 = (float) ((double) Screen.width * 0.5 - ((double) count * (double) width1 + (double) (count - 1) * (double) num1) * 0.5);
       for (int index = 0; index < count; ++index)
       {
         SECTR_DemoUI.DemoButton demoButton = this.demoButtons[index];
-        bool flag = Input.get_multiTouchEnabled() && !Application.get_isEditor();
-        string str = demoButton.key.ToString();
-        switch (demoButton.key - 48)
+        bool flag = Input.multiTouchEnabled && !Application.isEditor;
+        string text = demoButton.key.ToString();
+        switch (demoButton.key)
         {
-          case 0:
-          case 1:
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 6:
-          case 7:
-          case 8:
-          case 9:
-            str = str.Replace("Alpha", string.Empty);
+          case KeyCode.Alpha0:
+          case KeyCode.Alpha1:
+          case KeyCode.Alpha2:
+          case KeyCode.Alpha3:
+          case KeyCode.Alpha4:
+          case KeyCode.Alpha5:
+          case KeyCode.Alpha6:
+          case KeyCode.Alpha7:
+          case KeyCode.Alpha8:
+          case KeyCode.Alpha9:
+            text = text.Replace("Alpha", string.Empty);
             break;
         }
-        GUIContent guiContent1 = new GUIContent(str);
-        float num4 = !flag ? 5f : 0.0f;
-        float num5 = 50f;
-        float num6 = !flag ? this.demoButtonStyle.CalcHeight(guiContent1, num5) : 0.0f;
-        GUIContent guiContent2 = new GUIContent(!demoButton.active ? demoButton.inactiveHint : demoButton.activeHint);
-        float num7 = this.demoButtonStyle.CalcHeight(guiContent2, num2);
-        Rect rect1;
-        ((Rect) ref rect1).\u002Ector(num3 + (num2 + num1) * (float) index, (float) Screen.get_height() - num7 - num4 - num6 - num1, num2, num7);
+        GUIContent content1 = new GUIContent(text);
+        float num3 = !flag ? 5f : 0.0f;
+        float width2 = 50f;
+        float height1 = !flag ? this.demoButtonStyle.CalcHeight(content1, width2) : 0.0f;
+        GUIContent content2 = new GUIContent(!demoButton.active ? demoButton.inactiveHint : demoButton.activeHint);
+        float height2 = this.demoButtonStyle.CalcHeight(content2, width1);
+        Rect position = new Rect(num2 + (width1 + num1) * (float) index, (float) Screen.height - height2 - num3 - height1 - num1, width1, height2);
         if (flag && !demoButton.pressed)
-          demoButton.pressed = GUI.Button(rect1, guiContent2, this.demoButtonStyle);
+          demoButton.pressed = GUI.Button(position, content2, this.demoButtonStyle);
         else if (!flag)
         {
-          GUI.Box(rect1, guiContent2, this.demoButtonStyle);
-          Rect rect2;
-          ((Rect) ref rect2).\u002Ector((float) ((double) num3 + ((double) num2 + (double) num1) * (double) index + (double) num2 * 0.5 - (double) num5 * 0.5), (float) Screen.get_height() - num6 - num1, num5, num6);
-          GUI.Box(rect2, guiContent1, this.demoButtonStyle);
+          GUI.Box(position, content2, this.demoButtonStyle);
+          GUI.Box(new Rect((float) ((double) num2 + ((double) width1 + (double) num1) * (double) index + (double) width1 * 0.5 - (double) width2 * 0.5), (float) Screen.height - height1 - num1, width2, height1), content1, this.demoButtonStyle);
         }
-        if (demoButton.pressed || Event.get_current().get_type() == 5 && Event.get_current().get_keyCode() == demoButton.key)
+        if (demoButton.pressed || Event.current.type == EventType.KeyUp && Event.current.keyCode == demoButton.key)
         {
           demoButton.pressed = false;
           demoButton.active = !demoButton.active;
@@ -181,13 +171,13 @@ public class SECTR_DemoUI : MonoBehaviour
   {
     if (this.PipActive)
     {
-      ((Behaviour) this.PipController).set_enabled(false);
-      ((Behaviour) this.cachedController).set_enabled(true);
+      this.PipController.enabled = false;
+      this.cachedController.enabled = true;
     }
     else
     {
-      ((Behaviour) this.PipController).set_enabled(true);
-      ((Behaviour) this.cachedController).set_enabled(false);
+      this.PipController.enabled = true;
+      this.cachedController.enabled = false;
     }
   }
 

@@ -5,7 +5,6 @@
 // Assembly location: C:\Users\Kostya12rus\Desktop\Cheat\TextureLoger\Assembly-CSharp.dll
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -17,21 +16,16 @@ public class Medkit : NetworkBehaviour
   private PlayerStats ps;
   private KeyCode fireCode;
 
-  public Medkit()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.inv = (Inventory) ((Component) this).GetComponent<Inventory>();
-    this.ps = (PlayerStats) ((Component) this).GetComponent<PlayerStats>();
+    this.inv = this.GetComponent<Inventory>();
+    this.ps = this.GetComponent<PlayerStats>();
     this.fireCode = NewInput.GetKey("Shoot");
   }
 
   private void Update()
   {
-    if (!Input.GetKeyDown(this.fireCode) || Cursor.get_visible() || ((double) Inventory.inventoryCooldown >= 0.0 || this.ps.health >= this.ps.maxHP))
+    if (!Input.GetKeyDown(this.fireCode) || Cursor.visible || ((double) Inventory.inventoryCooldown >= 0.0 || this.ps.health >= this.ps.maxHP))
       return;
     for (int id = 0; id < this.Medkits.Length; ++id)
     {
@@ -47,17 +41,13 @@ public class Medkit : NetworkBehaviour
   [Command(channel = 2)]
   private void CmdUseMedkit(int id)
   {
-    using (IEnumerator<Inventory.SyncItemInfo> enumerator = ((SyncList<Inventory.SyncItemInfo>) this.inv.items).GetEnumerator())
+    foreach (Inventory.SyncItemInfo syncItemInfo in (SyncList<Inventory.SyncItemInfo>) this.inv.items)
     {
-      while (enumerator.MoveNext())
+      if (syncItemInfo.id == this.Medkits[id].InventoryID)
       {
-        Inventory.SyncItemInfo current = enumerator.Current;
-        if (current.id == this.Medkits[id].InventoryID)
-        {
-          this.ps.Networkhealth = Mathf.Clamp(this.ps.health + Random.Range(this.Medkits[id].MinimumHealthRegeneration, this.Medkits[id].MaximumHealthRegeneration), 0, this.ps.ccm.klasy[this.ps.ccm.curClass].maxHP);
-          ((SyncList<Inventory.SyncItemInfo>) this.inv.items).Remove(current);
-          break;
-        }
+        this.ps.Networkhealth = Mathf.Clamp(this.ps.health + Random.Range(this.Medkits[id].MinimumHealthRegeneration, this.Medkits[id].MaximumHealthRegeneration), 0, this.ps.ccm.klasy[this.ps.ccm.curClass].maxHP);
+        this.inv.items.Remove(syncItemInfo);
+        break;
       }
     }
   }
@@ -68,7 +58,7 @@ public class Medkit : NetworkBehaviour
 
   protected static void InvokeCmdCmdUseMedkit(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdUseMedkit called on client.");
     else
       ((Medkit) obj).CmdUseMedkit((int) reader.ReadPackedUInt32());
@@ -76,38 +66,37 @@ public class Medkit : NetworkBehaviour
 
   public void CallCmdUseMedkit(int id)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdUseMedkit called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdUseMedkit(id);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Medkit.kCmdCmdUseMedkit);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) id);
-      this.SendCommandInternal(networkWriter, 2, "CmdUseMedkit");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Medkit.kCmdCmdUseMedkit);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) id);
+      this.SendCommandInternal(writer, 2, "CmdUseMedkit");
     }
   }
 
   static Medkit()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Medkit), Medkit.kCmdCmdUseMedkit, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdUseMedkit)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Medkit), Medkit.kCmdCmdUseMedkit, new NetworkBehaviour.CmdDelegate(Medkit.InvokeCmdCmdUseMedkit));
     NetworkCRC.RegisterBehaviour(nameof (Medkit), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 

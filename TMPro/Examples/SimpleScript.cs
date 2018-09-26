@@ -14,24 +14,19 @@ namespace TMPro.Examples
     private const string label = "The <#0050FF>count is: </color>{0:2}";
     private float m_frame;
 
-    public SimpleScript()
-    {
-      base.\u002Ector();
-    }
-
     private void Start()
     {
-      this.m_textMeshPro = (TextMeshPro) ((Component) this).get_gameObject().AddComponent<TextMeshPro>();
-      ((TMP_Text) this.m_textMeshPro).set_autoSizeTextContainer(true);
-      ((TMP_Text) this.m_textMeshPro).set_fontSize(48f);
-      ((TMP_Text) this.m_textMeshPro).set_alignment((TextAlignmentOptions) 514);
-      ((TMP_Text) this.m_textMeshPro).set_enableWordWrapping(false);
+      this.m_textMeshPro = this.gameObject.AddComponent<TextMeshPro>();
+      this.m_textMeshPro.autoSizeTextContainer = true;
+      this.m_textMeshPro.fontSize = 48f;
+      this.m_textMeshPro.alignment = TextAlignmentOptions.Center;
+      this.m_textMeshPro.enableWordWrapping = false;
     }
 
     private void Update()
     {
-      ((TMP_Text) this.m_textMeshPro).SetText("The <#0050FF>count is: </color>{0:2}", this.m_frame % 1000f);
-      this.m_frame += 1f * Time.get_deltaTime();
+      this.m_textMeshPro.SetText("The <#0050FF>count is: </color>{0:2}", this.m_frame % 1000f);
+      this.m_frame += 1f * Time.deltaTime;
     }
   }
 }

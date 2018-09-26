@@ -17,14 +17,9 @@ public class TextureAnimator : MonoBehaviour
   public Light optionalLight;
   public int lightRange;
 
-  public TextureAnimator()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    Timing.RunCoroutine(this._Animate(), (Segment) 1);
+    Timing.RunCoroutine(this._Animate(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]

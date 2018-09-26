@@ -8,17 +8,12 @@ using UnityEngine;
 
 public class TextMessage : MonoBehaviour
 {
-  public float spacing;
-  public float xOffset;
-  public float lerpSpeed;
+  public float spacing = 15.5f;
+  public float xOffset = 3f;
+  public float lerpSpeed = 3f;
   public float position;
   public float remainingLife;
   private CanvasRenderer r;
-
-  public TextMessage()
-  {
-    base.\u002Ector();
-  }
 
   private Vector3 GetPosition()
   {
@@ -27,14 +22,14 @@ public class TextMessage : MonoBehaviour
 
   private void Start()
   {
-    this.r = (CanvasRenderer) ((Component) this).GetComponent<CanvasRenderer>();
-    ((Component) this).get_transform().set_localPosition(Vector3.op_Addition(this.GetPosition(), Vector3.op_Multiply(Vector3.get_down(), this.spacing)));
+    this.r = this.GetComponent<CanvasRenderer>();
+    this.transform.localPosition = this.GetPosition() + Vector3.down * this.spacing;
   }
 
   private void Update()
   {
-    this.remainingLife -= Time.get_deltaTime();
+    this.remainingLife -= Time.deltaTime;
     this.r.SetAlpha(Mathf.Clamp01(this.remainingLife * 2f));
-    ((Component) this).get_transform().set_localPosition(Vector3.Lerp(((Component) this).get_transform().get_localPosition(), this.GetPosition(), Time.get_deltaTime() * this.lerpSpeed));
+    this.transform.localPosition = Vector3.Lerp(this.transform.localPosition, this.GetPosition(), Time.deltaTime * this.lerpSpeed);
   }
 }

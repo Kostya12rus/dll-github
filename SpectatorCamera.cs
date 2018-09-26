@@ -12,9 +12,4 @@ public class SpectatorCamera : MonoBehaviour
   public Camera freeCam;
   public Camera cam079;
   public Camera cam079_glow;
-
-  public SpectatorCamera()
-  {
-    base.\u002Ector();
-  }
 }

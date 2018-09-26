@@ -10,34 +10,29 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Glow_Glow_Color : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
-  private Material SCMaterial;
+  private float TimeX = 1f;
   [Range(0.0f, 20f)]
-  public float Amount;
+  public float Amount = 4f;
   [Range(2f, 16f)]
-  public int FastFilter;
+  public int FastFilter = 4;
   [Range(0.0f, 1f)]
-  public float Threshold;
+  public float Threshold = 0.5f;
   [Range(0.0f, 3f)]
-  public float Intensity;
+  public float Intensity = 2.25f;
   [Range(-1f, 1f)]
-  public float Precision;
-  public Color GlowColor;
-
-  public CameraFilterPack_Glow_Glow_Color()
-  {
-    base.\u002Ector();
-  }
+  public float Precision = 0.56f;
+  public Color GlowColor = new Color(0.0f, 0.7f, 1f, 1f);
+  public Shader SCShader;
+  private Material SCMaterial;
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -46,17 +41,17 @@ public class CameraFilterPack_Glow_Glow_Color : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Glow_Glow_Color");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
       int fastFilter = this.FastFilter;
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -65,14 +60,14 @@ public class CameraFilterPack_Glow_Glow_Color : MonoBehaviour
       this.material.SetFloat("_Value2", this.Intensity);
       this.material.SetFloat("_Value3", this.Precision);
       this.material.SetColor("_GlowColor", this.GlowColor);
-      this.material.SetVector("_ScreenResolution", Vector4.op_Implicit(new Vector2((float) (Screen.get_width() / fastFilter), (float) (Screen.get_height() / fastFilter))));
-      int num1 = ((Texture) sourceTexture).get_width() / fastFilter;
-      int num2 = ((Texture) sourceTexture).get_height() / fastFilter;
+      this.material.SetVector("_ScreenResolution", (Vector4) new Vector2((float) (Screen.width / fastFilter), (float) (Screen.height / fastFilter)));
+      int width = sourceTexture.width / fastFilter;
+      int height = sourceTexture.height / fastFilter;
       if (this.FastFilter > 1)
       {
-        RenderTexture temporary1 = RenderTexture.GetTemporary(num1, num2, 0);
-        RenderTexture temporary2 = RenderTexture.GetTemporary(num1, num2, 0);
-        ((Texture) temporary1).set_filterMode((FilterMode) 2);
+        RenderTexture temporary1 = RenderTexture.GetTemporary(width, height, 0);
+        RenderTexture temporary2 = RenderTexture.GetTemporary(width, height, 0);
+        temporary1.filterMode = FilterMode.Trilinear;
         Graphics.Blit((Texture) sourceTexture, temporary1, this.material, 3);
         Graphics.Blit((Texture) temporary1, temporary2, this.material, 2);
         Graphics.Blit((Texture) temporary2, temporary1, this.material, 0);
@@ -97,7 +92,7 @@ public class CameraFilterPack_Glow_Glow_Color : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

@@ -10,13 +10,13 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Blend2Camera_GreenScreen : MonoBehaviour
 {
-  private string ShaderName;
+  private string ShaderName = "CameraFilterPack/Blend2Camera_GreenScreen";
+  private float TimeX = 1f;
+  [Range(0.0f, 1f)]
+  public float BlendFX = 1f;
   public Shader SCShader;
   public Camera Camera2;
-  private float TimeX;
   private Material SCMaterial;
-  [Range(0.0f, 1f)]
-  public float BlendFX;
   [Range(-0.2f, 0.2f)]
   public float Adjust;
   [Range(-0.2f, 0.2f)]
@@ -32,19 +32,14 @@ public class CameraFilterPack_Blend2Camera_GreenScreen : MonoBehaviour
   private RenderTexture Camera2tex;
   private Vector2 ScreenSize;
 
-  public CameraFilterPack_Blend2Camera_GreenScreen()
-  {
-    base.\u002Ector();
-  }
-
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -52,25 +47,25 @@ public class CameraFilterPack_Blend2Camera_GreenScreen : MonoBehaviour
 
   private void Start()
   {
-    if (Object.op_Inequality((Object) this.Camera2, (Object) null))
+    if ((Object) this.Camera2 != (Object) null)
     {
       this.Camera2tex = new RenderTexture((int) this.ScreenSize.x, (int) this.ScreenSize.y, 24);
-      this.Camera2.set_targetTexture(this.Camera2tex);
+      this.Camera2.targetTexture = this.Camera2tex;
     }
     this.SCShader = Shader.Find(this.ShaderName);
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
-      if (Object.op_Inequality((Object) this.Camera2, (Object) null))
+      if ((Object) this.Camera2 != (Object) null)
         this.material.SetTexture("_MainTex2", (Texture) this.Camera2tex);
       this.material.SetFloat("_TimeX", this.TimeX);
       this.material.SetFloat("_Value", this.BlendFX);
@@ -88,9 +83,9 @@ public class CameraFilterPack_Blend2Camera_GreenScreen : MonoBehaviour
 
   private void Update()
   {
-    this.ScreenSize.x = (__Null) (double) Screen.get_width();
-    this.ScreenSize.y = (__Null) (double) Screen.get_height();
-    if (Application.get_isPlaying())
+    this.ScreenSize.x = (float) Screen.width;
+    this.ScreenSize.y = (float) Screen.height;
+    if (Application.isPlaying)
       ;
   }
 
@@ -102,9 +97,9 @@ public class CameraFilterPack_Blend2Camera_GreenScreen : MonoBehaviour
 
   private void OnDisable()
   {
-    if (Object.op_Inequality((Object) this.Camera2, (Object) null) && Object.op_Inequality((Object) this.Camera2.get_targetTexture(), (Object) null))
-      this.Camera2.set_targetTexture((RenderTexture) null);
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if ((Object) this.Camera2 != (Object) null && (Object) this.Camera2.targetTexture != (Object) null)
+      this.Camera2.targetTexture = (RenderTexture) null;
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

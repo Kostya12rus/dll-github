@@ -10,9 +10,4 @@ using UnityEngine.UI;
 public class ResolutionText : MonoBehaviour
 {
   public Text txt;
-
-  public ResolutionText()
-  {
-    base.\u002Ector();
-  }
 }

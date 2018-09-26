@@ -25,22 +25,21 @@ namespace UnitySA.Utility
     public void Setup(Camera camera, float bobBaseInterval)
     {
       this.m_BobBaseInterval = bobBaseInterval;
-      this.m_OriginalCameraPosition = ((Component) camera).get_transform().get_localPosition();
-      Keyframe keyframe = this.Bobcurve.get_Item(this.Bobcurve.get_length() - 1);
-      this.m_Time = ((Keyframe) ref keyframe).get_time();
+      this.m_OriginalCameraPosition = camera.transform.localPosition;
+      this.m_Time = this.Bobcurve[this.Bobcurve.length - 1].time;
     }
 
     public Vector3 DoHeadBob(float speed)
     {
-      float num1 = (float) (this.m_OriginalCameraPosition.x + (double) this.Bobcurve.Evaluate(this.m_CyclePositionX) * (double) this.HorizontalBobRange);
-      float num2 = (float) (this.m_OriginalCameraPosition.y + (double) this.Bobcurve.Evaluate(this.m_CyclePositionY) * (double) this.VerticalBobRange);
-      this.m_CyclePositionX += speed * Time.get_deltaTime() / this.m_BobBaseInterval;
-      this.m_CyclePositionY += speed * Time.get_deltaTime() / this.m_BobBaseInterval * this.VerticaltoHorizontalRatio;
+      float x = this.m_OriginalCameraPosition.x + this.Bobcurve.Evaluate(this.m_CyclePositionX) * this.HorizontalBobRange;
+      float y = this.m_OriginalCameraPosition.y + this.Bobcurve.Evaluate(this.m_CyclePositionY) * this.VerticalBobRange;
+      this.m_CyclePositionX += speed * Time.deltaTime / this.m_BobBaseInterval;
+      this.m_CyclePositionY += speed * Time.deltaTime / this.m_BobBaseInterval * this.VerticaltoHorizontalRatio;
       if ((double) this.m_CyclePositionX > (double) this.m_Time)
         this.m_CyclePositionX -= this.m_Time;
       if ((double) this.m_CyclePositionY > (double) this.m_Time)
         this.m_CyclePositionY -= this.m_Time;
-      return new Vector3(num1, num2, 0.0f);
+      return new Vector3(x, y, 0.0f);
     }
   }
 }

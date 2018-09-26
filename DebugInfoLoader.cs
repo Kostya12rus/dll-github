@@ -29,38 +29,28 @@ public class DebugInfoLoader : MonoBehaviour
   public Text GameScene;
   public Text Errors;
 
-  public DebugInfoLoader()
-  {
-    base.\u002Ector();
-  }
-
   private void OnEnable()
   {
-    this.GPU.set_text(SystemInfo.get_graphicsDeviceName());
-    this.GPUMemory.set_text("VRAM: " + (object) SystemInfo.get_graphicsMemorySize() + "MB");
-    this.ShaderLevel.set_text("ShaderLevel " + SystemInfo.get_graphicsShaderLevel().ToString().Insert(1, "."));
-    this.GraphicAPI.set_text(SystemInfo.get_graphicsDeviceType().ToString() + " " + SystemInfo.get_graphicsDeviceVersion());
-    this.Resolution.set_text(Screen.get_width().ToString() + "x" + (object) Screen.get_height() + "  " + (object) Application.get_targetFrameRate());
-    this.Fullscreen.set_text("Fullscreen: " + (object) ResolutionManager.fullscreen);
-    this.CPU.set_text(SystemInfo.get_processorType());
-    this.CPUThreadsAndFrequency.set_text("Threads: " + (object) SystemInfo.get_processorCount() + "   " + (object) SystemInfo.get_processorFrequency() + "MHz");
-    this.RAM.set_text("RAM: " + (object) SystemInfo.get_systemMemorySize() + "MB");
-    this.Audio.set_text("Audio Supported: " + (object) SystemInfo.get_supportsAudio());
-    this.OS.set_text(SystemInfo.get_operatingSystem().Replace("  ", " "));
-    this.Steam.set_text("Steam Loaded: " + (object) SteamManager.Initialized);
-    this.UnityVersion.set_text("Unity " + Application.get_unityVersion());
-    this.GameVersion.set_text("Version: " + ((CustomNetworkManager) Object.FindObjectOfType<CustomNetworkManager>()).CompatibleVersions[0]);
-    string str1 = Application.get_buildGUID();
-    if (string.IsNullOrEmpty(str1))
-      str1 = "Unity Editor";
-    this.Build.set_text("Build: " + str1);
-    this.GameLanguage.set_text("Language:" + PlayerPrefs.GetString("translation_path", "English (default)"));
-    Text gameScene = this.GameScene;
-    string str2 = "Scene: ";
-    Scene activeScene = SceneManager.GetActiveScene();
-    string name = ((Scene) ref activeScene).get_name();
-    string str3 = str2 + name;
-    gameScene.set_text(str3);
-    this.Errors.set_text("Asserts: " + (object) DebugScreenController.asserts + " Errors: " + (object) DebugScreenController.errors + " Exceptions: " + (object) DebugScreenController.exceptions);
+    this.GPU.text = SystemInfo.graphicsDeviceName;
+    this.GPUMemory.text = "VRAM: " + (object) SystemInfo.graphicsMemorySize + "MB";
+    this.ShaderLevel.text = "ShaderLevel " + SystemInfo.graphicsShaderLevel.ToString().Insert(1, ".");
+    this.GraphicAPI.text = ((int) SystemInfo.graphicsDeviceType).ToString() + " " + SystemInfo.graphicsDeviceVersion;
+    this.Resolution.text = Screen.width.ToString() + "x" + (object) Screen.height + "  " + (object) Application.targetFrameRate;
+    this.Fullscreen.text = "Fullscreen: " + (object) ResolutionManager.fullscreen;
+    this.CPU.text = SystemInfo.processorType;
+    this.CPUThreadsAndFrequency.text = "Threads: " + (object) SystemInfo.processorCount + "   " + (object) SystemInfo.processorFrequency + "MHz";
+    this.RAM.text = "RAM: " + (object) SystemInfo.systemMemorySize + "MB";
+    this.Audio.text = "Audio Supported: " + (object) SystemInfo.supportsAudio;
+    this.OS.text = SystemInfo.operatingSystem.Replace("  ", " ");
+    this.Steam.text = "Steam Loaded: " + (object) SteamManager.Initialized;
+    this.UnityVersion.text = "Unity " + Application.unityVersion;
+    this.GameVersion.text = "Version: " + Object.FindObjectOfType<CustomNetworkManager>().CompatibleVersions[0];
+    string str = Application.buildGUID;
+    if (string.IsNullOrEmpty(str))
+      str = "Unity Editor";
+    this.Build.text = "Build: " + str;
+    this.GameLanguage.text = "Language:" + PlayerPrefs.GetString("translation_path", "English (default)");
+    this.GameScene.text = "Scene: " + SceneManager.GetActiveScene().name;
+    this.Errors.text = "Asserts: " + (object) DebugScreenController.asserts + " Errors: " + (object) DebugScreenController.errors + " Exceptions: " + (object) DebugScreenController.exceptions;
   }
 }

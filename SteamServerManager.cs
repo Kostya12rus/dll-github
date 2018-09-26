@@ -13,11 +13,6 @@ public class SteamServerManager : MonoBehaviour
   private bool _gsInitialized;
   private Callback<SteamServersConnected_t> Callback_ServerConnected;
 
-  public SteamServerManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     SteamServerManager.Instance = this;

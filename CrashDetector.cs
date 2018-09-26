@@ -14,11 +14,6 @@ public class CrashDetector : MonoBehaviour
   public GameObject root;
   public static CrashDetector singleton;
 
-  public CrashDetector()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     CrashDetector.singleton = this;
@@ -26,7 +21,7 @@ public class CrashDetector : MonoBehaviour
 
   public static bool Show()
   {
-    if (!SystemInfo.get_graphicsDeviceName().ToUpper().Contains("INTEL") || PlayerPrefs.GetInt("intel_warning") == 1)
+    if (!SystemInfo.graphicsDeviceName.ToUpper().Contains("INTEL") || PlayerPrefs.GetInt("intel_warning") == 1)
       return false;
     PlayerPrefs.SetInt("intel_warning", 1);
     CrashDetector.singleton.RunCoroutine(CrashDetector.singleton._IShow());
@@ -35,16 +30,13 @@ public class CrashDetector : MonoBehaviour
 
   public void RunCoroutine(IEnumerator<float> coroutine)
   {
-    Timing.RunCoroutine(coroutine, (Segment) 1);
+    Timing.RunCoroutine(coroutine, Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   public IEnumerator<float> _IShow()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new CrashDetector.\u003C_IShow\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new CrashDetector.\u003C_IShow\u003Ec__Iterator0() { \u0024this = this };
   }
 }

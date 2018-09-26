@@ -10,8 +10,4 @@ using UnityEngine.Events;
 [Serializable]
 public class DiscordJoinRequestEvent : UnityEvent<DiscordRpc.JoinRequest>
 {
-  public DiscordJoinRequestEvent()
-  {
-    base.\u002Ector();
-  }
 }

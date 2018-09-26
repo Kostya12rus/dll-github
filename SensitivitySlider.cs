@@ -12,20 +12,15 @@ public class SensitivitySlider : MonoBehaviour
 {
   public Slider slider;
 
-  public SensitivitySlider()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.OnValueChanged(PlayerPrefs.GetFloat("Sens", 1f));
-    this.slider.set_value(PlayerPrefs.GetFloat("Sens", 1f));
+    this.slider.value = PlayerPrefs.GetFloat("Sens", 1f);
   }
 
   public void OnValueChanged(float vol)
   {
     PlayerPrefs.SetFloat("Sens", vol);
-    Sensitivity.sens = (__Null) (double) this.slider.get_value();
+    Sensitivity.sens = this.slider.value;
   }
 }

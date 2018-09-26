@@ -26,58 +26,57 @@ namespace UnityEngine.PostProcessing
     {
       BloomModel.BloomSettings bloom = this.model.settings.bloom;
       BloomModel.LensDirtSettings lensDirt = this.model.settings.lensDirt;
-      Material material = this.context.materialFactory.Get("Hidden/Post FX/Bloom");
-      material.set_shaderKeywords((string[]) null);
-      material.SetTexture(BloomComponent.Uniforms._AutoExposure, autoExposure);
+      Material mat = this.context.materialFactory.Get("Hidden/Post FX/Bloom");
+      mat.shaderKeywords = (string[]) null;
+      mat.SetTexture(BloomComponent.Uniforms._AutoExposure, autoExposure);
       int width = this.context.width / 2;
       int height = this.context.height / 2;
-      RenderTextureFormat format = !Application.get_isMobilePlatform() ? (RenderTextureFormat) 9 : (RenderTextureFormat) 7;
+      RenderTextureFormat format = !Application.isMobilePlatform ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
       float num1 = (float) ((double) Mathf.Log((float) height, 2f) + (double) bloom.radius - 8.0);
       int num2 = (int) num1;
       int num3 = Mathf.Clamp(num2, 1, 16);
       float thresholdLinear = bloom.thresholdLinear;
-      material.SetFloat(BloomComponent.Uniforms._Threshold, thresholdLinear);
+      mat.SetFloat(BloomComponent.Uniforms._Threshold, thresholdLinear);
       float num4 = (float) ((double) thresholdLinear * (double) bloom.softKnee + 9.99999974737875E-06);
-      Vector3 vector3;
-      ((Vector3) ref vector3).\u002Ector(thresholdLinear - num4, num4 * 2f, 0.25f / num4);
-      material.SetVector(BloomComponent.Uniforms._Curve, Vector4.op_Implicit(vector3));
-      material.SetFloat(BloomComponent.Uniforms._PrefilterOffs, !bloom.antiFlicker ? 0.0f : -0.5f);
-      float num5 = 0.5f + num1 - (float) num2;
-      material.SetFloat(BloomComponent.Uniforms._SampleScale, num5);
+      Vector3 vector3 = new Vector3(thresholdLinear - num4, num4 * 2f, 0.25f / num4);
+      mat.SetVector(BloomComponent.Uniforms._Curve, (Vector4) vector3);
+      mat.SetFloat(BloomComponent.Uniforms._PrefilterOffs, !bloom.antiFlicker ? 0.0f : -0.5f);
+      float x = 0.5f + num1 - (float) num2;
+      mat.SetFloat(BloomComponent.Uniforms._SampleScale, x);
       if (bloom.antiFlicker)
-        material.EnableKeyword("ANTI_FLICKER");
-      RenderTexture rt = this.context.renderTextureFactory.Get(width, height, 0, format, (RenderTextureReadWrite) 0, (FilterMode) 1, (TextureWrapMode) 1, "FactoryTempTexture");
-      Graphics.Blit((Texture) source, rt, material, 0);
-      RenderTexture renderTexture1 = rt;
+        mat.EnableKeyword("ANTI_FLICKER");
+      RenderTexture renderTexture1 = this.context.renderTextureFactory.Get(width, height, 0, format, RenderTextureReadWrite.Default, FilterMode.Bilinear, TextureWrapMode.Clamp, "FactoryTempTexture");
+      Graphics.Blit((Texture) source, renderTexture1, mat, 0);
+      RenderTexture renderTexture2 = renderTexture1;
       for (int index = 0; index < num3; ++index)
       {
-        this.m_BlurBuffer1[index] = this.context.renderTextureFactory.Get(((Texture) renderTexture1).get_width() / 2, ((Texture) renderTexture1).get_height() / 2, 0, format, (RenderTextureReadWrite) 0, (FilterMode) 1, (TextureWrapMode) 1, "FactoryTempTexture");
-        int num6 = index != 0 ? 2 : 1;
-        Graphics.Blit((Texture) renderTexture1, this.m_BlurBuffer1[index], material, num6);
-        renderTexture1 = this.m_BlurBuffer1[index];
+        this.m_BlurBuffer1[index] = this.context.renderTextureFactory.Get(renderTexture2.width / 2, renderTexture2.height / 2, 0, format, RenderTextureReadWrite.Default, FilterMode.Bilinear, TextureWrapMode.Clamp, "FactoryTempTexture");
+        int pass = index != 0 ? 2 : 1;
+        Graphics.Blit((Texture) renderTexture2, this.m_BlurBuffer1[index], mat, pass);
+        renderTexture2 = this.m_BlurBuffer1[index];
       }
       for (int index = num3 - 2; index >= 0; --index)
       {
-        RenderTexture renderTexture2 = this.m_BlurBuffer1[index];
-        material.SetTexture(BloomComponent.Uniforms._BaseTex, (Texture) renderTexture2);
-        this.m_BlurBuffer2[index] = this.context.renderTextureFactory.Get(((Texture) renderTexture2).get_width(), ((Texture) renderTexture2).get_height(), 0, format, (RenderTextureReadWrite) 0, (FilterMode) 1, (TextureWrapMode) 1, "FactoryTempTexture");
-        Graphics.Blit((Texture) renderTexture1, this.m_BlurBuffer2[index], material, 3);
-        renderTexture1 = this.m_BlurBuffer2[index];
+        RenderTexture renderTexture3 = this.m_BlurBuffer1[index];
+        mat.SetTexture(BloomComponent.Uniforms._BaseTex, (Texture) renderTexture3);
+        this.m_BlurBuffer2[index] = this.context.renderTextureFactory.Get(renderTexture3.width, renderTexture3.height, 0, format, RenderTextureReadWrite.Default, FilterMode.Bilinear, TextureWrapMode.Clamp, "FactoryTempTexture");
+        Graphics.Blit((Texture) renderTexture2, this.m_BlurBuffer2[index], mat, 3);
+        renderTexture2 = this.m_BlurBuffer2[index];
       }
-      RenderTexture renderTexture3 = renderTexture1;
+      RenderTexture renderTexture4 = renderTexture2;
       for (int index = 0; index < 16; ++index)
       {
-        if (Object.op_Inequality((Object) this.m_BlurBuffer1[index], (Object) null))
+        if ((Object) this.m_BlurBuffer1[index] != (Object) null)
           this.context.renderTextureFactory.Release(this.m_BlurBuffer1[index]);
-        if (Object.op_Inequality((Object) this.m_BlurBuffer2[index], (Object) null) && Object.op_Inequality((Object) this.m_BlurBuffer2[index], (Object) renderTexture3))
+        if ((Object) this.m_BlurBuffer2[index] != (Object) null && (Object) this.m_BlurBuffer2[index] != (Object) renderTexture4)
           this.context.renderTextureFactory.Release(this.m_BlurBuffer2[index]);
         this.m_BlurBuffer1[index] = (RenderTexture) null;
         this.m_BlurBuffer2[index] = (RenderTexture) null;
       }
-      this.context.renderTextureFactory.Release(rt);
-      uberMaterial.SetTexture(BloomComponent.Uniforms._BloomTex, (Texture) renderTexture3);
-      uberMaterial.SetVector(BloomComponent.Uniforms._Bloom_Settings, Vector4.op_Implicit(new Vector2(num5, bloom.intensity)));
-      if ((double) lensDirt.intensity > 0.0 && Object.op_Inequality((Object) lensDirt.texture, (Object) null))
+      this.context.renderTextureFactory.Release(renderTexture1);
+      uberMaterial.SetTexture(BloomComponent.Uniforms._BloomTex, (Texture) renderTexture4);
+      uberMaterial.SetVector(BloomComponent.Uniforms._Bloom_Settings, (Vector4) new Vector2(x, bloom.intensity));
+      if ((double) lensDirt.intensity > 0.0 && (Object) lensDirt.texture != (Object) null)
       {
         uberMaterial.SetTexture(BloomComponent.Uniforms._Bloom_DirtTex, lensDirt.texture);
         uberMaterial.SetFloat(BloomComponent.Uniforms._Bloom_DirtIntensity, lensDirt.intensity);

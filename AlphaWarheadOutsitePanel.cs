@@ -19,22 +19,17 @@ public class AlphaWarheadOutsitePanel : NetworkBehaviour
   [SyncVar(hook = "SetKeycardState")]
   public bool keycardEntered;
 
-  public AlphaWarheadOutsitePanel()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    if (Object.op_Equality((Object) AlphaWarheadOutsitePanel._host, (Object) null))
+    if ((Object) AlphaWarheadOutsitePanel._host == (Object) null)
     {
       AlphaWarheadOutsitePanel._host = AlphaWarheadController.host;
     }
     else
     {
-      ((Component) this).get_transform().set_localPosition(new Vector3(0.0f, 0.0f, 9f));
+      this.transform.localPosition = new Vector3(0.0f, 0.0f, 9f);
       foreach (Text text in this.display)
-        text.set_text(AlphaWarheadOutsitePanel.GetTimeString());
+        text.text = AlphaWarheadOutsitePanel.GetTimeString();
       foreach (GameObject gameObject in this.inevitable)
         gameObject.SetActive((double) AlphaWarheadOutsitePanel._host.timeToDetonation <= 10.0 && (double) AlphaWarheadOutsitePanel._host.timeToDetonation > 0.0);
       this.panelButtonCoverAnim.SetBool("enabled", this.keycardEntered);
@@ -54,11 +49,11 @@ public class AlphaWarheadOutsitePanel : NetworkBehaviour
       return (double) AlphaWarheadOutsitePanel._host.timeToDetonation > (double) AlphaWarheadController.host.RealDetonationTime() ? "<color=red><size=200>PLEASE WAIT</size></color>" : "<color=lime><size=180>READY</size></color>";
     if ((double) AlphaWarheadOutsitePanel._host.timeToDetonation == 0.0)
     {
-      if ((int) ((double) Time.get_realtimeSinceStartup() * 4.0) % 2 == 0)
+      if ((int) ((double) Time.realtimeSinceStartup * 4.0) % 2 == 0)
         return string.Empty;
       return "<color=orange><size=270>00:00:00</size></color>";
     }
-    float num1 = (float) (((double) AlphaWarheadController.host.RealDetonationTime() - (double) AlphaWarheadController.alarmSource.get_time()) * 100.0) * (float) (1.0 + 2.5 / (double) AlphaWarheadController.host.RealDetonationTime());
+    float num1 = (float) (((double) AlphaWarheadController.host.RealDetonationTime() - (double) AlphaWarheadController.alarmSource.time) * 100.0) * (float) (1.0 + 2.5 / (double) AlphaWarheadController.host.RealDetonationTime());
     if ((double) num1 < 0.0)
       num1 = 0.0f;
     int num2 = 0;
@@ -91,17 +86,17 @@ public class AlphaWarheadOutsitePanel : NetworkBehaviour
       int num1 = value ? 1 : 0;
       ref bool local = ref this.keycardEntered;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetKeycardState(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -109,21 +104,21 @@ public class AlphaWarheadOutsitePanel : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.keycardEntered);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

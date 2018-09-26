@@ -8,12 +8,7 @@ using UnityEngine;
 
 public class shooter : MonoBehaviour
 {
-  public int mtpl;
-
-  public shooter()
-  {
-    base.\u002Ector();
-  }
+  public int mtpl = 5;
 
   private void Start()
   {
@@ -21,7 +16,7 @@ public class shooter : MonoBehaviour
 
   private void Update()
   {
-    if (!Input.GetKeyDown((KeyCode) 13))
+    if (!Input.GetKeyDown(KeyCode.Return))
       return;
     ScreenCapture.CaptureScreenshot("Taken" + (object) Random.Range(0, 1000) + ".png", this.mtpl);
   }

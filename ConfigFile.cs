@@ -15,11 +15,6 @@ public class ConfigFile : MonoBehaviour
   internal static string ConfigPath;
   public static Dictionary<string, int[]> smBalancedPicker;
 
-  public ConfigFile()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     if (!Directory.Exists(FileManager.AppFolder))

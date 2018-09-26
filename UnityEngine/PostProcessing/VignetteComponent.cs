@@ -24,14 +24,14 @@ namespace UnityEngine.PostProcessing
       uberMaterial.SetColor(VignetteComponent.Uniforms._Vignette_Color, settings.color);
       if (settings.mode == VignetteModel.Mode.Classic)
       {
-        uberMaterial.SetVector(VignetteComponent.Uniforms._Vignette_Center, Vector4.op_Implicit(settings.center));
+        uberMaterial.SetVector(VignetteComponent.Uniforms._Vignette_Center, (Vector4) settings.center);
         uberMaterial.EnableKeyword("VIGNETTE_CLASSIC");
-        float num = (float) ((1.0 - (double) settings.roundness) * 6.0) + settings.roundness;
-        uberMaterial.SetVector(VignetteComponent.Uniforms._Vignette_Settings, new Vector4(settings.intensity * 3f, settings.smoothness * 5f, num, !settings.rounded ? 0.0f : 1f));
+        float z = (float) ((1.0 - (double) settings.roundness) * 6.0) + settings.roundness;
+        uberMaterial.SetVector(VignetteComponent.Uniforms._Vignette_Settings, new Vector4(settings.intensity * 3f, settings.smoothness * 5f, z, !settings.rounded ? 0.0f : 1f));
       }
       else
       {
-        if (settings.mode != VignetteModel.Mode.Masked || !Object.op_Inequality((Object) settings.mask, (Object) null) || (double) settings.opacity <= 0.0)
+        if (settings.mode != VignetteModel.Mode.Masked || !((Object) settings.mask != (Object) null) || (double) settings.opacity <= 0.0)
           return;
         uberMaterial.EnableKeyword("VIGNETTE_MASKED");
         uberMaterial.SetTexture(VignetteComponent.Uniforms._Vignette_Mask, settings.mask);

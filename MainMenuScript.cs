@@ -17,33 +17,27 @@ public class MainMenuScript : MonoBehaviour
   public int CurMenu;
   private bool allowQuit;
 
-  public MainMenuScript()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    Scene activeScene = SceneManager.GetActiveScene();
-    if (!((Scene) ref activeScene).get_name().ToLower().Contains("menu"))
+    if (!SceneManager.GetActiveScene().name.ToLower().Contains("menu"))
       return;
     CursorManager.UnsetAll();
-    Cursor.set_lockState((CursorLockMode) 0);
-    Cursor.set_visible(true);
+    Cursor.lockState = CursorLockMode.None;
+    Cursor.visible = true;
   }
 
   public void SetIP(string ip)
   {
     NetworkServer.Reset();
-    this._mng.set_networkPort(7777);
+    this._mng.networkPort = 7777;
     try
     {
-      this._mng.set_networkPort(int.Parse(ip.Remove(0, ip.LastIndexOf(":", StringComparison.Ordinal) + 1)));
+      this._mng.networkPort = int.Parse(ip.Remove(0, ip.LastIndexOf(":", StringComparison.Ordinal) + 1));
     }
     catch
     {
     }
-    this._mng.set_networkAddress(!ip.Contains(":") ? ip : ip.Remove(ip.IndexOf(":", StringComparison.Ordinal)));
+    this._mng.networkAddress = !ip.Contains(":") ? ip : ip.Remove(ip.IndexOf(":", StringComparison.Ordinal));
     CustomNetworkManager.ConnectionIp = !ip.Contains(":") ? ip : ip.Remove(ip.IndexOf(":", StringComparison.Ordinal));
   }
 
@@ -62,7 +56,7 @@ public class MainMenuScript : MonoBehaviour
 
   private void Start()
   {
-    this._mng = (CustomNetworkManager) Object.FindObjectOfType<CustomNetworkManager>();
+    this._mng = Object.FindObjectOfType<CustomNetworkManager>();
     CursorManager.UnsetAll();
     if (SteamManager.Initialized)
       SteamUserStats.SetAchievement("TEST_1");
@@ -71,22 +65,22 @@ public class MainMenuScript : MonoBehaviour
 
   private void OnApplicationQuit()
   {
-    if (this.allowQuit || Input.GetKey((KeyCode) 308))
+    if (this.allowQuit || Input.GetKey(KeyCode.LeftAlt))
       return;
     Application.CancelQuit();
   }
 
   public void StartServer()
   {
-    this._mng.set_onlineScene("Facility");
-    this._mng.set_maxConnections(20);
+    this._mng.onlineScene = "Facility";
+    this._mng.maxConnections = 20;
     this._mng.createpop.SetActive(true);
   }
 
   public void StartTutorial(string scene)
   {
-    this._mng.set_onlineScene(scene);
-    this._mng.set_maxConnections(1);
+    this._mng.onlineScene = scene;
+    this._mng.maxConnections = 1;
     this._mng.ShowLog(15);
     this._mng.StartHost();
   }

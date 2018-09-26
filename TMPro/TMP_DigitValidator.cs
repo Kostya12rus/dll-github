@@ -11,12 +11,7 @@ namespace TMPro
   [Serializable]
   public class TMP_DigitValidator : TMP_InputValidator
   {
-    public TMP_DigitValidator()
-    {
-      base.\u002Ector();
-    }
-
-    public virtual char Validate(ref string text, ref int pos, char ch)
+    public override char Validate(ref string text, ref int pos, char ch)
     {
       if (ch < '0' || ch > '9')
         return char.MinValue;

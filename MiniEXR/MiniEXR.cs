@@ -27,9 +27,9 @@ namespace MiniEXR
       float[] _rgbaArray = new float[_colorArray.Length * 3];
       for (int index = 0; index < _colorArray.Length; ++index)
       {
-        _rgbaArray[index * 3] = (float) _colorArray[index].r;
-        _rgbaArray[index * 3 + 1] = (float) _colorArray[index].g;
-        _rgbaArray[index * 3 + 2] = (float) _colorArray[index].b;
+        _rgbaArray[index * 3] = _colorArray[index].r;
+        _rgbaArray[index * 3 + 1] = _colorArray[index].g;
+        _rgbaArray[index * 3 + 2] = _colorArray[index].b;
       }
       return MiniEXR.MiniEXR.MiniEXRWrite(_width, _height, 3U, _rgbaArray);
     }

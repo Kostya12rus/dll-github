@@ -10,30 +10,24 @@ using UnityEngine;
 [RequireComponent(typeof (Camera))]
 public abstract class SECTR_FPController : MonoBehaviour
 {
+  private Vector2 _clampInDegrees = new Vector2(360f, 180f);
+  private bool focused = true;
+  protected Dictionary<int, SECTR_FPController.TrackedTouch> _touches = new Dictionary<int, SECTR_FPController.TrackedTouch>();
+  [SECTR_ToolTip("Whether to lock the cursor when this camera is active.")]
+  public bool LockCursor = true;
+  [SECTR_ToolTip("Scalar for mouse sensitivity.")]
+  public Vector2 Sensitivity = new Vector2(2f, 2f);
+  [SECTR_ToolTip("Scalar for mouse smoothing.")]
+  public Vector2 Smoothing = new Vector2(3f, 3f);
+  [SECTR_ToolTip("Adjusts the size of the virtual joystick.")]
+  public float TouchScreenLookScale = 1f;
   private Vector2 _mouseAbsolute;
   private Vector2 _smoothMouse;
-  private Vector2 _clampInDegrees;
   private Vector2 _targetDirection;
-  private bool focused;
-  protected Dictionary<int, SECTR_FPController.TrackedTouch> _touches;
-  [SECTR_ToolTip("Whether to lock the cursor when this camera is active.")]
-  public bool LockCursor;
-  [SECTR_ToolTip("Scalar for mouse sensitivity.")]
-  public Vector2 Sensitivity;
-  [SECTR_ToolTip("Scalar for mouse smoothing.")]
-  public Vector2 Smoothing;
-  [SECTR_ToolTip("Adjusts the size of the virtual joystick.")]
-  public float TouchScreenLookScale;
-
-  protected SECTR_FPController()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    Quaternion localRotation = ((Component) this).get_transform().get_localRotation();
-    this._targetDirection = Vector2.op_Implicit(((Quaternion) ref localRotation).get_eulerAngles());
+    this._targetDirection = (Vector2) this.transform.localRotation.eulerAngles;
   }
 
   private void OnApplicationFocus(bool focused)
@@ -45,85 +39,81 @@ public abstract class SECTR_FPController : MonoBehaviour
   {
     if (!this.focused)
       return;
-    Cursor.set_lockState((CursorLockMode) 1);
-    Cursor.set_visible(false);
-    Quaternion quaternion1 = Quaternion.Euler(Vector2.op_Implicit(this._targetDirection));
+    Cursor.lockState = CursorLockMode.Locked;
+    Cursor.visible = false;
+    Quaternion quaternion = Quaternion.Euler((Vector3) this._targetDirection);
     Vector2 screenJoystick;
-    if (Input.get_multiTouchEnabled() && !Application.get_isEditor())
+    if (Input.multiTouchEnabled && !Application.isEditor)
     {
       this._UpdateTouches();
       screenJoystick = this.GetScreenJoystick(true);
     }
     else
     {
-      screenJoystick.x = (__Null) (double) Input.GetAxisRaw("Mouse X");
-      screenJoystick.y = (__Null) (double) Input.GetAxisRaw("Mouse Y");
+      screenJoystick.x = Input.GetAxisRaw("Mouse X");
+      screenJoystick.y = Input.GetAxisRaw("Mouse Y");
     }
-    Vector2 vector2 = Vector2.Scale(screenJoystick, new Vector2((float) (this.Sensitivity.x * this.Smoothing.x), (float) (this.Sensitivity.y * this.Smoothing.y)));
-    if (Input.get_multiTouchEnabled())
+    Vector2 vector2 = Vector2.Scale(screenJoystick, new Vector2(this.Sensitivity.x * this.Smoothing.x, this.Sensitivity.y * this.Smoothing.y));
+    if (Input.multiTouchEnabled)
     {
       this._smoothMouse = vector2;
     }
     else
     {
-      this._smoothMouse.x = (__Null) (double) Mathf.Lerp((float) this._smoothMouse.x, (float) vector2.x, (float) (1.0 / this.Smoothing.x));
-      this._smoothMouse.y = (__Null) (double) Mathf.Lerp((float) this._smoothMouse.y, (float) vector2.y, (float) (1.0 / this.Smoothing.y));
+      this._smoothMouse.x = Mathf.Lerp(this._smoothMouse.x, vector2.x, 1f / this.Smoothing.x);
+      this._smoothMouse.y = Mathf.Lerp(this._smoothMouse.y, vector2.y, 1f / this.Smoothing.y);
     }
-    SECTR_FPController sectrFpController = this;
-    sectrFpController._mouseAbsolute = Vector2.op_Addition(sectrFpController._mouseAbsolute, this._smoothMouse);
-    if (this._clampInDegrees.x < 360.0)
-      this._mouseAbsolute.x = (__Null) (double) Mathf.Clamp((float) this._mouseAbsolute.x, (float) (-this._clampInDegrees.x * 0.5), (float) (this._clampInDegrees.x * 0.5));
-    ((Component) this).get_transform().set_localRotation(Quaternion.AngleAxis((float) -this._mouseAbsolute.y, Quaternion.op_Multiply(quaternion1, Vector3.get_right())));
-    if (this._clampInDegrees.y < 360.0)
-      this._mouseAbsolute.y = (__Null) (double) Mathf.Clamp((float) this._mouseAbsolute.y, (float) (-this._clampInDegrees.y * 0.5), (float) (this._clampInDegrees.y * 0.5));
-    Transform transform1 = ((Component) this).get_transform();
-    transform1.set_localRotation(Quaternion.op_Multiply(transform1.get_localRotation(), quaternion1));
-    Quaternion quaternion2 = Quaternion.AngleAxis((float) this._mouseAbsolute.x, ((Component) this).get_transform().InverseTransformDirection(Vector3.get_up()));
-    Transform transform2 = ((Component) this).get_transform();
-    transform2.set_localRotation(Quaternion.op_Multiply(transform2.get_localRotation(), quaternion2));
+    this._mouseAbsolute += this._smoothMouse;
+    if ((double) this._clampInDegrees.x < 360.0)
+      this._mouseAbsolute.x = Mathf.Clamp(this._mouseAbsolute.x, (float) (-(double) this._clampInDegrees.x * 0.5), this._clampInDegrees.x * 0.5f);
+    this.transform.localRotation = Quaternion.AngleAxis(-this._mouseAbsolute.y, quaternion * Vector3.right);
+    if ((double) this._clampInDegrees.y < 360.0)
+      this._mouseAbsolute.y = Mathf.Clamp(this._mouseAbsolute.y, (float) (-(double) this._clampInDegrees.y * 0.5), this._clampInDegrees.y * 0.5f);
+    this.transform.localRotation *= quaternion;
+    this.transform.localRotation *= Quaternion.AngleAxis(this._mouseAbsolute.x, this.transform.InverseTransformDirection(Vector3.up));
   }
 
   protected Vector2 GetScreenJoystick(bool left)
   {
     foreach (SECTR_FPController.TrackedTouch trackedTouch in this._touches.Values)
     {
-      float num = (float) Screen.get_width() * 0.5f;
-      if (left && trackedTouch.startPos.x < (double) num || !left && trackedTouch.startPos.x > (double) num)
+      float num = (float) Screen.width * 0.5f;
+      if (left && (double) trackedTouch.startPos.x < (double) num || !left && (double) trackedTouch.startPos.x > (double) num)
       {
-        Vector2 vector2 = Vector2.op_Subtraction(trackedTouch.currentPos, trackedTouch.startPos);
-        vector2.x = (__Null) (double) Mathf.Clamp((float) (vector2.x / ((double) num * 0.5 * (double) this.TouchScreenLookScale)), -1f, 1f);
-        vector2.y = (__Null) (double) Mathf.Clamp((float) (vector2.y / ((double) Screen.get_height() * 0.5 * (double) this.TouchScreenLookScale)), -1f, 1f);
+        Vector2 vector2 = trackedTouch.currentPos - trackedTouch.startPos;
+        vector2.x = Mathf.Clamp(vector2.x / (num * 0.5f * this.TouchScreenLookScale), -1f, 1f);
+        vector2.y = Mathf.Clamp(vector2.y / ((float) Screen.height * 0.5f * this.TouchScreenLookScale), -1f, 1f);
         return vector2;
       }
     }
-    return Vector2.get_zero();
+    return Vector2.zero;
   }
 
   private void _UpdateTouches()
   {
-    int touchCount = Input.get_touchCount();
+    int touchCount = Input.touchCount;
     for (int index = 0; index < touchCount; ++index)
     {
-      Touch touch = Input.get_touches()[index];
-      if (((Touch) ref touch).get_phase() == null)
+      Touch touch = Input.touches[index];
+      if (touch.phase == TouchPhase.Began)
       {
-        Debug.Log((object) ("Touch " + (object) ((Touch) ref touch).get_fingerId() + "Started at : " + (object) ((Touch) ref touch).get_position()));
-        this._touches.Add(((Touch) ref touch).get_fingerId(), new SECTR_FPController.TrackedTouch()
+        Debug.Log((object) ("Touch " + (object) touch.fingerId + "Started at : " + (object) touch.position));
+        this._touches.Add(touch.fingerId, new SECTR_FPController.TrackedTouch()
         {
-          startPos = ((Touch) ref touch).get_position(),
-          currentPos = ((Touch) ref touch).get_position()
+          startPos = touch.position,
+          currentPos = touch.position
         });
       }
-      else if (((Touch) ref touch).get_phase() == 4 || ((Touch) ref touch).get_phase() == 3)
+      else if (touch.phase == TouchPhase.Canceled || touch.phase == TouchPhase.Ended)
       {
-        Debug.Log((object) ("Touch " + (object) ((Touch) ref touch).get_fingerId() + "Ended at : " + (object) ((Touch) ref touch).get_position()));
-        this._touches.Remove(((Touch) ref touch).get_fingerId());
+        Debug.Log((object) ("Touch " + (object) touch.fingerId + "Ended at : " + (object) touch.position));
+        this._touches.Remove(touch.fingerId);
       }
       else
       {
         SECTR_FPController.TrackedTouch trackedTouch;
-        if (this._touches.TryGetValue(((Touch) ref touch).get_fingerId(), out trackedTouch))
-          trackedTouch.currentPos = ((Touch) ref touch).get_position();
+        if (this._touches.TryGetValue(touch.fingerId, out trackedTouch))
+          trackedTouch.currentPos = touch.position;
       }
     }
   }

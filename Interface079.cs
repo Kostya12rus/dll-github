@@ -8,8 +8,4 @@ using UnityEngine;
 
 public class Interface079 : MonoBehaviour
 {
-  public Interface079()
-  {
-    base.\u002Ector();
-  }
 }

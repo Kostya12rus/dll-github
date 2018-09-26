@@ -15,14 +15,9 @@ public class ModPrefab : MonoBehaviour
   public bool firstperson;
   public GameObject gameObject;
 
-  public ModPrefab()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    WeaponManager componentInParent = (WeaponManager) ((Component) this).GetComponentInParent<WeaponManager>();
+    WeaponManager componentInParent = this.GetComponentInParent<WeaponManager>();
     componentInParent.forceSyncModsNextFrame = true;
     if (this.modType == ModPrefab.ModType.Sight)
     {

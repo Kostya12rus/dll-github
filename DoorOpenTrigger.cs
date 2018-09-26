@@ -8,24 +8,19 @@ using UnityEngine;
 
 public class DoorOpenTrigger : MonoBehaviour
 {
+  public bool stageToTrigger = true;
   public Door door;
-  public bool stageToTrigger;
   public int id;
   public string alias;
-
-  public DoorOpenTrigger()
-  {
-    base.\u002Ector();
-  }
 
   private void Update()
   {
     if (this.door.isOpen != this.stageToTrigger)
       return;
     if (this.alias != string.Empty)
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Trigger(this.alias);
+      Object.FindObjectOfType<TutorialManager>().Trigger(this.alias);
     else
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Trigger(this.id);
-    Object.Destroy((Object) ((Component) this).get_gameObject());
+      Object.FindObjectOfType<TutorialManager>().Trigger(this.id);
+    Object.Destroy((Object) this.gameObject);
   }
 }

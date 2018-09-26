@@ -12,18 +12,13 @@ using UnityEngine.Networking;
 public class BloodDrawer : NetworkBehaviour
 {
   private static List<Transform> instances = new List<Transform>();
+  public int maxBlood = 500;
   public LayerMask mask;
-  public int maxBlood;
   public BloodDrawer.BloodType[] bloodTypes;
-
-  public BloodDrawer()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    if (this.get_isLocalPlayer())
+    if (this.isLocalPlayer)
     {
       BloodDrawer.instances = new List<Transform>();
       BloodDrawer.instances.Clear();
@@ -39,7 +34,7 @@ public class BloodDrawer : NetworkBehaviour
     if (BloodDrawer.instances.Count < this.maxBlood)
     {
       GameObject[] prefabs = this.bloodTypes[bloodType].prefabs;
-      transform = ((GameObject) Object.Instantiate<GameObject>((M0) prefabs[Random.Range(0, prefabs.Length)], pos, rot)).get_transform();
+      transform = Object.Instantiate<GameObject>(prefabs[Random.Range(0, prefabs.Length)], pos, rot).transform;
       BloodDrawer.instances.Add(transform);
     }
     else
@@ -47,48 +42,48 @@ public class BloodDrawer : NetworkBehaviour
       transform = BloodDrawer.instances[0];
       BloodDrawer.instances.Add(transform);
       BloodDrawer.instances.RemoveAt(0);
-      ((Component) transform).get_transform().set_position(pos);
-      ((Component) transform).get_transform().set_rotation(rot);
+      transform.transform.position = pos;
+      transform.transform.rotation = rot;
     }
-    transform.Rotate(0.0f, (float) Random.Range(0, 360), 0.0f, (Space) 1);
+    transform.Rotate(0.0f, (float) Random.Range(0, 360), 0.0f, Space.Self);
     float num = Random.Range(1.1f, 2f);
-    transform.set_localScale(new Vector3(num, num, num));
-    RaycastHit raycastHit;
-    if (!Physics.Raycast(Vector3.op_Subtraction(transform.get_position(), Vector3.op_Division(transform.get_forward(), 4f)), transform.get_forward(), ref raycastHit, 0.6f, LayerMask.op_Implicit(this.mask)))
+    transform.localScale = new Vector3(num, num, num);
+    RaycastHit hitInfo;
+    if (!Physics.Raycast(transform.position - transform.forward / 4f, transform.forward, out hitInfo, 0.6f, (int) this.mask))
       return;
-    if (((Component) ((Component) ((RaycastHit) ref raycastHit).get_collider()).get_transform()).get_tag() == "Door")
-      transform.set_localScale(new Vector3((float) transform.get_localScale().x, (float) transform.get_localScale().y, 0.05f));
-    transform.SetParent(((Component) ((RaycastHit) ref raycastHit).get_collider()).get_transform());
+    if (hitInfo.collider.transform.tag == "Door")
+      transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, 0.05f);
+    transform.SetParent(hitInfo.collider.transform);
   }
 
   public void PlaceUnderneath(Transform obj, int type, float amountMultiplier = 1f)
   {
-    this.PlaceUnderneath(obj.get_position(), type, amountMultiplier);
+    this.PlaceUnderneath(obj.position, type, amountMultiplier);
   }
 
   public void PlaceUnderneath(Vector3 pos, int type, float amountMultiplier = 1f)
   {
-    RaycastHit raycastHit;
-    if (!Physics.Raycast(pos, Vector3.get_down(), ref raycastHit, 3f, LayerMask.op_Implicit(this.mask)))
+    RaycastHit hitInfo;
+    if (!Physics.Raycast(pos, Vector3.down, out hitInfo, 3f, (int) this.mask))
       return;
     GameObject[] prefabs = this.bloodTypes[type].prefabs;
-    Transform transform = ((GameObject) Object.Instantiate<GameObject>((M0) prefabs[Random.Range(0, prefabs.Length)], ((RaycastHit) ref raycastHit).get_point(), Quaternion.FromToRotation(Vector3.get_up(), ((RaycastHit) ref raycastHit).get_normal()))).get_transform();
-    transform.Rotate(0.0f, (float) Random.Range(0, 360), 0.0f, (Space) 1);
+    Transform transform = Object.Instantiate<GameObject>(prefabs[Random.Range(0, prefabs.Length)], hitInfo.point, Quaternion.FromToRotation(Vector3.up, hitInfo.normal)).transform;
+    transform.Rotate(0.0f, (float) Random.Range(0, 360), 0.0f, Space.Self);
     float num = Random.Range(0.8f, 1.6f) * amountMultiplier;
-    transform.set_localScale(new Vector3(num, num, num));
+    transform.localScale = new Vector3(num, num, num);
   }
 
   private void UNetVersion()
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 

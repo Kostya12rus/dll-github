@@ -9,7 +9,6 @@ using MEC;
 using Org.BouncyCastle.Crypto;
 using RemoteAdmin;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -24,6 +23,9 @@ namespace GameConsole
 {
   public class Console : MonoBehaviour
   {
+    private readonly List<Console.Log> _logs = new List<Console.Log>();
+    private readonly List<Console.Value> _values = new List<Console.Value>();
+    private string _response = string.Empty;
     public static AsymmetricKeyParameter Publickey;
     public Console.CommandHint[] hints;
     public static Console singleton;
@@ -31,47 +33,39 @@ namespace GameConsole
     public InputField cmdField;
     public GameObject console;
     internal static AsymmetricCipherKeyPair SessionKeys;
-    private readonly List<Console.Log> _logs;
-    private readonly List<Console.Value> _values;
     private int scrollup;
     private int previous_scrlup;
     private string loadedLevel;
     private string _content;
-    private string _response;
     private bool allwaysRefreshing;
     private bool _change;
-
-    public Console()
-    {
-      base.\u002Ector();
-    }
 
     private void Start()
     {
       this.AddLog("Hi there! Initializing console...", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
       this.AddLog("Done! Type 'help' to print the list of available commands.", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
-      Timing.RunCoroutine(this._RefreshPublicKey(), (Segment) 1);
-      Timing.RunCoroutine(this._RefreshCentralServers(), (Segment) 1);
+      Timing.RunCoroutine(this._RefreshPublicKey(), Segment.FixedUpdate);
+      Timing.RunCoroutine(this._RefreshCentralServers(), Segment.FixedUpdate);
       this.AddLog("Generatig session keys...", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
       Console.SessionKeys = ECDSA.GenerateKeys(384);
-      this.AddLog("Session keys generated!", Color32.op_Implicit(Color.get_green()), false);
+      this.AddLog("Session keys generated!", (Color32) Color.green, false);
     }
 
     private void Update()
     {
       if (!this._change)
         return;
-      this.txt.set_text(this._content);
+      this.txt.text = this._content;
       this._change = false;
     }
 
     private void LateUpdate()
     {
-      if (Input.GetKeyDown((KeyCode) 13))
+      if (Input.GetKeyDown(KeyCode.Return))
         this.ProceedButton();
-      else if (Input.GetKeyDown((KeyCode) 96))
+      else if (Input.GetKeyDown(KeyCode.BackQuote))
         this.ToggleConsole();
-      else if (Input.GetKey((KeyCode) 27) && this.console.get_activeSelf())
+      else if (Input.GetKey(KeyCode.Escape) && this.console.activeSelf)
         this.ToggleConsole();
       this.scrollup += Mathf.RoundToInt(Input.GetAxisRaw("Mouse ScrollWheel") * 10f);
       this.scrollup = this._logs.Count <= 0 ? 0 : Mathf.Clamp(this.scrollup, 0, this._logs.Count - 1);
@@ -81,10 +75,10 @@ namespace GameConsole
         this.RefreshConsoleScreen();
       }
       Scene activeScene = SceneManager.GetActiveScene();
-      if (((Scene) ref activeScene).get_name() != this.loadedLevel)
+      if (activeScene.name != this.loadedLevel)
       {
-        this.loadedLevel = ((Scene) ref activeScene).get_name();
-        this.AddLog("Scene Manager: Loaded scene '" + ((Scene) ref activeScene).get_name() + "' [" + ((Scene) ref activeScene).get_path() + "]", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
+        this.loadedLevel = activeScene.name;
+        this.AddLog("Scene Manager: Loaded scene '" + activeScene.name + "' [" + activeScene.path + "]", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
         this.RefreshConsoleScreen();
       }
       if (!this.allwaysRefreshing)
@@ -99,23 +93,23 @@ namespace GameConsole
 
     private void Awake()
     {
-      Object.DontDestroyOnLoad((Object) ((Component) this).get_gameObject());
-      if (Object.op_Equality((Object) Console.singleton, (Object) null))
+      Object.DontDestroyOnLoad((Object) this.gameObject);
+      if ((Object) Console.singleton == (Object) null)
         Console.singleton = this;
       else
-        Object.DestroyImmediate((Object) ((Component) this).get_gameObject());
+        Object.DestroyImmediate((Object) this.gameObject);
     }
 
     private void RefreshConsoleScreen()
     {
       this._change = true;
       bool flag = false;
-      if (this.txt.get_text().Length > 15000)
+      if (this.txt.text.Length > 15000)
       {
         this._logs.RemoveAt(0);
         flag = true;
       }
-      if (Object.op_Equality((Object) this.txt, (Object) null))
+      if ((Object) this.txt == (Object) null)
         return;
       this._content = string.Empty;
       if (this._logs.Count > 0)
@@ -162,14 +156,10 @@ namespace GameConsole
     {
       try
       {
-        using (List<PlayerController>.Enumerator enumerator = conn.get_playerControllers().GetEnumerator())
+        foreach (PlayerController playerController in conn.playerControllers)
         {
-          while (enumerator.MoveNext())
-          {
-            PlayerController current = enumerator.Current;
-            if (((GameObject) current.gameObject).get_tag() == "Player")
-              return (GameObject) current.gameObject;
-          }
+          if (playerController.gameObject.tag == "Player")
+            return playerController.gameObject;
         }
       }
       catch
@@ -192,10 +182,10 @@ namespace GameConsole
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
-            this.AddLog("Requesting contact email to server owner...", Color32.op_Implicit(Color.get_yellow()), false);
-            ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).CallCmdRequestContactEmail();
+            this.AddLog("Requesting contact email to server owner...", (Color32) Color.yellow, false);
+            gameObject.GetComponent<CharacterClassManager>().CallCmdRequestContactEmail();
           }
         }
       }
@@ -203,10 +193,10 @@ namespace GameConsole
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
-            this.AddLog("Requesting server config...", Color32.op_Implicit(Color.get_yellow()), false);
-            ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).CallCmdRequestServerConfig();
+            this.AddLog("Requesting server config...", (Color32) Color.yellow, false);
+            gameObject.GetComponent<CharacterClassManager>().CallCmdRequestServerConfig();
           }
         }
       }
@@ -214,10 +204,10 @@ namespace GameConsole
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
-            this.AddLog("Requesting server groups...", Color32.op_Implicit(Color.get_yellow()), false);
-            ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).CallCmdRequestServerGroups();
+            this.AddLog("Requesting server groups...", (Color32) Color.yellow, false);
+            gameObject.GetComponent<CharacterClassManager>().CallCmdRequestServerGroups();
           }
         }
       }
@@ -225,10 +215,10 @@ namespace GameConsole
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
-            this.AddLog("Hidding your tag...", Color32.op_Implicit(Color.get_yellow()), false);
-            ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).CallCmdRequestHideTag();
+            this.AddLog("Hidding your tag...", (Color32) Color.yellow, false);
+            gameObject.GetComponent<CharacterClassManager>().CallCmdRequestHideTag();
           }
         }
       }
@@ -236,10 +226,10 @@ namespace GameConsole
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
-            this.AddLog("Requesting your local tag...", Color32.op_Implicit(Color.get_yellow()), false);
-            ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).CallCmdRequestShowTag(false);
+            this.AddLog("Requesting your local tag...", (Color32) Color.yellow, false);
+            gameObject.GetComponent<CharacterClassManager>().CallCmdRequestShowTag(false);
           }
         }
       }
@@ -247,29 +237,29 @@ namespace GameConsole
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
-            this.AddLog("Requesting your global tag...", Color32.op_Implicit(Color.get_yellow()), false);
-            ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).CallCmdRequestShowTag(true);
+            this.AddLog("Requesting your global tag...", (Color32) Color.yellow, false);
+            gameObject.GetComponent<CharacterClassManager>().CallCmdRequestShowTag(true);
           }
         }
       }
       else if (cmd == "GLOBALBAN" || cmd == "GBAN" || cmd == "SUPERBAN")
       {
         if (strArray.Length < 3 || strArray[1].ToLower() != "nick" && strArray[1].ToLower() != "id")
-          this.AddLog("Syntax: globalban <nick/id> <player to ban>", Color32.op_Implicit(Color.get_red()), false);
+          this.AddLog("Syntax: globalban <nick/id> <player to ban>", (Color32) Color.red, false);
         else if (!File.Exists(FileManager.AppFolder + "StaffAPI.txt"))
         {
-          this.AddLog("Staff API token not found on your computer!", Color32.op_Implicit(Color.get_red()), false);
+          this.AddLog("Staff API token not found on your computer!", (Color32) Color.red, false);
         }
         else
         {
           foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
           {
-            if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+            if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
             {
-              this.AddLog("Requesting your global ban...", Color32.op_Implicit(Color.get_yellow()), false);
-              ((QueryProcessor) gameObject.GetComponent<QueryProcessor>()).RequestGlobalBan(strArray[2], !(strArray[1].ToLower() == "id") ? 1 : 0);
+              this.AddLog("Requesting your global ban...", (Color32) Color.yellow, false);
+              gameObject.GetComponent<QueryProcessor>().RequestGlobalBan(strArray[2], !(strArray[1].ToLower() == "id") ? 1 : 0);
             }
           }
         }
@@ -278,33 +268,33 @@ namespace GameConsole
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
-            ((QueryProcessor) gameObject.GetComponent<QueryProcessor>()).ConfirmGlobalBanning();
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
+            gameObject.GetComponent<QueryProcessor>().ConfirmGlobalBanning();
         }
       }
       else if (cmd == "OVERWATCH" || cmd == "OVR")
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
             if (strArray.Length == 1)
-              ((ServerRoles) gameObject.GetComponent<ServerRoles>()).CallCmdToggleOverwatch();
+              gameObject.GetComponent<ServerRoles>().CallCmdToggleOverwatch();
             else if (strArray[1] == "1" || strArray[1].ToLower() == "true" || (strArray[1].ToLower() == "enable" || strArray[1].ToLower() == "on"))
-              ((ServerRoles) gameObject.GetComponent<ServerRoles>()).CallCmdSetOverwatchStatus(true);
+              gameObject.GetComponent<ServerRoles>().CallCmdSetOverwatchStatus(true);
             else if (strArray[1] == "0" || strArray[1].ToLower() == "false" || (strArray[1].ToLower() == "disable" || strArray[1].ToLower() == "off"))
-              ((ServerRoles) gameObject.GetComponent<ServerRoles>()).CallCmdSetOverwatchStatus(false);
+              gameObject.GetComponent<ServerRoles>().CallCmdSetOverwatchStatus(false);
             else
-              this.AddLog("Unknown status: " + strArray[1], Color32.op_Implicit(Color.get_red()), false);
+              this.AddLog("Unknown status: " + strArray[1], (Color32) Color.red, false);
           }
         }
       }
       else if (cmd == "GIVE")
       {
-        if (!((IEnumerable<GameObject>) GameObject.FindGameObjectsWithTag("Player")).Select<GameObject, PlayerStats>((Func<GameObject, PlayerStats>) (player => (PlayerStats) player.GetComponent<PlayerStats>())).Any<PlayerStats>((Func<PlayerStats, bool>) (nid =>
+        if (!((IEnumerable<GameObject>) GameObject.FindGameObjectsWithTag("Player")).Select<GameObject, PlayerStats>((Func<GameObject, PlayerStats>) (player => player.GetComponent<PlayerStats>())).Any<PlayerStats>((Func<PlayerStats, bool>) (nid =>
         {
-          if (nid.get_isLocalPlayer())
-            return nid.get_isServer();
+          if (nid.isLocalPlayer)
+            return nid.isServer;
           return false;
         })))
         {
@@ -318,11 +308,11 @@ namespace GameConsole
             string str = "offline";
             foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
             {
-              if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+              if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
               {
                 str = "online";
-                Inventory component = (Inventory) gameObject.GetComponent<Inventory>();
-                if (!Object.op_Equality((Object) component, (Object) null))
+                Inventory component = gameObject.GetComponent<Inventory>();
+                if (!((Object) component == (Object) null))
                 {
                   if (component.availableItems.Length > result)
                   {
@@ -348,8 +338,8 @@ namespace GameConsole
         bool flag = false;
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          PlayerStats component = (PlayerStats) gameObject.GetComponent<PlayerStats>();
-          if (component.get_isLocalPlayer() && component.get_isServer())
+          PlayerStats component = gameObject.GetComponent<PlayerStats>();
+          if (component.isLocalPlayer && component.isServer)
           {
             flag = true;
             this.AddLog("The round is about to restart! Please wait..", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
@@ -370,11 +360,11 @@ namespace GameConsole
             this.AddLog("Please enter correct page number!", new Color32(byte.MaxValue, (byte) 180, (byte) 0, byte.MaxValue), false);
             return this._response;
           }
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
             str = "online";
-            Inventory component = (Inventory) gameObject.GetComponent<Inventory>();
-            if (!Object.op_Equality((Object) component, (Object) null))
+            Inventory component = gameObject.GetComponent<Inventory>();
+            if (!((Object) component == (Object) null))
             {
               str = "none";
               if (result < 1)
@@ -404,25 +394,21 @@ namespace GameConsole
       }
       else if (cmd == "BAN")
       {
-        if (!((NetworkIdentity) GameObject.Find("Host").GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+        if (!GameObject.Find("Host").GetComponent<NetworkIdentity>().isLocalPlayer)
           return this._response;
         if (strArray.Length < 3)
         {
           this.AddLog("Syntax: BAN [player kick / ip] [minutes]", new Color32(byte.MaxValue, byte.MaxValue, (byte) 0, byte.MaxValue), false);
-          using (IEnumerator<NetworkConnection> enumerator = NetworkServer.get_connections().GetEnumerator())
+          foreach (NetworkConnection connection in NetworkServer.connections)
           {
-            while (((IEnumerator) enumerator).MoveNext())
-            {
-              NetworkConnection current = enumerator.Current;
-              string str = string.Empty;
-              GameObject connectedRoot = Console.FindConnectedRoot(current);
-              if (Object.op_Inequality((Object) connectedRoot, (Object) null))
-                str = ((NicknameSync) connectedRoot.GetComponent<NicknameSync>()).myNick;
-              if (str == string.Empty)
-                this.AddLog("Player :: " + (string) current.address, new Color32((byte) 160, (byte) 128, (byte) 128, byte.MaxValue), true);
-              else
-                this.AddLog("Player :: " + str + " :: " + (string) current.address, new Color32((byte) 128, (byte) 160, (byte) 128, byte.MaxValue), true);
-            }
+            string str = string.Empty;
+            GameObject connectedRoot = Console.FindConnectedRoot(connection);
+            if ((Object) connectedRoot != (Object) null)
+              str = connectedRoot.GetComponent<NicknameSync>().myNick;
+            if (str == string.Empty)
+              this.AddLog("Player :: " + connection.address, new Color32((byte) 160, (byte) 128, (byte) 128, byte.MaxValue), true);
+            else
+              this.AddLog("Player :: " + str + " :: " + connection.address, new Color32((byte) 128, (byte) 160, (byte) 128, byte.MaxValue), true);
           }
         }
         else
@@ -431,18 +417,14 @@ namespace GameConsole
           if (int.TryParse(strArray[2], out result))
           {
             bool flag = false;
-            using (IEnumerator<NetworkConnection> enumerator = NetworkServer.get_connections().GetEnumerator())
+            foreach (NetworkConnection connection in NetworkServer.connections)
             {
-              while (((IEnumerator) enumerator).MoveNext())
+              GameObject connectedRoot = Console.FindConnectedRoot(connection);
+              if (connection.address.ToUpper().Contains(strArray[1]) || !((Object) connectedRoot == (Object) null) && connectedRoot.GetComponent<NicknameSync>().myNick.ToUpper().Contains(strArray[1]))
               {
-                NetworkConnection current = enumerator.Current;
-                GameObject connectedRoot = Console.FindConnectedRoot(current);
-                if (((string) current.address).ToUpper().Contains(strArray[1]) || !Object.op_Equality((Object) connectedRoot, (Object) null) && ((NicknameSync) connectedRoot.GetComponent<NicknameSync>()).myNick.ToUpper().Contains(strArray[1]))
-                {
-                  flag = true;
-                  ((BanPlayer) PlayerManager.localPlayer.GetComponent<BanPlayer>()).BanUser(connectedRoot, result, string.Empty, "Administrator");
-                  this.AddLog("Player banned.", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
-                }
+                flag = true;
+                PlayerManager.localPlayer.GetComponent<BanPlayer>().BanUser(connectedRoot, result, string.Empty, "Administrator");
+                this.AddLog("Player banned.", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
               }
             }
             if (!flag)
@@ -500,23 +482,23 @@ namespace GameConsole
         bool flag2 = strArray.Length > 1 && strArray[1].ToUpper() == "ALL" || strArray.Length > 2 && strArray[2].ToUpper() == "ALL";
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          ServerRoles component = (ServerRoles) gameObject.GetComponent<ServerRoles>();
-          if (component.get_isLocalPlayer())
+          ServerRoles component = gameObject.GetComponent<ServerRoles>();
+          if (component.isLocalPlayer)
           {
-            this.AddLog("Available colors:", Color32.op_Implicit(Color.get_gray()), false);
+            this.AddLog("Available colors:", (Color32) Color.gray, false);
             string text = string.Empty;
             foreach (ServerRoles.NamedColor namedColor in component.NamedColors)
             {
               if (!namedColor.Restricted || flag2)
               {
                 if (flag1)
-                  this.AddLog("<color=#" + namedColor.ColorHex + ">" + namedColor.Name + " - #" + namedColor.ColorHex + "</color>", Color32.op_Implicit(Color.get_white()), false);
+                  this.AddLog("<color=#" + namedColor.ColorHex + ">" + namedColor.Name + " - #" + namedColor.ColorHex + "</color>", (Color32) Color.white, false);
                 else
                   text = text + "<color=#" + namedColor.ColorHex + ">" + namedColor.Name + "</color>    ";
               }
             }
             if (!flag1)
-              this.AddLog(text, Color32.op_Implicit(Color.get_white()), false);
+              this.AddLog(text, (Color32) Color.white, false);
           }
         }
       }
@@ -545,18 +527,18 @@ namespace GameConsole
       else if (cmd == "SEED")
       {
         GameObject gameObject = GameObject.Find("Host");
-        this.AddLog("Map seed is: <b>" + (!Object.op_Equality((Object) gameObject, (Object) null) ? ((RandomSeedSync) gameObject.GetComponent<RandomSeedSync>()).seed.ToString() : "NONE") + "</b>", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
+        this.AddLog("Map seed is: <b>" + (!((Object) gameObject == (Object) null) ? gameObject.GetComponent<RandomSeedSync>().seed.ToString() : "NONE") + "</b>", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
       }
       else if (cmd == "SHOWRIDS")
       {
         GameObject[] gameObjectsWithTag = GameObject.FindGameObjectsWithTag("RoomID");
         foreach (GameObject gameObject in gameObjectsWithTag)
         {
-          ((Renderer) gameObject.GetComponentsInChildren<MeshRenderer>()[0]).set_enabled(!((Renderer) gameObject.GetComponentsInChildren<MeshRenderer>()[0]).get_enabled());
-          ((Renderer) gameObject.GetComponentsInChildren<MeshRenderer>()[1]).set_enabled(!((Renderer) gameObject.GetComponentsInChildren<MeshRenderer>()[1]).get_enabled());
+          gameObject.GetComponentsInChildren<MeshRenderer>()[0].enabled = !gameObject.GetComponentsInChildren<MeshRenderer>()[0].enabled;
+          gameObject.GetComponentsInChildren<MeshRenderer>()[1].enabled = !gameObject.GetComponentsInChildren<MeshRenderer>()[1].enabled;
         }
         if (gameObjectsWithTag.Length > 0)
-          this.AddLog("Show RIDS: " + (object) ((Renderer) gameObjectsWithTag[0].GetComponentInChildren<MeshRenderer>()).get_enabled(), new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
+          this.AddLog("Show RIDS: " + (object) gameObjectsWithTag[0].GetComponentInChildren<MeshRenderer>().enabled, new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
         else
           this.AddLog("There are no RIDS!", new Color32(byte.MaxValue, (byte) 180, (byte) 0, byte.MaxValue), false);
       }
@@ -571,11 +553,11 @@ namespace GameConsole
             this.AddLog("Please enter correct page number!", new Color32(byte.MaxValue, (byte) 180, (byte) 0, byte.MaxValue), false);
             return this._response;
           }
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
             str = "online";
-            CharacterClassManager component = (CharacterClassManager) gameObject.GetComponent<CharacterClassManager>();
-            if (!Object.op_Equality((Object) component, (Object) null))
+            CharacterClassManager component = gameObject.GetComponent<CharacterClassManager>();
+            if (!((Object) component == (Object) null))
             {
               str = "none";
               if (result < 1)
@@ -608,11 +590,11 @@ namespace GameConsole
         string str = "offline";
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
             str = "online";
-            ShootingRange component = (ShootingRange) gameObject.GetComponent<ShootingRange>();
-            if (!Object.op_Equality((Object) component, (Object) null))
+            ShootingRange component = gameObject.GetComponent<ShootingRange>();
+            if (!((Object) component == (Object) null))
             {
               str = "none";
               component.isOnRange = true;
@@ -711,32 +693,32 @@ namespace GameConsole
 
     public void ProceedButton()
     {
-      if (this.cmdField.get_text() != string.Empty)
-        this.TypeCommand(this.cmdField.get_text());
-      this.cmdField.set_text(string.Empty);
-      EventSystem.get_current().SetSelectedGameObject(((Component) this.cmdField).get_gameObject());
+      if (this.cmdField.text != string.Empty)
+        this.TypeCommand(this.cmdField.text);
+      this.cmdField.text = string.Empty;
+      EventSystem.current.SetSelectedGameObject(this.cmdField.gameObject);
     }
 
     public void ToggleConsole()
     {
-      CursorManager.consoleOpen = !this.console.get_activeSelf();
-      this.cmdField.set_text(string.Empty);
-      this.console.SetActive(!this.console.get_activeSelf());
-      if (Object.op_Inequality((Object) PlayerManager.singleton, (Object) null))
+      CursorManager.consoleOpen = !this.console.activeSelf;
+      this.cmdField.text = string.Empty;
+      this.console.SetActive(!this.console.activeSelf);
+      if ((Object) PlayerManager.singleton != (Object) null)
       {
         foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
         {
-          if (((NetworkIdentity) gameObject.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+          if (gameObject.GetComponent<NetworkIdentity>().isLocalPlayer)
           {
-            FirstPersonController component = (FirstPersonController) gameObject.GetComponent<FirstPersonController>();
-            if (Object.op_Inequality((Object) component, (Object) null))
-              component.usingConsole = (__Null) (this.console.get_activeSelf() ? 1 : 0);
+            FirstPersonController component = gameObject.GetComponent<FirstPersonController>();
+            if ((Object) component != (Object) null)
+              component.usingConsole = this.console.activeSelf;
           }
         }
       }
-      if (!this.console.get_activeSelf())
+      if (!this.console.activeSelf)
         return;
-      EventSystem.get_current().SetSelectedGameObject(((Component) this.cmdField).get_gameObject());
+      EventSystem.current.SetSelectedGameObject(this.cmdField.gameObject);
     }
 
     [DebuggerHidden]

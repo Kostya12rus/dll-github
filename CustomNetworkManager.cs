@@ -22,6 +22,7 @@ using UnityEngine.UI;
 public class CustomNetworkManager : NetworkManager
 {
   public static string Ip = string.Empty;
+  public string disconnectMessage = string.Empty;
   public GameObject popup;
   public GameObject createpop;
   public RectTransform contSize;
@@ -35,63 +36,53 @@ public class CustomNetworkManager : NetworkManager
   public bool reconnect;
   private bool _queryEnabled;
   private bool _activated;
-  public string disconnectMessage;
   public static string ConnectionIp;
   [Space(20f)]
   public string[] CompatibleVersions;
 
-  public CustomNetworkManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    if (!this.popup.get_activeSelf() || !Input.GetKey((KeyCode) 27))
+    if (!this.popup.activeSelf || !Input.GetKey(KeyCode.Escape))
       return;
     this.ClickButton();
   }
 
-  public virtual void OnClientDisconnect(NetworkConnection conn)
+  public override void OnClientDisconnect(NetworkConnection conn)
   {
-    this.ShowLog((int) conn.get_lastError());
+    this.ShowLog((int) conn.lastError);
   }
 
-  public virtual void OnClientError(NetworkConnection conn, int errorCode)
+  public override void OnClientError(NetworkConnection conn, int errorCode)
   {
     this.ShowLog(errorCode);
   }
 
-  public virtual void OnStartClient(NetworkClient client)
+  public override void OnStartClient(NetworkClient client)
   {
     base.OnStartClient(client);
-    ((MonoBehaviour) this).StartCoroutine((IEnumerator) this._ConnectToServer(client));
+    this.StartCoroutine((IEnumerator) this._ConnectToServer(client));
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _ConnectToServer(NetworkClient client)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new CustomNetworkManager.\u003C_ConnectToServer\u003Ec__Iterator0()
-    {
-      client = client,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new CustomNetworkManager.\u003C_ConnectToServer\u003Ec__Iterator0() { client = client, \u0024this = this };
   }
 
-  public virtual void OnServerConnect(NetworkConnection conn)
+  public override void OnServerConnect(NetworkConnection conn)
   {
     base.OnServerConnect(conn);
-    if (BanHandler.QueryBan((string) null, (string) conn.address).Value != null)
+    if (BanHandler.QueryBan((string) null, conn.address).Value != null)
     {
-      ServerConsole.AddLog("Player tried to connect from banned IP address " + (string) conn.address + ".");
+      ServerConsole.AddLog("Player tried to connect from banned IP address " + conn.address + ".");
       ServerConsole.Disconnect(conn, "You are banned from this server.");
     }
     else
-      ServerConsole.AddLog("Player joined from IP address " + (string) conn.address + ".");
+      ServerConsole.AddLog("Player joined from IP address " + conn.address + ".");
   }
 
-  public virtual void OnServerDisconnect(NetworkConnection conn)
+  public override void OnServerDisconnect(NetworkConnection conn)
   {
     base.OnServerDisconnect(conn);
     HlapiServer.OnServerDisconnect(conn);
@@ -104,21 +95,21 @@ public class CustomNetworkManager : NetworkManager
 
   private void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
   {
-    if (!this._activated && ((Scene) ref scene).get_name().ToLower().Contains("menu"))
+    if (!this._activated && scene.name.ToLower().Contains("menu"))
     {
       this._activated = true;
-      this.set_networkAddress("none");
+      this.networkAddress = "none";
       this.StartClient();
-      this.set_networkAddress("localhost");
+      this.networkAddress = "localhost";
       this.StopClient();
     }
     if (!this.reconnect)
       return;
     this.ShowLog(14);
-    ((MonoBehaviour) this).Invoke("Reconnect", 3f);
+    this.Invoke("Reconnect", 3f);
   }
 
-  public virtual void OnClientSceneChanged(NetworkConnection conn)
+  public override void OnClientSceneChanged(NetworkConnection conn)
   {
     base.OnClientSceneChanged(conn);
     if (this.reconnect || !this.logs[this._curLogId].autoHideOnSceneLoad)
@@ -143,18 +134,15 @@ public class CustomNetworkManager : NetworkManager
   {
     this._curLogId = id;
     this.popup.SetActive(true);
-    this.content.set_text(TranslationReader.Get("Connection_Errors", id));
+    this.content.text = TranslationReader.Get("Connection_Errors", id);
     if (!string.IsNullOrEmpty(this.disconnectMessage))
     {
-      string[] strArray = this.content.get_text().Split(new string[1]
-      {
-        Environment.NewLine
-      }, StringSplitOptions.None);
+      string[] strArray = this.content.text.Split(new string[1]{ Environment.NewLine }, StringSplitOptions.None);
       if (strArray.Length > 0)
-        this.content.set_text(strArray[0] + Environment.NewLine + this.disconnectMessage);
+        this.content.text = strArray[0] + Environment.NewLine + this.disconnectMessage;
       this.disconnectMessage = string.Empty;
     }
-    ((Graphic) this.content).get_rectTransform().set_sizeDelta(Vector2.op_Implicit(Vector3.get_zero()));
+    this.content.rectTransform.sizeDelta = (Vector2) Vector3.zero;
   }
 
   public void ClickButton()
@@ -163,7 +151,7 @@ public class CustomNetworkManager : NetworkManager
       action.UseButton();
   }
 
-  public virtual void OnClientConnect(NetworkConnection conn)
+  public override void OnClientConnect(NetworkConnection conn)
   {
     base.OnClientConnect(conn);
   }
@@ -212,7 +200,7 @@ public class CustomNetworkManager : NetworkManager
               }
               catch (Exception ex)
               {
-                GameConsole.Console.singleton.AddLog("IO startup error 2.1", Color32.op_Implicit(Color.get_red()), false);
+                GameConsole.Console.singleton.AddLog("IO startup error 2.1", (Color32) Color.red, false);
               }
             }
           }
@@ -247,16 +235,15 @@ public class CustomNetworkManager : NetworkManager
               }
               catch (Exception ex)
               {
-                GameConsole.Console.singleton.AddLog("IO startup error 2.2", Color32.op_Implicit(Color.get_red()), false);
+                GameConsole.Console.singleton.AddLog("IO startup error 2.2", (Color32) Color.red, false);
               }
             }
           }
         }
       }
     }
-    // ISSUE: method pointer
-    SceneManager.add_sceneLoaded(new UnityAction<Scene, LoadSceneMode>((object) this, __methodptr(OnLevelFinishedLoading)));
-    this.get_connectionConfig().set_MaxSentMessageQueueSize((ushort) 300);
+    SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(this.OnLevelFinishedLoading);
+    this.connectionConfig.MaxSentMessageQueueSize = (ushort) 300;
   }
 
   private string GUIDSplit(string GUID)
@@ -280,7 +267,7 @@ public class CustomNetworkManager : NetworkManager
       }
       catch
       {
-        GameConsole.Console.singleton.AddLog("IO startup error 1.1", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("IO startup error 1.1", (Color32) Color.red, false);
       }
     }
     else
@@ -296,7 +283,7 @@ public class CustomNetworkManager : NetworkManager
       }
       catch
       {
-        GameConsole.Console.singleton.AddLog("IO startup error 1.2", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("IO startup error 1.2", (Color32) Color.red, false);
       }
     }
   }
@@ -306,9 +293,9 @@ public class CustomNetworkManager : NetworkManager
     this.ShowLog(13);
     this.createpop.SetActive(false);
     NetworkServer.Reset();
-    this.set_networkPort(this.GetFreePort());
-    this.set_maxConnections(ConfigFile.ServerConfig.GetInt("max_players", 20));
-    ServerConsole.Port = this.get_networkPort();
+    this.networkPort = this.GetFreePort();
+    this.maxConnections = ConfigFile.ServerConfig.GetInt("max_players", 20);
+    ServerConsole.Port = this.networkPort;
     ServerConsole.AddLog("Config file loaded: " + ConfigFile.ConfigPath);
     this._queryEnabled = ConfigFile.ServerConfig.GetBool("enable_query", true);
     if (ConfigFile.ServerConfig.GetBool("forward_ports", true))
@@ -329,16 +316,13 @@ public class CustomNetworkManager : NetworkManager
   private IEnumerator<float> _CreateLobby()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new CustomNetworkManager.\u003C_CreateLobby\u003Ec__Iterator1()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new CustomNetworkManager.\u003C_CreateLobby\u003Ec__Iterator1() { \u0024this = this };
   }
 
   private void NonsteamHost()
   {
-    this.set_onlineScene("Facility");
-    this.set_maxConnections(20);
+    this.onlineScene = "Facility";
+    this.maxConnections = 20;
     this.StartHostWithPort();
   }
 
@@ -346,15 +330,15 @@ public class CustomNetworkManager : NetworkManager
   {
     if (ConfigFile.ServerConfig.GetString("bind_ip", "ANY").ToUpper() == "ANY")
     {
-      ServerConsole.AddLog("Server starting at all IP addresses and port " + (object) this.get_networkPort());
-      this.set_serverBindToIP(false);
+      ServerConsole.AddLog("Server starting at all IP addresses and port " + (object) this.networkPort);
+      this.serverBindToIP = false;
       this.StartHost();
     }
     else
     {
-      ServerConsole.AddLog("Server starting at IP " + ConfigFile.ServerConfig.GetString("bind_ip", "ANY") + " and  port " + (object) this.get_networkPort());
-      this.set_serverBindAddress(ConfigFile.ServerConfig.GetString("bind_ip", "ANY"));
-      this.set_serverBindToIP(true);
+      ServerConsole.AddLog("Server starting at IP " + ConfigFile.ServerConfig.GetString("bind_ip", "ANY") + " and  port " + (object) this.networkPort);
+      this.serverBindAddress = ConfigFile.ServerConfig.GetString("bind_ip", "ANY");
+      this.serverBindToIP = true;
       this.StartHost();
     }
   }
@@ -387,14 +371,14 @@ public class CustomNetworkManager : NetworkManager
         throw new Exception();
       }
       ServerConsole.AddLog("Port queue loaded: " + str);
-      foreach (int num in numArray)
+      foreach (int serverPort in numArray)
       {
-        ServerConsole.AddLog("Trying to init port: " + (object) num + "...");
-        if (NetworkServer.Listen(num))
+        ServerConsole.AddLog("Trying to init port: " + (object) serverPort + "...");
+        if (NetworkServer.Listen(serverPort))
         {
           NetworkServer.Reset();
           ServerConsole.AddLog("Done!LOGTYPE-10");
-          return num;
+          return serverPort;
         }
         ServerConsole.AddLog("...failed.LOGTYPE-6");
       }
@@ -413,41 +397,37 @@ public class CustomNetworkManager : NetworkManager
       ServerConsole.AddLog("Automatic port forwarding using UPnP enabled!LOGTYPE-9");
       this._mappedDevices = new List<INatDevice>();
     }
-    NatUtility.add_DeviceFound(new EventHandler<DeviceEventArgs>(this.DeviceFound));
-    NatUtility.add_DeviceLost(new EventHandler<DeviceEventArgs>(this.DeviceLost));
+    NatUtility.DeviceFound += new EventHandler<DeviceEventArgs>(this.DeviceFound);
+    NatUtility.DeviceLost += new EventHandler<DeviceEventArgs>(this.DeviceLost);
     NatUtility.StartDiscovery();
   }
 
   private void UpnpStop()
   {
     NatUtility.StopDiscovery();
-    using (List<INatDevice>.Enumerator enumerator = this._mappedDevices.GetEnumerator())
+    foreach (INatDevice mappedDevice in this._mappedDevices)
     {
-      while (enumerator.MoveNext())
+      try
       {
-        INatDevice current = enumerator.Current;
+        mappedDevice.DeletePortMap(new Mapping(Protocol.Udp, this.networkPort, this.networkPort));
+        if (this._mappedDevices.Contains(mappedDevice))
+          this._mappedDevices.Remove(mappedDevice);
+        ServerConsole.AddLog("Removed forwarding rule on port " + (object) this.networkPort + " from " + (object) mappedDevice.GetExternalIP() + " to this device.LOGTYPE-10");
+      }
+      catch
+      {
+        ServerConsole.AddLog("Can't remove forwarding rule on port " + (object) this.networkPort + " UDP from " + (object) mappedDevice.GetExternalIP() + " to this device.LOGTYPE-12");
+      }
+      if (this._queryEnabled)
+      {
         try
         {
-          current.DeletePortMap(new Mapping((Protocol) 1, this.get_networkPort(), this.get_networkPort()));
-          if (this._mappedDevices.Contains(current))
-            this._mappedDevices.Remove(current);
-          ServerConsole.AddLog("Removed forwarding rule on port " + (object) this.get_networkPort() + " from " + (object) current.GetExternalIP() + " to this device.LOGTYPE-10");
+          mappedDevice.DeletePortMap(new Mapping(Protocol.Tcp, this._queryPort, this._queryPort));
+          ServerConsole.AddLog("Removed forwarding rule on query port " + (object) this._queryPort + " from " + (object) mappedDevice.GetExternalIP() + " to this device.LOGTYPE-10");
         }
         catch
         {
-          ServerConsole.AddLog("Can't remove forwarding rule on port " + (object) this.get_networkPort() + " UDP from " + (object) current.GetExternalIP() + " to this device.LOGTYPE-12");
-        }
-        if (this._queryEnabled)
-        {
-          try
-          {
-            current.DeletePortMap(new Mapping((Protocol) 0, this._queryPort, this._queryPort));
-            ServerConsole.AddLog("Removed forwarding rule on query port " + (object) this._queryPort + " from " + (object) current.GetExternalIP() + " to this device.LOGTYPE-10");
-          }
-          catch
-          {
-            ServerConsole.AddLog("Can't remove forwarding rule on query port " + (object) this._queryPort + " UDP from " + (object) current.GetExternalIP() + " to this device.LOGTYPE-12");
-          }
+          ServerConsole.AddLog("Can't remove forwarding rule on query port " + (object) this._queryPort + " UDP from " + (object) mappedDevice.GetExternalIP() + " to this device.LOGTYPE-12");
         }
       }
     }
@@ -455,17 +435,17 @@ public class CustomNetworkManager : NetworkManager
 
   private void DeviceFound(object sender, DeviceEventArgs args)
   {
-    INatDevice device = args.get_Device();
+    INatDevice device = args.Device;
     try
     {
-      device = args.get_Device();
+      device = args.Device;
       this._mappedDevices.Add(device);
-      device.CreatePortMap(new Mapping((Protocol) 1, this.get_networkPort(), this.get_networkPort()));
-      ServerConsole.AddLog("Forwarded port " + (object) this.get_networkPort() + " UDP (game port) from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-10");
+      device.CreatePortMap(new Mapping(Protocol.Udp, this.networkPort, this.networkPort));
+      ServerConsole.AddLog("Forwarded port " + (object) this.networkPort + " UDP (game port) from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-10");
     }
     catch (Exception ex)
     {
-      ServerConsole.AddLog("Can't forward port " + (object) this.get_networkPort() + " UDP from " + (object) device.GetExternalIP() + " to this device. Error: " + ex.Message + "LOGTYPE-12");
+      ServerConsole.AddLog("Can't forward port " + (object) this.networkPort + " UDP from " + (object) device.GetExternalIP() + " to this device. Error: " + ex.Message + "LOGTYPE-12");
     }
     if (!this._queryEnabled)
       return;
@@ -473,7 +453,7 @@ public class CustomNetworkManager : NetworkManager
     {
       if (!this._queryEnabled)
         return;
-      device.CreatePortMap(new Mapping((Protocol) 0, this._queryPort, this._queryPort));
+      device.CreatePortMap(new Mapping(Protocol.Tcp, this._queryPort, this._queryPort));
       ServerConsole.AddLog("Forwarded port " + (object) this._queryPort + " TCP (query port) from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-10");
     }
     catch (Exception ex)
@@ -484,23 +464,23 @@ public class CustomNetworkManager : NetworkManager
 
   private void DeviceLost(object sender, DeviceEventArgs args)
   {
-    INatDevice device = args.get_Device();
+    INatDevice device = args.Device;
     try
     {
-      device.DeletePortMap(new Mapping((Protocol) 1, this.get_networkPort(), this.get_networkPort()));
+      device.DeletePortMap(new Mapping(Protocol.Udp, this.networkPort, this.networkPort));
       if (this._mappedDevices.Contains(device))
         this._mappedDevices.Remove(device);
-      ServerConsole.AddLog("Removed forwarding rule on port " + (object) this.get_networkPort() + " from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-10");
+      ServerConsole.AddLog("Removed forwarding rule on port " + (object) this.networkPort + " from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-10");
     }
     catch
     {
-      ServerConsole.AddLog("Can't remove forwarding rule on port " + (object) this.get_networkPort() + " UDP from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-12");
+      ServerConsole.AddLog("Can't remove forwarding rule on port " + (object) this.networkPort + " UDP from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-12");
     }
     if (!this._queryEnabled)
       return;
     try
     {
-      device.DeletePortMap(new Mapping((Protocol) 0, this._queryPort, this._queryPort));
+      device.DeletePortMap(new Mapping(Protocol.Tcp, this._queryPort, this._queryPort));
       ServerConsole.AddLog("Removed forwarding rule on query port " + (object) this._queryPort + " from " + (object) device.GetExternalIP() + " to this device.LOGTYPE-10");
     }
     catch

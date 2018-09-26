@@ -11,15 +11,10 @@ public class DebugLogScreen : MonoBehaviour
   public GameObject log;
   public GameObject info;
 
-  public DebugLogScreen()
-  {
-    base.\u002Ector();
-  }
-
   private void OnEnable()
   {
     this.info.SetActive(true);
-    CursorManager.debuglogopen = this.log.get_activeSelf();
+    CursorManager.debuglogopen = this.log.activeSelf;
   }
 
   private void OnDisable()
@@ -30,9 +25,9 @@ public class DebugLogScreen : MonoBehaviour
 
   private void Update()
   {
-    if (!Input.GetKeyDown((KeyCode) 285))
+    if (!Input.GetKeyDown(KeyCode.F4))
       return;
-    this.log.SetActive(!this.log.get_activeSelf());
-    CursorManager.debuglogopen = this.log.get_activeSelf();
+    this.log.SetActive(!this.log.activeSelf);
+    CursorManager.debuglogopen = this.log.activeSelf;
   }
 }

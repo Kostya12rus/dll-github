@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class NicknameSync : NetworkBehaviour
 {
@@ -25,15 +24,10 @@ public class NicknameSync : NetworkBehaviour
   [SyncVar(hook = "SetNick")]
   public string myNick;
 
-  public NicknameSync()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this._role = (ServerRoles) ((Component) this).GetComponent<ServerRoles>();
-    if (!this.get_isLocalPlayer())
+    this._role = this.GetComponent<ServerRoles>();
+    if (!this.isLocalPlayer)
       return;
     string n;
     if (!ServerStatic.IsDedicated && SteamManager.Initialized)
@@ -49,40 +43,39 @@ public class NicknameSync : NetworkBehaviour
       }
       else
       {
-        string str = "Player " + SystemInfo.get_deviceName();
+        string str = "Player " + SystemInfo.deviceName;
         PlayerPrefs.SetString("nickname", str);
         n = str;
       }
     }
     this.CallCmdSetNick(n);
-    this.spectCam = ((Scp049PlayerScript) ((Component) this).GetComponent<Scp049PlayerScript>()).plyCam.get_transform();
-    this.n_text = (UnityEngine.UI.Text) GameObject.Find("Nickname Text").GetComponent<UnityEngine.UI.Text>();
+    this.spectCam = this.GetComponent<Scp049PlayerScript>().plyCam.transform;
+    this.n_text = GameObject.Find("Nickname Text").GetComponent<UnityEngine.UI.Text>();
   }
 
   private void Update()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     bool flag = false;
-    RaycastHit raycastHit = (RaycastHit) null;
-    CharacterClassManager component1 = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    if (component1.curClass != 2 && Physics.Raycast(new Ray(this.spectCam.get_position(), this.spectCam.get_forward()), ref raycastHit, this.viewRange, LayerMask.op_Implicit(this.raycastMask)))
+    RaycastHit hitInfo = new RaycastHit();
+    CharacterClassManager component1 = this.GetComponent<CharacterClassManager>();
+    if (component1.curClass != 2 && Physics.Raycast(new Ray(this.spectCam.position, this.spectCam.forward), out hitInfo, this.viewRange, (int) this.raycastMask))
     {
-      NicknameSync component2 = (NicknameSync) ((Component) ((RaycastHit) ref raycastHit).get_transform()).GetComponent<NicknameSync>();
-      if (Object.op_Inequality((Object) component2, (Object) null) && !component2.get_isLocalPlayer())
+      NicknameSync component2 = hitInfo.transform.GetComponent<NicknameSync>();
+      if ((Object) component2 != (Object) null && !component2.isLocalPlayer)
       {
-        CharacterClassManager component3 = (CharacterClassManager) ((Component) component2).GetComponent<CharacterClassManager>();
+        CharacterClassManager component3 = component2.GetComponent<CharacterClassManager>();
         flag = true;
         if (component3.curClass != -1)
         {
           if (!TutorialManager.status)
           {
-            ((Graphic) this.n_text).set_color(component3.klasy[component3.curClass].classColor);
-            this.n_text.set_text(component2._role.GetColoredRoleString(false) + "\n");
-            UnityEngine.UI.Text nText1 = this.n_text;
-            nText1.set_text(nText1.get_text() + component2.myNick);
-            UnityEngine.UI.Text nText2 = this.n_text;
-            nText2.set_text(nText2.get_text() + "\n" + component3.klasy[component3.curClass].fullName);
+            this.n_text.color = component3.klasy[component3.curClass].classColor;
+            this.n_text.text = component2._role.GetColoredRoleString(false) + "\n";
+            this.n_text.text += component2.myNick;
+            UnityEngine.UI.Text nText = this.n_text;
+            nText.text = nText.text + "\n" + component3.klasy[component3.curClass].fullName;
           }
         }
         try
@@ -121,27 +114,17 @@ public class NicknameSync : NetworkBehaviour
                     num1 = 100;
                     break;
                 }
-                UnityEngine.UI.Text nText1 = this.n_text;
-                nText1.set_text(nText1.get_text() + " (" + ((NineTailedFoxUnits) GameObject.Find("Host").GetComponent<NineTailedFoxUnits>()).GetNameById(component3.ntfUnit) + ")\n\n<b>");
+                UnityEngine.UI.Text nText = this.n_text;
+                nText.text = nText.text + " (" + GameObject.Find("Host").GetComponent<NineTailedFoxUnits>().GetNameById(component3.ntfUnit) + ")\n\n<b>";
                 int num3 = num1 - component1.ntfUnit;
                 int num4 = num2 - component3.ntfUnit;
                 if (num3 > num4)
-                {
-                  UnityEngine.UI.Text nText2 = this.n_text;
-                  nText2.set_text(nText2.get_text() + TranslationReader.Get("Legancy_Interfaces", 0));
-                }
+                  this.n_text.text += TranslationReader.Get("Legancy_Interfaces", 0);
                 else if (num4 > num3)
-                {
-                  UnityEngine.UI.Text nText2 = this.n_text;
-                  nText2.set_text(nText2.get_text() + TranslationReader.Get("Legancy_Interfaces", 1));
-                }
+                  this.n_text.text += TranslationReader.Get("Legancy_Interfaces", 1);
                 else if (num4 == num3)
-                {
-                  UnityEngine.UI.Text nText2 = this.n_text;
-                  nText2.set_text(nText2.get_text() + TranslationReader.Get("Legancy_Interfaces", 2));
-                }
-                UnityEngine.UI.Text nText3 = this.n_text;
-                nText3.set_text(nText3.get_text() + "</b>");
+                  this.n_text.text += TranslationReader.Get("Legancy_Interfaces", 2);
+                this.n_text.text += "</b>";
               }
             }
           }
@@ -152,17 +135,17 @@ public class NicknameSync : NetworkBehaviour
         }
       }
     }
-    this.transparency += Time.get_deltaTime() * (!flag ? -3f : 3f);
+    this.transparency += Time.deltaTime * (!flag ? -3f : 3f);
     if (flag)
-      this.transparency = Mathf.Clamp(this.transparency, 0.0f, (this.viewRange - Vector3.Distance(((Component) this).get_transform().get_position(), ((RaycastHit) ref raycastHit).get_point())) / this.viewRange);
+      this.transparency = Mathf.Clamp(this.transparency, 0.0f, (this.viewRange - Vector3.Distance(this.transform.position, hitInfo.point)) / this.viewRange);
     this.transparency = Mathf.Clamp01(this.transparency);
-    ((CanvasRenderer) ((Component) this.n_text).GetComponent<CanvasRenderer>()).SetAlpha(this.transparency);
+    this.n_text.GetComponent<CanvasRenderer>().SetAlpha(this.transparency);
   }
 
   [Command(channel = 2)]
   private void CmdSetNick(string n)
   {
-    if (this.get_isLocalPlayer())
+    if (this.isLocalPlayer)
     {
       this.NetworkmyNick = n;
     }
@@ -173,8 +156,8 @@ public class NicknameSync : NetworkBehaviour
       this._nickSet = true;
       if (n == null)
       {
-        ServerConsole.AddLog("Banned " + (string) this.get_connectionToClient().address + " for passing null name.");
-        ((BanPlayer) PlayerManager.localPlayer.GetComponent<BanPlayer>()).BanUser(((Component) this).get_gameObject(), 26297460, string.Empty, "Server");
+        ServerConsole.AddLog("Banned " + this.connectionToClient.address + " for passing null name.");
+        PlayerManager.localPlayer.GetComponent<BanPlayer>().BanUser(this.gameObject, 26297460, string.Empty, "Server");
         this.SetNick("Null Name");
       }
       else
@@ -205,8 +188,8 @@ public class NicknameSync : NetworkBehaviour
           str = str.Substring(0, 32);
         if (!flag)
         {
-          ServerConsole.AddLog("Kicked " + (string) this.get_connectionToClient().address + " for having an empty name.");
-          ServerConsole.Disconnect(this.get_connectionToClient(), "You may not have an empty name.");
+          ServerConsole.AddLog("Kicked " + this.connectionToClient.address + " for having an empty name.");
+          ServerConsole.Disconnect(this.connectionToClient, "You may not have an empty name.");
           this.SetNick("Empty Name");
         }
         else
@@ -218,13 +201,13 @@ public class NicknameSync : NetworkBehaviour
   [ServerCallback]
   public void UpdateNickname(string n)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     this._nickSet = true;
     if (n == null)
     {
-      ServerConsole.AddLog("Banned " + (string) this.get_connectionToClient().address + " for passing null name.");
-      ((BanPlayer) PlayerManager.localPlayer.GetComponent<BanPlayer>()).BanUser(((Component) this).get_gameObject(), 26297460, string.Empty, "Server");
+      ServerConsole.AddLog("Banned " + this.connectionToClient.address + " for passing null name.");
+      PlayerManager.localPlayer.GetComponent<BanPlayer>().BanUser(this.gameObject, 26297460, string.Empty, "Server");
       this.SetNick("Null Name");
     }
     else
@@ -255,8 +238,8 @@ public class NicknameSync : NetworkBehaviour
         str = str.Substring(0, 32);
       if (!flag)
       {
-        ServerConsole.AddLog("Kicked " + (string) this.get_connectionToClient().address + " for having an empty name.");
-        ServerConsole.Disconnect(this.get_connectionToClient(), "You may not have an empty name.");
+        ServerConsole.AddLog("Kicked " + this.connectionToClient.address + " for having an empty name.");
+        ServerConsole.Disconnect(this.connectionToClient, "You may not have an empty name.");
         this.SetNick("Empty Name");
       }
       else
@@ -286,19 +269,19 @@ public class NicknameSync : NetworkBehaviour
       string str = value;
       ref string local = ref this.myNick;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetNick(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<string>((M0) str, (M0&) ref local, (uint) num);
+      this.SetSyncVar<string>(str, ref local, (uint) num);
     }
   }
 
   protected static void InvokeCmdCmdSetNick(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdSetNick called on client.");
     else
       ((NicknameSync) obj).CmdSetNick(reader.ReadString());
@@ -306,32 +289,31 @@ public class NicknameSync : NetworkBehaviour
 
   public void CallCmdSetNick(string n)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdSetNick called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdSetNick(n);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) NicknameSync.kCmdCmdSetNick);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(n);
-      this.SendCommandInternal(networkWriter, 2, "CmdSetNick");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) NicknameSync.kCmdCmdSetNick);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(n);
+      this.SendCommandInternal(writer, 2, "CmdSetNick");
     }
   }
 
   static NicknameSync()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (NicknameSync), NicknameSync.kCmdCmdSetNick, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdSetNick)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (NicknameSync), NicknameSync.kCmdCmdSetNick, new NetworkBehaviour.CmdDelegate(NicknameSync.InvokeCmdCmdSetNick));
     NetworkCRC.RegisterBehaviour(nameof (NicknameSync), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -339,21 +321,21 @@ public class NicknameSync : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.myNick);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

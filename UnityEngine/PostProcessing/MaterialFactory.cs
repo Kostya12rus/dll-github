@@ -24,11 +24,11 @@ namespace UnityEngine.PostProcessing
       if (!this.m_Materials.TryGetValue(shaderName, out material1))
       {
         Shader shader = Shader.Find(shaderName);
-        if (Object.op_Equality((Object) shader, (Object) null))
+        if ((Object) shader == (Object) null)
           throw new ArgumentException(string.Format("Shader not found ({0})", (object) shaderName));
         Material material2 = new Material(shader);
-        ((Object) material2).set_name(string.Format("PostFX - {0}", (object) shaderName.Substring(shaderName.LastIndexOf("/") + 1)));
-        ((Object) material2).set_hideFlags((HideFlags) 52);
+        material2.name = string.Format("PostFX - {0}", (object) shaderName.Substring(shaderName.LastIndexOf("/") + 1));
+        material2.hideFlags = HideFlags.DontSave;
         material1 = material2;
         this.m_Materials.Add(shaderName, material1);
       }
@@ -37,8 +37,9 @@ namespace UnityEngine.PostProcessing
 
     public void Dispose()
     {
-      foreach (KeyValuePair<string, Material> material in this.m_Materials)
-        GraphicsUtils.Destroy((Object) material.Value);
+      Dictionary<string, Material>.Enumerator enumerator = this.m_Materials.GetEnumerator();
+      while (enumerator.MoveNext())
+        GraphicsUtils.Destroy((Object) enumerator.Current.Value);
       this.m_Materials.Clear();
     }
   }

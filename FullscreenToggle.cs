@@ -11,11 +11,6 @@ public class FullscreenToggle : MonoBehaviour
   public bool isOn;
   public GameObject checkmark;
 
-  public FullscreenToggle()
-  {
-    base.\u002Ector();
-  }
-
   private void OnEnable()
   {
     this.isOn = PlayerPrefs.GetInt("SavedFullscreen", 1) != 0;

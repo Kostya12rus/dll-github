@@ -8,15 +8,10 @@ using UnityEngine;
 
 public class SpawnpointManager : MonoBehaviour
 {
-  public SpawnpointManager()
-  {
-    base.\u002Ector();
-  }
-
   public GameObject GetRandomPosition(int classID)
   {
     GameObject gameObject = (GameObject) null;
-    Class @class = ((CharacterClassManager) GameObject.Find("Host").GetComponent<CharacterClassManager>()).klasy[classID];
+    Class @class = GameObject.Find("Host").GetComponent<CharacterClassManager>().klasy[classID];
     if (@class.team == Team.CDP || @class.team == Team.TUT)
     {
       GameObject[] gameObjectsWithTag = GameObject.FindGameObjectsWithTag("SP_CDP");

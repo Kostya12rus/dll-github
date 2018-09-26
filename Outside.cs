@@ -9,28 +9,23 @@ using UnityStandardAssets.ImageEffects;
 
 public class Outside : MonoBehaviour
 {
-  private bool isOutside;
+  private bool isOutside = true;
   private Transform listenerPos;
-
-  public Outside()
-  {
-    base.\u002Ector();
-  }
 
   private void Update()
   {
-    if (Object.op_Equality((Object) this.listenerPos, (Object) null))
+    if ((Object) this.listenerPos == (Object) null)
     {
-      SpectatorCamera objectOfType = (SpectatorCamera) Object.FindObjectOfType<SpectatorCamera>();
-      if (Object.op_Inequality((Object) objectOfType, (Object) null))
-        this.listenerPos = ((Component) objectOfType.cam).get_transform();
+      SpectatorCamera objectOfType = Object.FindObjectOfType<SpectatorCamera>();
+      if ((Object) objectOfType != (Object) null)
+        this.listenerPos = objectOfType.cam.transform;
     }
-    if (this.listenerPos.get_position().y > 900.0 && !this.isOutside)
+    if ((double) this.listenerPos.position.y > 900.0 && !this.isOutside)
     {
       this.isOutside = true;
       this.SetOutside(true);
     }
-    if (this.listenerPos.get_position().y >= 900.0 || !this.isOutside)
+    if ((double) this.listenerPos.position.y >= 900.0 || !this.isOutside)
       return;
     this.isOutside = false;
     this.SetOutside(false);
@@ -39,18 +34,18 @@ public class Outside : MonoBehaviour
   private void SetOutside(bool b)
   {
     GameObject gameObject = GameObject.Find("Directional light");
-    if (Object.op_Inequality((Object) gameObject, (Object) null))
-      ((Behaviour) gameObject.GetComponent<Light>()).set_enabled(b);
-    foreach (Camera componentsInChild in (Camera[]) ((Component) this).GetComponentsInChildren<Camera>(true))
+    if ((Object) gameObject != (Object) null)
+      gameObject.GetComponent<Light>().enabled = b;
+    foreach (Camera componentsInChild in this.GetComponentsInChildren<Camera>(true))
     {
-      if ((double) componentsInChild.get_farClipPlane() == 600.0 || (double) componentsInChild.get_farClipPlane() == 47.0)
+      if ((double) componentsInChild.farClipPlane == 600.0 || (double) componentsInChild.farClipPlane == 47.0)
       {
-        componentsInChild.set_farClipPlane(!b ? 47f : 600f);
-        if (componentsInChild.get_clearFlags() <= 2)
-          componentsInChild.set_clearFlags(!b ? (CameraClearFlags) 2 : (CameraClearFlags) 1);
+        componentsInChild.farClipPlane = !b ? 47f : 600f;
+        if (componentsInChild.clearFlags <= CameraClearFlags.Color)
+          componentsInChild.clearFlags = !b ? CameraClearFlags.Color : CameraClearFlags.Skybox;
       }
     }
-    foreach (GlobalFog componentsInChild in (GlobalFog[]) ((Component) this).GetComponentsInChildren<GlobalFog>(true))
-      componentsInChild.startDistance = !b ? (__Null) 5.0 : (__Null) 50.0;
+    foreach (GlobalFog componentsInChild in this.GetComponentsInChildren<GlobalFog>(true))
+      componentsInChild.startDistance = !b ? 5f : 50f;
   }
 }

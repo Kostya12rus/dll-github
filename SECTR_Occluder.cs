@@ -53,28 +53,28 @@ public class SECTR_Occluder : SECTR_Hull
   public Matrix4x4 GetCullingMatrix(Vector3 cameraPos)
   {
     if (this.AutoOrient == SECTR_Occluder.OrientationAxis.None)
-      return ((Component) this).get_transform().get_localToWorldMatrix();
+      return this.transform.localToWorldMatrix;
     this.ComputeVerts();
-    Vector3 position = ((Component) this).get_transform().get_position();
-    Vector3 vector3 = Vector3.op_Subtraction(cameraPos, position);
+    Vector3 position = this.transform.position;
+    Vector3 toDirection = cameraPos - position;
     switch (this.AutoOrient)
     {
       case SECTR_Occluder.OrientationAxis.XZ:
-        vector3.y = (__Null) 0.0;
+        toDirection.y = 0.0f;
         break;
       case SECTR_Occluder.OrientationAxis.XY:
-        vector3.z = (__Null) 0.0;
+        toDirection.z = 0.0f;
         break;
       case SECTR_Occluder.OrientationAxis.YZ:
-        vector3.x = (__Null) 0.0;
+        toDirection.x = 0.0f;
         break;
     }
-    return Matrix4x4.TRS(position, Quaternion.FromToRotation(this.meshNormal, vector3), ((Component) this).get_transform().get_lossyScale());
+    return Matrix4x4.TRS(position, Quaternion.FromToRotation(this.meshNormal, toDirection), this.transform.lossyScale);
   }
 
   private void OnEnable()
   {
-    this.cachedMember = (SECTR_Member) ((Component) this).GetComponent<SECTR_Member>();
+    this.cachedMember = this.GetComponent<SECTR_Member>();
     this.cachedMember.Changed += new SECTR_Member.MembershipChanged(this._MembershipChanged);
     SECTR_Occluder.allOccluders.Add(this);
   }
@@ -94,7 +94,7 @@ public class SECTR_Occluder : SECTR_Hull
       for (int index = 0; index < count; ++index)
       {
         SECTR_Sector key = joined[index];
-        if (Object.op_Implicit((Object) key))
+        if ((bool) ((Object) key))
         {
           List<SECTR_Occluder> sectrOccluderList;
           if (!SECTR_Occluder.occluderTable.TryGetValue(key, out sectrOccluderList))
@@ -113,7 +113,7 @@ public class SECTR_Occluder : SECTR_Hull
     for (int index = 0; index < count1; ++index)
     {
       SECTR_Sector key = left[index];
-      if (Object.op_Implicit((Object) key) && this.currentSectors.Contains(key))
+      if ((bool) ((Object) key) && this.currentSectors.Contains(key))
       {
         List<SECTR_Occluder> sectrOccluderList;
         if (SECTR_Occluder.occluderTable.TryGetValue(key, out sectrOccluderList))

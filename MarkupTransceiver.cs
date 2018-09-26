@@ -14,15 +14,10 @@ public class MarkupTransceiver : NetworkBehaviour
   private static int kTargetRpcTargetRpcDownloadStyle = 2037165113;
   private static int kTargetRpcTargetRpcReceiveData;
 
-  public MarkupTransceiver()
-  {
-    base.\u002Ector();
-  }
-
   [ServerCallback]
   public void Transmit(string code, int[] playerIDs)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     foreach (NetworkConnection target in this.GetTargets(playerIDs))
       this.CallTargetRpcReceiveData(target, code);
@@ -31,7 +26,7 @@ public class MarkupTransceiver : NetworkBehaviour
   [ServerCallback]
   public void RequestStyleDownload(string url, int[] playerIDs)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     foreach (NetworkConnection target in this.GetTargets(playerIDs))
       this.CallTargetRpcDownloadStyle(target, url);
@@ -48,11 +43,11 @@ public class MarkupTransceiver : NetworkBehaviour
     List<NetworkConnection> networkConnectionList = new List<NetworkConnection>();
     foreach (GameObject player in PlayerManager.singleton.players)
     {
-      QueryProcessor component = (QueryProcessor) player.GetComponent<QueryProcessor>();
+      QueryProcessor component = player.GetComponent<QueryProcessor>();
       foreach (int playerId in playerIDs)
       {
         if (component.PlayerId == playerId)
-          networkConnectionList.Add(component.get_connectionToClient());
+          networkConnectionList.Add(component.connectionToClient);
       }
     }
     return networkConnectionList.ToArray();
@@ -70,23 +65,23 @@ public class MarkupTransceiver : NetworkBehaviour
 
   protected static void InvokeRpcTargetRpcDownloadStyle(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "TargetRPC TargetRpcDownloadStyle called on server.");
     else
-      ((MarkupTransceiver) obj).TargetRpcDownloadStyle(ClientScene.get_readyConnection(), reader.ReadString());
+      ((MarkupTransceiver) obj).TargetRpcDownloadStyle(ClientScene.readyConnection, reader.ReadString());
   }
 
   protected static void InvokeRpcTargetRpcReceiveData(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "TargetRPC TargetRpcReceiveData called on server.");
     else
-      ((MarkupTransceiver) obj).TargetRpcReceiveData(ClientScene.get_readyConnection(), reader.ReadString());
+      ((MarkupTransceiver) obj).TargetRpcReceiveData(ClientScene.readyConnection, reader.ReadString());
   }
 
   public void CallTargetRpcDownloadStyle(NetworkConnection conn, string url)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "TargetRPC Function TargetRpcDownloadStyle called on client.");
     else if (conn is ULocalConnectionToServer)
     {
@@ -94,19 +89,19 @@ public class MarkupTransceiver : NetworkBehaviour
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) MarkupTransceiver.kTargetRpcTargetRpcDownloadStyle);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(url);
-      this.SendTargetRPCInternal(conn, networkWriter, 0, "TargetRpcDownloadStyle");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) MarkupTransceiver.kTargetRpcTargetRpcDownloadStyle);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(url);
+      this.SendTargetRPCInternal(conn, writer, 0, "TargetRpcDownloadStyle");
     }
   }
 
   public void CallTargetRpcReceiveData(NetworkConnection target, string code)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "TargetRPC Function TargetRpcReceiveData called on client.");
     else if (target is ULocalConnectionToServer)
     {
@@ -114,33 +109,31 @@ public class MarkupTransceiver : NetworkBehaviour
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) MarkupTransceiver.kTargetRpcTargetRpcReceiveData);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(code);
-      this.SendTargetRPCInternal(target, networkWriter, 0, "TargetRpcReceiveData");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) MarkupTransceiver.kTargetRpcTargetRpcReceiveData);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(code);
+      this.SendTargetRPCInternal(target, writer, 0, "TargetRpcReceiveData");
     }
   }
 
   static MarkupTransceiver()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (MarkupTransceiver), MarkupTransceiver.kTargetRpcTargetRpcDownloadStyle, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcTargetRpcDownloadStyle)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (MarkupTransceiver), MarkupTransceiver.kTargetRpcTargetRpcDownloadStyle, new NetworkBehaviour.CmdDelegate(MarkupTransceiver.InvokeRpcTargetRpcDownloadStyle));
     MarkupTransceiver.kTargetRpcTargetRpcReceiveData = -1873892515;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (MarkupTransceiver), MarkupTransceiver.kTargetRpcTargetRpcReceiveData, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcTargetRpcReceiveData)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (MarkupTransceiver), MarkupTransceiver.kTargetRpcTargetRpcReceiveData, new NetworkBehaviour.CmdDelegate(MarkupTransceiver.InvokeRpcTargetRpcReceiveData));
     NetworkCRC.RegisterBehaviour(nameof (MarkupTransceiver), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

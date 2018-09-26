@@ -20,40 +20,33 @@ public class WeaponLaser : MonoBehaviour
   public LayerMask raycastMask;
   private RaycastHit hit;
 
-  public WeaponLaser()
-  {
-    base.\u002Ector();
-  }
-
   private void LateUpdate()
   {
-    if (Object.op_Equality((Object) this.forwardDirection, (Object) null))
+    if ((Object) this.forwardDirection == (Object) null)
     {
-      ((Behaviour) this.light).set_enabled(false);
+      this.light.enabled = false;
     }
     else
     {
-      ((Behaviour) this.light).set_enabled(true);
-      float num = Vector3.Angle(((Component) this).get_transform().get_forward(), this.forwardDirection.get_transform().get_forward());
-      Quaternion rotation1 = ((Component) this).get_transform().get_rotation();
-      this.rotCam = ((Quaternion) ref rotation1).get_eulerAngles();
-      Quaternion rotation2 = this.forwardDirection.get_transform().get_rotation();
-      this.rotBar = ((Quaternion) ref rotation2).get_eulerAngles();
-      this.rotBar.z = (__Null) 0.0;
-      this.rotCam.z = (__Null) 0.0;
-      Quaternion quaternion = Quaternion.Euler(Vector3.op_Multiply(Vector3.op_Subtraction(this.rotBar, this.rotCam), 4f));
-      this.localRot = (double) num <= (double) this.maxAngle ? Quaternion.Euler(Vector3.get_zero()) : quaternion;
-      Physics.Raycast(((Component) this).get_transform().get_position(), ((Component) this).get_transform().get_forward(), ref this.hit, 1000f, LayerMask.op_Implicit(this.raycastMask));
-      this.hitPoint = ((RaycastHit) ref this.hit).get_point();
-      this.light.set_spotAngle(this.sizeOverDistance.Evaluate(((RaycastHit) ref this.hit).get_distance()));
-      ((Component) this.light).get_transform().set_localPosition(Vector3.op_Multiply(Vector3.op_Multiply(Vector3.get_forward(), ((RaycastHit) ref this.hit).get_distance()), 0.75f));
-      ((Component) this.light).get_transform().set_localRotation(Quaternion.Lerp(((Component) this.light).get_transform().get_localRotation(), this.localRot, Time.get_deltaTime() * this.speedLerp));
+      this.light.enabled = true;
+      float num = Vector3.Angle(this.transform.forward, this.forwardDirection.transform.forward);
+      this.rotCam = this.transform.rotation.eulerAngles;
+      this.rotBar = this.forwardDirection.transform.rotation.eulerAngles;
+      this.rotBar.z = 0.0f;
+      this.rotCam.z = 0.0f;
+      Quaternion quaternion = Quaternion.Euler((this.rotBar - this.rotCam) * 4f);
+      this.localRot = (double) num <= (double) this.maxAngle ? Quaternion.Euler(Vector3.zero) : quaternion;
+      Physics.Raycast(this.transform.position, this.transform.forward, out this.hit, 1000f, (int) this.raycastMask);
+      this.hitPoint = this.hit.point;
+      this.light.spotAngle = this.sizeOverDistance.Evaluate(this.hit.distance);
+      this.light.transform.localPosition = Vector3.forward * this.hit.distance * 0.75f;
+      this.light.transform.localRotation = Quaternion.Lerp(this.light.transform.localRotation, this.localRot, Time.deltaTime * this.speedLerp);
     }
   }
 
   private void OnDrawGizmos()
   {
-    Gizmos.set_color(Color.get_cyan());
-    Gizmos.DrawSphere(((RaycastHit) ref this.hit).get_point(), 0.5f);
+    Gizmos.color = Color.cyan;
+    Gizmos.DrawSphere(this.hit.point, 0.5f);
   }
 }

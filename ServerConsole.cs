@@ -29,11 +29,6 @@ public class ServerConsole : MonoBehaviour
   public static AsymmetricKeyParameter Publickey;
   private bool _errorSent;
 
-  public ServerConsole()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     if (!ServerStatic.IsDedicated)
@@ -65,41 +60,41 @@ public class ServerConsole : MonoBehaviour
     if (ServerStatic.IsDedicated)
       ServerConsole.PrompterQueue.Add(q);
     else
-      GameConsole.Console.singleton.AddLog(q, Color32.op_Implicit(Color.get_grey()), false);
+      GameConsole.Console.singleton.AddLog(q, (Color32) Color.grey, false);
   }
 
   public static string GetClientInfo(NetworkConnection conn)
   {
     GameObject connectedRoot = GameConsole.Console.FindConnectedRoot(conn);
-    return ((NicknameSync) connectedRoot.GetComponent<NicknameSync>()).myNick + " ( " + ((CharacterClassManager) connectedRoot.GetComponent<CharacterClassManager>()).SteamId + " | " + (string) conn.address + " )";
+    return connectedRoot.GetComponent<NicknameSync>().myNick + " ( " + connectedRoot.GetComponent<CharacterClassManager>().SteamId + " | " + conn.address + " )";
   }
 
   public static string GetClientInfo(GameObject gameObject)
   {
-    return ((NicknameSync) gameObject.GetComponent<NicknameSync>()).myNick + " ( " + ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).SteamId + " | " + (string) ((NetworkBehaviour) gameObject.GetComponent<NetworkBehaviour>()).get_connectionToClient().address + " )";
+    return gameObject.GetComponent<NicknameSync>().myNick + " ( " + gameObject.GetComponent<CharacterClassManager>().SteamId + " | " + gameObject.GetComponent<NetworkBehaviour>().connectionToClient.address + " )";
   }
 
   public static void Disconnect(GameObject player, string message)
   {
-    if (Object.op_Equality((Object) player, (Object) null))
+    if ((Object) player == (Object) null)
       return;
-    NetworkBehaviour component1 = (NetworkBehaviour) player.GetComponent<NetworkBehaviour>();
-    if (Object.op_Equality((Object) component1, (Object) null) || !component1.get_connectionToClient().get_isConnected())
+    NetworkBehaviour component1 = player.GetComponent<NetworkBehaviour>();
+    if ((Object) component1 == (Object) null || !component1.connectionToClient.isConnected)
       return;
-    CharacterClassManager component2 = (CharacterClassManager) player.GetComponent<CharacterClassManager>();
-    if (Object.op_Equality((Object) component2, (Object) null))
+    CharacterClassManager component2 = player.GetComponent<CharacterClassManager>();
+    if ((Object) component2 == (Object) null)
     {
-      component1.get_connectionToClient().Disconnect();
-      component1.get_connectionToClient().Dispose();
+      component1.connectionToClient.Disconnect();
+      component1.connectionToClient.Dispose();
     }
     else
-      component2.DisconnectClient(component1.get_connectionToClient(), message);
+      component2.DisconnectClient(component1.connectionToClient, message);
   }
 
   public static void Disconnect(NetworkConnection conn, string message)
   {
     GameObject connectedRoot = GameConsole.Console.FindConnectedRoot(conn);
-    if (Object.op_Equality((Object) connectedRoot, (Object) null))
+    if ((Object) connectedRoot == (Object) null)
     {
       conn.Disconnect();
       conn.Dispose();
@@ -112,10 +107,7 @@ public class ServerConsole : MonoBehaviour
   public IEnumerator<float> _Prompt()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ServerConsole.\u003C_Prompt\u003Ec__Iterator1()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ServerConsole.\u003C_Prompt\u003Ec__Iterator1() { \u0024this = this };
   }
 
   private static void ColorText(string text)
@@ -189,10 +181,10 @@ public class ServerConsole : MonoBehaviour
       case "FORCESTART":
         bool flag = false;
         GameObject gameObject = GameObject.Find("Host");
-        if (Object.op_Inequality((Object) gameObject, (Object) null))
+        if ((Object) gameObject != (Object) null)
         {
-          CharacterClassManager component = (CharacterClassManager) gameObject.GetComponent<CharacterClassManager>();
-          if (Object.op_Inequality((Object) component, (Object) null) && component.get_isLocalPlayer() && (component.get_isServer() && !component.roundStarted))
+          CharacterClassManager component = gameObject.GetComponent<CharacterClassManager>();
+          if ((Object) component != (Object) null && component.isLocalPlayer && (component.isServer && !component.roundStarted))
           {
             component.ForceRoundStart();
             flag = true;
@@ -217,17 +209,17 @@ public class ServerConsole : MonoBehaviour
 
   public void RunServer()
   {
-    Timing.RunCoroutine(this._RefreshSession(), (Segment) 0);
+    Timing.RunCoroutine(this._RefreshSession(), Segment.Update);
   }
 
   public void RunRefreshPublicKey()
   {
-    Timing.RunCoroutine(this._RefreshPublicKey(), (Segment) 0);
+    Timing.RunCoroutine(this._RefreshPublicKey(), Segment.Update);
   }
 
   public void RunRefreshCentralServers()
   {
-    Timing.RunCoroutine(this._RefreshCentralServers(), (Segment) 0);
+    Timing.RunCoroutine(this._RefreshCentralServers(), Segment.Update);
   }
 
   [DebuggerHidden]
@@ -261,10 +253,7 @@ public class ServerConsole : MonoBehaviour
   private IEnumerator<float> _RefreshSession()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ServerConsole.\u003C_RefreshSession\u003Ec__Iterator5()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ServerConsole.\u003C_RefreshSession\u003Ec__Iterator5() { \u0024this = this };
   }
 
   public void RefreshToken()

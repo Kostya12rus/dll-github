@@ -17,73 +17,74 @@ public class UBER_DeferredParams : MonoBehaviour
 {
   [ColorUsage(false)]
   [Header("Translucency setup 1")]
-  public Color TranslucencyColor1;
+  public Color TranslucencyColor1 = new Color(1f, 1f, 1f, 1f);
   [Tooltip("You can control strength per light using its color alpha (first enable in UBER config file)")]
-  public float Strength1;
+  public float Strength1 = 4f;
   [Range(0.0f, 1f)]
-  public float PointLightsDirectionality1;
+  public float PointLightsDirectionality1 = 0.7f;
   [Range(0.0f, 0.5f)]
-  public float Constant1;
+  public float Constant1 = 0.1f;
   [Range(0.0f, 0.3f)]
-  public float Scattering1;
+  public float Scattering1 = 0.05f;
   [Range(0.0f, 100f)]
-  public float SpotExponent1;
+  public float SpotExponent1 = 30f;
   [Range(0.0f, 20f)]
-  public float SuppressShadows1;
-  [Range(0.0f, 1f)]
-  public float NdotLReduction1;
+  public float SuppressShadows1 = 0.5f;
   [ColorUsage(false)]
   [Header("Translucency setup 2")]
   [Space]
-  public Color TranslucencyColor2;
+  public Color TranslucencyColor2 = new Color(1f, 1f, 1f, 1f);
   [Tooltip("You can control strength per light using its color alpha (first enable in UBER config file)")]
-  public float Strength2;
+  public float Strength2 = 4f;
   [Range(0.0f, 1f)]
-  public float PointLightsDirectionality2;
+  public float PointLightsDirectionality2 = 0.7f;
   [Range(0.0f, 0.5f)]
-  public float Constant2;
+  public float Constant2 = 0.1f;
   [Range(0.0f, 0.3f)]
-  public float Scattering2;
+  public float Scattering2 = 0.05f;
   [Range(0.0f, 100f)]
-  public float SpotExponent2;
+  public float SpotExponent2 = 30f;
   [Range(0.0f, 20f)]
-  public float SuppressShadows2;
-  [Range(0.0f, 1f)]
-  public float NdotLReduction2;
+  public float SuppressShadows2 = 0.5f;
   [ColorUsage(false)]
   [Header("Translucency setup 3")]
   [Space]
-  public Color TranslucencyColor3;
+  public Color TranslucencyColor3 = new Color(1f, 1f, 1f, 1f);
   [Tooltip("You can control strength per light using its color alpha (first enable in UBER config file)")]
-  public float Strength3;
+  public float Strength3 = 4f;
   [Range(0.0f, 1f)]
-  public float PointLightsDirectionality3;
+  public float PointLightsDirectionality3 = 0.7f;
   [Range(0.0f, 0.5f)]
-  public float Constant3;
+  public float Constant3 = 0.1f;
   [Range(0.0f, 0.3f)]
-  public float Scattering3;
+  public float Scattering3 = 0.05f;
   [Range(0.0f, 100f)]
-  public float SpotExponent3;
+  public float SpotExponent3 = 30f;
   [Range(0.0f, 20f)]
-  public float SuppressShadows3;
-  [Range(0.0f, 1f)]
-  public float NdotLReduction3;
+  public float SuppressShadows3 = 0.5f;
   [ColorUsage(false)]
   [Header("Translucency setup 4")]
   [Space]
-  public Color TranslucencyColor4;
+  public Color TranslucencyColor4 = new Color(1f, 1f, 1f, 1f);
   [Tooltip("You can control strength per light using its color alpha (first enable in UBER config file)")]
-  public float Strength4;
+  public float Strength4 = 4f;
   [Range(0.0f, 1f)]
-  public float PointLightsDirectionality4;
+  public float PointLightsDirectionality4 = 0.7f;
   [Range(0.0f, 0.5f)]
-  public float Constant4;
+  public float Constant4 = 0.1f;
   [Range(0.0f, 0.3f)]
-  public float Scattering4;
+  public float Scattering4 = 0.05f;
   [Range(0.0f, 100f)]
-  public float SpotExponent4;
+  public float SpotExponent4 = 30f;
   [Range(0.0f, 20f)]
-  public float SuppressShadows4;
+  public float SuppressShadows4 = 0.5f;
+  private HashSet<Camera> sceneCamsWithBuffer = new HashSet<Camera>();
+  [Range(0.0f, 1f)]
+  public float NdotLReduction1;
+  [Range(0.0f, 1f)]
+  public float NdotLReduction2;
+  [Range(0.0f, 1f)]
+  public float NdotLReduction3;
   [Range(0.0f, 1f)]
   public float NdotLReduction4;
   private Camera mycam;
@@ -94,12 +95,6 @@ public class UBER_DeferredParams : MonoBehaviour
   private bool UBERPresent;
   [HideInInspector]
   public Texture2D TranslucencyPropsTex;
-  private HashSet<Camera> sceneCamsWithBuffer;
-
-  public UBER_DeferredParams()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
@@ -113,29 +108,29 @@ public class UBER_DeferredParams : MonoBehaviour
 
   public void SetupTranslucencyValues()
   {
-    if (Object.op_Equality((Object) this.TranslucencyPropsTex, (Object) null))
+    if ((Object) this.TranslucencyPropsTex == (Object) null)
     {
-      this.TranslucencyPropsTex = new Texture2D(4, 3, (TextureFormat) 20, false, true);
-      ((Texture) this.TranslucencyPropsTex).set_anisoLevel(0);
-      ((Texture) this.TranslucencyPropsTex).set_filterMode((FilterMode) 0);
-      ((Texture) this.TranslucencyPropsTex).set_wrapMode((TextureWrapMode) 1);
-      ((Object) this.TranslucencyPropsTex).set_hideFlags((HideFlags) 61);
+      this.TranslucencyPropsTex = new Texture2D(4, 3, TextureFormat.RGBAFloat, false, true);
+      this.TranslucencyPropsTex.anisoLevel = 0;
+      this.TranslucencyPropsTex.filterMode = FilterMode.Point;
+      this.TranslucencyPropsTex.wrapMode = TextureWrapMode.Clamp;
+      this.TranslucencyPropsTex.hideFlags = HideFlags.HideAndDontSave;
     }
     Shader.SetGlobalTexture("_UBERTranslucencySetup", (Texture) this.TranslucencyPropsTex);
-    byte[] rawTexdata = new byte[192];
-    this.EncodeRGBAFloatTo16Bytes((float) this.TranslucencyColor1.r, (float) this.TranslucencyColor1.g, (float) this.TranslucencyColor1.b, this.Strength1, rawTexdata, 0, 0);
-    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality1, this.Constant1, this.Scattering1, this.SpotExponent1, rawTexdata, 0, 1);
-    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows1, this.NdotLReduction1, 1f, 1f, rawTexdata, 0, 2);
-    this.EncodeRGBAFloatTo16Bytes((float) this.TranslucencyColor2.r, (float) this.TranslucencyColor2.g, (float) this.TranslucencyColor2.b, this.Strength2, rawTexdata, 1, 0);
-    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality2, this.Constant2, this.Scattering2, this.SpotExponent2, rawTexdata, 1, 1);
-    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows2, this.NdotLReduction2, 1f, 1f, rawTexdata, 1, 2);
-    this.EncodeRGBAFloatTo16Bytes((float) this.TranslucencyColor3.r, (float) this.TranslucencyColor3.g, (float) this.TranslucencyColor3.b, this.Strength3, rawTexdata, 2, 0);
-    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality3, this.Constant3, this.Scattering3, this.SpotExponent3, rawTexdata, 2, 1);
-    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows3, this.NdotLReduction3, 1f, 1f, rawTexdata, 2, 2);
-    this.EncodeRGBAFloatTo16Bytes((float) this.TranslucencyColor4.r, (float) this.TranslucencyColor4.g, (float) this.TranslucencyColor4.b, this.Strength4, rawTexdata, 3, 0);
-    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality4, this.Constant4, this.Scattering4, this.SpotExponent4, rawTexdata, 3, 1);
-    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows4, this.NdotLReduction4, 1f, 1f, rawTexdata, 3, 2);
-    this.TranslucencyPropsTex.LoadRawTextureData(rawTexdata);
+    byte[] numArray = new byte[192];
+    this.EncodeRGBAFloatTo16Bytes(this.TranslucencyColor1.r, this.TranslucencyColor1.g, this.TranslucencyColor1.b, this.Strength1, numArray, 0, 0);
+    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality1, this.Constant1, this.Scattering1, this.SpotExponent1, numArray, 0, 1);
+    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows1, this.NdotLReduction1, 1f, 1f, numArray, 0, 2);
+    this.EncodeRGBAFloatTo16Bytes(this.TranslucencyColor2.r, this.TranslucencyColor2.g, this.TranslucencyColor2.b, this.Strength2, numArray, 1, 0);
+    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality2, this.Constant2, this.Scattering2, this.SpotExponent2, numArray, 1, 1);
+    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows2, this.NdotLReduction2, 1f, 1f, numArray, 1, 2);
+    this.EncodeRGBAFloatTo16Bytes(this.TranslucencyColor3.r, this.TranslucencyColor3.g, this.TranslucencyColor3.b, this.Strength3, numArray, 2, 0);
+    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality3, this.Constant3, this.Scattering3, this.SpotExponent3, numArray, 2, 1);
+    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows3, this.NdotLReduction3, 1f, 1f, numArray, 2, 2);
+    this.EncodeRGBAFloatTo16Bytes(this.TranslucencyColor4.r, this.TranslucencyColor4.g, this.TranslucencyColor4.b, this.Strength4, numArray, 3, 0);
+    this.EncodeRGBAFloatTo16Bytes(this.PointLightsDirectionality4, this.Constant4, this.Scattering4, this.SpotExponent4, numArray, 3, 1);
+    this.EncodeRGBAFloatTo16Bytes(this.SuppressShadows4, this.NdotLReduction4, 1f, 1f, numArray, 3, 2);
+    this.TranslucencyPropsTex.LoadRawTextureData(numArray);
     this.TranslucencyPropsTex.Apply();
   }
 
@@ -234,15 +229,14 @@ public class UBER_DeferredParams : MonoBehaviour
     this.SetupTranslucencyValues();
     if (this.NotifyDecals())
       return;
-    if (Object.op_Equality((Object) this.mycam, (Object) null))
+    if ((Object) this.mycam == (Object) null)
     {
-      this.mycam = (Camera) ((Component) this).GetComponent<Camera>();
-      if (Object.op_Equality((Object) this.mycam, (Object) null))
+      this.mycam = this.GetComponent<Camera>();
+      if ((Object) this.mycam == (Object) null)
         return;
     }
     this.Initialize();
-    // ISSUE: method pointer
-    Camera.onPreRender = (__Null) Delegate.Combine((Delegate) Camera.onPreRender, (Delegate) new Camera.CameraCallback((object) this, __methodptr(SetupCam)));
+    Camera.onPreRender += new Camera.CameraCallback(this.SetupCam);
   }
 
   public void OnDisable()
@@ -262,7 +256,7 @@ public class UBER_DeferredParams : MonoBehaviour
     Type type = Type.GetType("UBERDecalSystem.DecalManager");
     if (type != null)
     {
-      if (Object.op_Inequality(Object.FindObjectOfType(type), (Object) null) && Object.FindObjectOfType(type) is MonoBehaviour && ((Behaviour) (Object.FindObjectOfType(type) as MonoBehaviour)).get_enabled())
+      if (Object.FindObjectOfType(type) != (Object) null && Object.FindObjectOfType(type) is MonoBehaviour && (Object.FindObjectOfType(type) as MonoBehaviour).enabled)
       {
         (Object.FindObjectOfType(type) as MonoBehaviour).Invoke("OnDisable", 0.0f);
         (Object.FindObjectOfType(type) as MonoBehaviour).Invoke("OnEnable", 0.0f);
@@ -274,53 +268,48 @@ public class UBER_DeferredParams : MonoBehaviour
 
   private void Cleanup()
   {
-    if (Object.op_Implicit((Object) this.TranslucencyPropsTex))
+    if ((bool) ((Object) this.TranslucencyPropsTex))
     {
       Object.DestroyImmediate((Object) this.TranslucencyPropsTex);
       this.TranslucencyPropsTex = (Texture2D) null;
     }
     if (this.combufPreLight != null)
     {
-      if (Object.op_Implicit((Object) this.mycam))
+      if ((bool) ((Object) this.mycam))
       {
-        this.mycam.RemoveCommandBuffer((CameraEvent) 21, this.combufPreLight);
-        this.mycam.RemoveCommandBuffer((CameraEvent) 7, this.combufPostLight);
+        this.mycam.RemoveCommandBuffer(CameraEvent.BeforeReflections, this.combufPreLight);
+        this.mycam.RemoveCommandBuffer(CameraEvent.AfterLighting, this.combufPostLight);
       }
-      using (HashSet<Camera>.Enumerator enumerator = this.sceneCamsWithBuffer.GetEnumerator())
+      foreach (Camera camera in this.sceneCamsWithBuffer)
       {
-        while (enumerator.MoveNext())
+        if ((bool) ((Object) camera))
         {
-          Camera current = enumerator.Current;
-          if (Object.op_Implicit((Object) current))
-          {
-            current.RemoveCommandBuffer((CameraEvent) 21, this.combufPreLight);
-            current.RemoveCommandBuffer((CameraEvent) 7, this.combufPostLight);
-          }
+          camera.RemoveCommandBuffer(CameraEvent.BeforeReflections, this.combufPreLight);
+          camera.RemoveCommandBuffer(CameraEvent.AfterLighting, this.combufPostLight);
         }
       }
     }
     this.sceneCamsWithBuffer.Clear();
-    // ISSUE: method pointer
-    Camera.onPreRender = (__Null) Delegate.Remove((Delegate) Camera.onPreRender, (Delegate) new Camera.CameraCallback((object) this, __methodptr(SetupCam)));
+    Camera.onPreRender -= new Camera.CameraCallback(this.SetupCam);
   }
 
   private void SetupCam(Camera cam)
   {
     bool isSceneCam = false;
-    if (!Object.op_Equality((Object) cam, (Object) this.mycam) && !isSceneCam)
+    if (!((Object) cam == (Object) this.mycam) && !isSceneCam)
       return;
     this.RefreshComBufs(cam, isSceneCam);
   }
 
   public void RefreshComBufs(Camera cam, bool isSceneCam)
   {
-    if (!Object.op_Implicit((Object) cam) || this.combufPreLight == null || this.combufPostLight == null)
+    if (!(bool) ((Object) cam) || this.combufPreLight == null || this.combufPostLight == null)
       return;
-    CommandBuffer[] commandBuffers = cam.GetCommandBuffers((CameraEvent) 21);
+    CommandBuffer[] commandBuffers = cam.GetCommandBuffers(CameraEvent.BeforeReflections);
     bool flag = false;
     foreach (CommandBuffer commandBuffer in commandBuffers)
     {
-      if (commandBuffer.get_name() == this.combufPreLight.get_name())
+      if (commandBuffer.name == this.combufPreLight.name)
       {
         flag = true;
         break;
@@ -328,8 +317,8 @@ public class UBER_DeferredParams : MonoBehaviour
     }
     if (flag)
       return;
-    cam.AddCommandBuffer((CameraEvent) 21, this.combufPreLight);
-    cam.AddCommandBuffer((CameraEvent) 7, this.combufPostLight);
+    cam.AddCommandBuffer(CameraEvent.BeforeReflections, this.combufPreLight);
+    cam.AddCommandBuffer(CameraEvent.AfterLighting, this.combufPostLight);
     if (!isSceneCam)
       return;
     this.sceneCamsWithBuffer.Add(cam);
@@ -340,19 +329,19 @@ public class UBER_DeferredParams : MonoBehaviour
     if (this.combufPreLight != null)
       return;
     int id = Shader.PropertyToID("_UBERPropsBuffer");
-    if (Object.op_Equality((Object) this.CopyPropsMat, (Object) null))
+    if ((Object) this.CopyPropsMat == (Object) null)
     {
-      if (Object.op_Inequality((Object) this.CopyPropsMat, (Object) null))
+      if ((Object) this.CopyPropsMat != (Object) null)
         Object.DestroyImmediate((Object) this.CopyPropsMat);
       this.CopyPropsMat = new Material(Shader.Find("Hidden/UBER_CopyPropsTexture"));
-      ((Object) this.CopyPropsMat).set_hideFlags((HideFlags) 52);
+      this.CopyPropsMat.hideFlags = HideFlags.DontSave;
     }
     this.combufPreLight = new CommandBuffer();
-    this.combufPreLight.set_name("UBERPropsPrelight");
-    this.combufPreLight.GetTemporaryRT(id, -1, -1, 0, (FilterMode) 0, (RenderTextureFormat) 15);
-    this.combufPreLight.Blit(RenderTargetIdentifier.op_Implicit((BuiltinRenderTextureType) 2), RenderTargetIdentifier.op_Implicit(id), this.CopyPropsMat);
+    this.combufPreLight.name = "UBERPropsPrelight";
+    this.combufPreLight.GetTemporaryRT(id, -1, -1, 0, FilterMode.Point, RenderTextureFormat.RHalf);
+    this.combufPreLight.Blit((RenderTargetIdentifier) BuiltinRenderTextureType.CameraTarget, (RenderTargetIdentifier) id, this.CopyPropsMat);
     this.combufPostLight = new CommandBuffer();
-    this.combufPostLight.set_name("UBERPropsPostlight");
+    this.combufPostLight.name = "UBERPropsPostlight";
     this.combufPostLight.ReleaseTemporaryRT(id);
   }
 }

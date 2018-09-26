@@ -14,25 +14,20 @@ public class SensSlider : MonoBehaviour
   public Slider slider;
   public Text optionalValueText;
 
-  public SensSlider()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.OnValueChanged((float) PlayerPrefs.GetInt("Volume", 0));
-    this.slider.set_value((float) PlayerPrefs.GetInt("Volume", 0));
+    this.slider.value = (float) PlayerPrefs.GetInt("Volume", 0);
     this.master.SetFloat("volume", (float) PlayerPrefs.GetInt("Volume", 0));
-    this.optionalValueText.set_text(PlayerPrefs.GetInt("Volume", 0).ToString() + " dB");
+    this.optionalValueText.text = PlayerPrefs.GetInt("Volume", 0).ToString() + " dB";
   }
 
   public void OnValueChanged(float vol)
   {
     this.master.SetFloat("volume", vol);
     PlayerPrefs.SetInt("Volume", (int) vol);
-    if (!Object.op_Inequality((Object) this.optionalValueText, (Object) null))
+    if (!((Object) this.optionalValueText != (Object) null))
       return;
-    this.optionalValueText.set_text(((int) vol).ToString() + " dB");
+    this.optionalValueText.text = ((int) vol).ToString() + " dB";
   }
 }

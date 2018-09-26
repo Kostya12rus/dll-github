@@ -12,54 +12,47 @@ using UnityEngine.UI;
 
 public class DebugLogReader : MonoBehaviour
 {
+  private List<GameObject> lines = new List<GameObject>();
   public ScrollRect scroll;
   public GameObject parent;
   public GameObject prefab;
-  private List<GameObject> lines;
-
-  public DebugLogReader()
-  {
-    base.\u002Ector();
-  }
 
   private void OnEnable()
   {
     try
     {
-      string str1;
-      if (SystemInfo.get_operatingSystemFamily() == 2)
+      string url;
+      switch (SystemInfo.operatingSystemFamily)
       {
-        str1 = "file://c:/Users/" + Environment.UserName + "/AppData/LocalLow/Hubert Moszka/SCP_ Secret Laboratory/output_log.txt";
-      }
-      else
-      {
-        if (SystemInfo.get_operatingSystemFamily() != 3)
+        case OperatingSystemFamily.Windows:
+          url = "file://c:/Users/" + Environment.UserName + "/AppData/LocalLow/Hubert Moszka/SCP_ Secret Laboratory/output_log.txt";
+          break;
+        case OperatingSystemFamily.Linux:
+          url = "file://" + Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/unity3d/Hubert Moszka/SCP_ Secret Laboratory/Player.log";
+          break;
+        default:
           return;
-        str1 = "file://" + Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/unity3d/Hubert Moszka/SCP_ Secret Laboratory/Player.log";
       }
-      if (File.Exists(str1.Replace("file://", string.Empty)))
+      if (File.Exists(url.Replace("file://", string.Empty)))
       {
-        using (WWW www = new WWW(str1))
+        using (WWW www = new WWW(url))
         {
-          string[] strArray = www.get_text().Trim().Split(Environment.NewLine.ToCharArray());
-          using (List<GameObject>.Enumerator enumerator = this.lines.GetEnumerator())
-          {
-            while (enumerator.MoveNext())
-              Object.Destroy((Object) enumerator.Current);
-          }
+          string[] strArray = www.text.Trim().Split(Environment.NewLine.ToCharArray());
+          foreach (Object line in this.lines)
+            Object.Destroy(line);
           this.lines.Clear();
-          foreach (string str2 in strArray)
+          foreach (string str in strArray)
           {
-            if (!string.IsNullOrEmpty(str2))
+            if (!string.IsNullOrEmpty(str))
             {
-              GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) this.prefab, this.parent.get_transform());
-              ((Text) gameObject.GetComponent<Text>()).set_text(str2.Trim());
+              GameObject gameObject = Object.Instantiate<GameObject>(this.prefab, this.parent.transform);
+              gameObject.GetComponent<Text>().text = str.Trim();
               this.lines.Add(gameObject);
             }
           }
         }
       }
-      this.scroll.set_velocity(new Vector2(0.0f, 99999f));
+      this.scroll.velocity = new Vector2(0.0f, 99999f);
     }
     catch
     {

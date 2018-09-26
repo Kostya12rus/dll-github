@@ -10,58 +10,44 @@ using UnityEngine;
 [AddComponentMenu("SECTR/Demos/SECTR Wanderer")]
 public class SECTR_Wanderer : MonoBehaviour
 {
-  private List<SECTR_Graph.Node> path;
-  private List<Vector3> waypoints;
-  private int currentWaypointIndex;
+  private List<SECTR_Graph.Node> path = new List<SECTR_Graph.Node>(16);
+  private List<Vector3> waypoints = new List<Vector3>(16);
   [SECTR_ToolTip("The speed at which the wanderer moves throughout the world.")]
-  public float MovementSpeed;
-
-  public SECTR_Wanderer()
-  {
-    base.\u002Ector();
-  }
+  public float MovementSpeed = 1f;
+  private int currentWaypointIndex;
 
   private void Update()
   {
     if (this.waypoints.Count == 0 && SECTR_Sector.All.Count > 0 && (double) this.MovementSpeed > 0.0)
     {
       SECTR_Sector sectrSector = SECTR_Sector.All[Random.Range(0, SECTR_Sector.All.Count)];
-      SECTR_Graph.FindShortestPath(ref this.path, ((Component) this).get_transform().get_position(), ((Component) sectrSector).get_transform().get_position(), SECTR_Portal.PortalFlags.Locked);
-      Vector3 zero = Vector3.get_zero();
-      Collider component = (Collider) ((Component) this).GetComponent<Collider>();
-      if (Object.op_Implicit((Object) component))
-      {
-        ref Vector3 local = ref zero;
-        // ISSUE: variable of the null type
-        __Null y1 = local.y;
-        Bounds bounds = component.get_bounds();
-        // ISSUE: variable of the null type
-        __Null y2 = ((Bounds) ref bounds).get_extents().y;
-        local.y = y1 + y2;
-      }
+      SECTR_Graph.FindShortestPath(ref this.path, this.transform.position, sectrSector.transform.position, SECTR_Portal.PortalFlags.Locked);
+      Vector3 zero = Vector3.zero;
+      Collider component = this.GetComponent<Collider>();
+      if ((bool) ((Object) component))
+        zero.y += component.bounds.extents.y;
       this.waypoints.Clear();
       int count = this.path.Count;
       for (int index = 0; index < count; ++index)
       {
         SECTR_Graph.Node node = this.path[index];
-        this.waypoints.Add(Vector3.op_Addition(((Component) node.Sector).get_transform().get_position(), zero));
-        if (Object.op_Implicit((Object) node.Portal))
-          this.waypoints.Add(((Component) node.Portal).get_transform().get_position());
+        this.waypoints.Add(node.Sector.transform.position + zero);
+        if ((bool) ((Object) node.Portal))
+          this.waypoints.Add(node.Portal.transform.position);
       }
-      this.waypoints.Add(Vector3.op_Addition(((Component) sectrSector).get_transform().get_position(), zero));
+      this.waypoints.Add(sectrSector.transform.position + zero);
       this.currentWaypointIndex = 0;
     }
     if (this.waypoints.Count <= 0 || (double) this.MovementSpeed <= 0.0)
       return;
-    Vector3 vector3 = Vector3.op_Subtraction(this.waypoints[this.currentWaypointIndex], ((Component) this).get_transform().get_position());
-    float sqrMagnitude = ((Vector3) ref vector3).get_sqrMagnitude();
+    Vector3 vector3 = this.waypoints[this.currentWaypointIndex] - this.transform.position;
+    float sqrMagnitude = vector3.sqrMagnitude;
     if ((double) sqrMagnitude > 1.0 / 1000.0)
     {
-      float num = Mathf.Sqrt(sqrMagnitude);
-      vector3 = Vector3.op_Division(vector3, num);
-      vector3 = Vector3.op_Multiply(vector3, Mathf.Min(this.MovementSpeed * Time.get_deltaTime(), num));
-      Transform transform = ((Component) this).get_transform();
-      transform.set_position(Vector3.op_Addition(transform.get_position(), vector3));
+      float b = Mathf.Sqrt(sqrMagnitude);
+      vector3 /= b;
+      vector3 *= Mathf.Min(this.MovementSpeed * Time.deltaTime, b);
+      this.transform.position += vector3;
     }
     else
     {

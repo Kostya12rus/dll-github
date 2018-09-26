@@ -17,11 +17,6 @@ public class Ragdoll : NetworkBehaviour
   [SyncVar(hook = "SetRecall")]
   public bool allowRecall;
 
-  public Ragdoll()
-  {
-    base.\u002Ector();
-  }
-
   public void SetOwner(Ragdoll.Info s)
   {
     this.Networkowner = s;
@@ -29,8 +24,8 @@ public class Ragdoll : NetworkBehaviour
 
   private void Start()
   {
-    ((MonoBehaviour) this).Invoke("Unfr", 0.1f);
-    ((MonoBehaviour) this).Invoke("Refreeze", 7f);
+    this.Invoke("Unfr", 0.1f);
+    this.Invoke("Refreeze", 7f);
   }
 
   public void SetRecall(bool b)
@@ -40,18 +35,18 @@ public class Ragdoll : NetworkBehaviour
 
   private void Refreeze()
   {
-    foreach (Object componentsInChild in (CharacterJoint[]) ((Component) this).GetComponentsInChildren<CharacterJoint>())
+    foreach (Object componentsInChild in this.GetComponentsInChildren<CharacterJoint>())
       Object.Destroy(componentsInChild);
-    foreach (Object componentsInChild in (Rigidbody[]) ((Component) this).GetComponentsInChildren<Rigidbody>())
+    foreach (Object componentsInChild in this.GetComponentsInChildren<Rigidbody>())
       Object.Destroy(componentsInChild);
   }
 
   private void Unfr()
   {
-    foreach (Rigidbody componentsInChild in (Rigidbody[]) ((Component) this).GetComponentsInChildren<Rigidbody>())
-      componentsInChild.set_isKinematic(false);
-    foreach (Collider componentsInChild in (Collider[]) ((Component) this).GetComponentsInChildren<Collider>())
-      componentsInChild.set_enabled(true);
+    foreach (Rigidbody componentsInChild in this.GetComponentsInChildren<Rigidbody>())
+      componentsInChild.isKinematic = false;
+    foreach (Collider componentsInChild in this.GetComponentsInChildren<Collider>())
+      componentsInChild.enabled = true;
   }
 
   private void UNetVersion()
@@ -69,13 +64,13 @@ public class Ragdoll : NetworkBehaviour
       Ragdoll.Info info = value;
       ref Ragdoll.Info local = ref this.owner;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetOwner(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<Ragdoll.Info>((M0) info, (M0&) ref local, (uint) num);
+      this.SetSyncVar<Ragdoll.Info>(info, ref local, (uint) num);
     }
   }
 
@@ -90,17 +85,17 @@ public class Ragdoll : NetworkBehaviour
       int num1 = value ? 1 : 0;
       ref bool local = ref this.allowRecall;
       int num2 = 2;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetRecall(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -109,30 +104,30 @@ public class Ragdoll : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       GeneratedNetworkCode._WriteInfo_Ragdoll(writer, this.owner);
     }
-    if (((int) this.get_syncVarDirtyBits() & 2) != 0)
+    if (((int) this.syncVarDirtyBits & 2) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.allowRecall);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

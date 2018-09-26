@@ -9,11 +9,6 @@ using UnityEngine;
 
 public class TimeBehaviour : MonoBehaviour
 {
-  public TimeBehaviour()
-  {
-    base.\u002Ector();
-  }
-
   public static long CurrentTimestamp()
   {
     return DateTime.UtcNow.Ticks;

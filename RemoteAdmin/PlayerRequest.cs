@@ -13,15 +13,10 @@ namespace RemoteAdmin
 {
   public class PlayerRequest : MonoBehaviour
   {
-    private readonly List<GameObject> _spawns;
+    private readonly List<GameObject> _spawns = new List<GameObject>();
     public Transform parent;
     public GameObject template;
     public static PlayerRequest singleton;
-
-    public PlayerRequest()
-    {
-      base.\u002Ector();
-    }
 
     private void Awake()
     {
@@ -39,11 +34,8 @@ namespace RemoteAdmin
           stringList.Add(record.playerId);
       }
       PlayerRecord.records = new List<PlayerRecord>();
-      using (List<GameObject>.Enumerator enumerator = this._spawns.GetEnumerator())
-      {
-        while (enumerator.MoveNext())
-          Object.Destroy((Object) enumerator.Current);
-      }
+      foreach (Object spawn in this._spawns)
+        Object.Destroy(spawn);
       string str1 = data;
       string[] separator = new string[1]{ "\n" };
       int num = 0;
@@ -52,12 +44,12 @@ namespace RemoteAdmin
         if (!string.IsNullOrEmpty(str2))
         {
           bool flag = str2.Contains("<OVRM>");
-          GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) this.template, this.parent);
-          PlayerRecord componentInChildren = (PlayerRecord) gameObject.GetComponentInChildren<PlayerRecord>();
-          gameObject.get_transform().set_localScale(Vector3.get_one());
-          ((Text) gameObject.GetComponentInChildren<Text>()).set_text(str2.Replace("<OVRM>", string.Empty));
+          GameObject gameObject = Object.Instantiate<GameObject>(this.template, this.parent);
+          PlayerRecord componentInChildren = gameObject.GetComponentInChildren<PlayerRecord>();
+          gameObject.transform.localScale = Vector3.one;
+          gameObject.GetComponentInChildren<Text>().text = str2.Replace("<OVRM>", string.Empty);
           this._spawns.Add(gameObject);
-          componentInChildren.Setup(Color.get_white());
+          componentInChildren.Setup(Color.white);
           string str3 = str2.Replace("<OVRM>", string.Empty);
           string str4 = str3.Remove(0, str3.IndexOf("(", StringComparison.Ordinal) + 1);
           string str5 = str4.Remove(str4.IndexOf(")", StringComparison.Ordinal));
@@ -70,10 +62,10 @@ namespace RemoteAdmin
           {
             foreach (GameObject player in PlayerManager.singleton.players)
             {
-              if (!(((QueryProcessor) player.GetComponent<QueryProcessor>()).PlayerId.ToString() != str5))
+              if (!(player.GetComponent<QueryProcessor>().PlayerId.ToString() != str5))
               {
-                CharacterClassManager component = (CharacterClassManager) player.GetComponent<CharacterClassManager>();
-                componentInChildren.Setup(component.curClass != 15 ? (component.curClass >= 0 ? component.klasy[component.curClass].classColor : Color.get_white()) : new Color(0.7f, 0.7f, 0.7f));
+                CharacterClassManager component = player.GetComponent<CharacterClassManager>();
+                componentInChildren.Setup(component.curClass != 15 ? (component.curClass >= 0 ? component.klasy[component.curClass].classColor : Color.white) : new Color(0.7f, 0.7f, 0.7f));
               }
             }
           }
@@ -85,7 +77,7 @@ namespace RemoteAdmin
     {
       if (!isSuccess)
         data = "<color=red>" + data + "</color>";
-      ((DisplayDataOnScreen) ((Component) this).GetComponent<DisplayDataOnScreen>()).Show(1, data);
+      this.GetComponent<DisplayDataOnScreen>().Show(1, data);
     }
   }
 }

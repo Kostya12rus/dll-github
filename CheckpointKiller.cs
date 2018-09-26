@@ -8,15 +8,10 @@ using UnityEngine;
 
 public class CheckpointKiller : MonoBehaviour
 {
-  public CheckpointKiller()
-  {
-    base.\u002Ector();
-  }
-
   private void OnTriggerEnter(Collider other)
   {
-    CharacterClassManager component = (CharacterClassManager) ((Component) other).GetComponent<CharacterClassManager>();
-    if (!Object.op_Inequality((Object) component, (Object) null) || !component.get_isLocalPlayer())
+    CharacterClassManager component = other.GetComponent<CharacterClassManager>();
+    if (!((Object) component != (Object) null) || !component.isLocalPlayer)
       return;
     component.CallCmdSuicide(new PlayerStats.HitInfo(99999f, "WORLD", "WALL", 0));
   }

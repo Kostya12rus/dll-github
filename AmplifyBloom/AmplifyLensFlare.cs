@@ -44,11 +44,11 @@ namespace AmplifyBloom
       this.m_lensGradient = new Gradient();
       this.m_lensGradient.SetKeys(new GradientColorKey[5]
       {
-        new GradientColorKey(Color.get_white(), 0.0f),
-        new GradientColorKey(Color.get_blue(), 0.25f),
-        new GradientColorKey(Color.get_green(), 0.5f),
-        new GradientColorKey(Color.get_yellow(), 0.75f),
-        new GradientColorKey(Color.get_red(), 1f)
+        new GradientColorKey(Color.white, 0.0f),
+        new GradientColorKey(Color.blue, 0.25f),
+        new GradientColorKey(Color.green, 0.5f),
+        new GradientColorKey(Color.yellow, 0.75f),
+        new GradientColorKey(Color.red, 1f)
       }, new GradientAlphaKey[5]
       {
         new GradientAlphaKey(1f, 0.0f),
@@ -61,7 +61,7 @@ namespace AmplifyBloom
 
     public void Destroy()
     {
-      if (!Object.op_Inequality((Object) this.m_lensFlareGradTexture, (Object) null))
+      if (!((Object) this.m_lensFlareGradTexture != (Object) null))
         return;
       Object.DestroyImmediate((Object) this.m_lensFlareGradTexture);
       this.m_lensFlareGradTexture = (Texture2D) null;
@@ -69,14 +69,14 @@ namespace AmplifyBloom
 
     public void CreateLUTexture()
     {
-      this.m_lensFlareGradTexture = new Texture2D(256, 1, (TextureFormat) 5, false);
-      ((Texture) this.m_lensFlareGradTexture).set_filterMode((FilterMode) 1);
+      this.m_lensFlareGradTexture = new Texture2D(256, 1, TextureFormat.ARGB32, false);
+      this.m_lensFlareGradTexture.filterMode = FilterMode.Bilinear;
       this.TextureFromGradient();
     }
 
     public RenderTexture ApplyFlare(Material material, RenderTexture source)
     {
-      RenderTexture tempRenderTarget = AmplifyUtils.GetTempRenderTarget(((Texture) source).get_width(), ((Texture) source).get_height());
+      RenderTexture tempRenderTarget = AmplifyUtils.GetTempRenderTarget(source.width, source.height);
       material.SetVector(AmplifyUtils.LensFlareGhostsParamsId, this.m_lensFlareGhostsParams);
       material.SetTexture(AmplifyUtils.LensFlareLUTId, (Texture) this.m_lensFlareGradTexture);
       material.SetVector(AmplifyUtils.LensFlareHaloParamsId, this.m_lensFlareHaloParams);
@@ -115,8 +115,8 @@ namespace AmplifyBloom
       set
       {
         this.m_overallIntensity = (double) value >= 0.0 ? value : 0.0f;
-        this.m_lensFlareGhostsParams.x = (__Null) ((double) value * (double) this.m_normalizedGhostIntensity);
-        this.m_lensFlareHaloParams.x = (__Null) ((double) value * (double) this.m_normalizedHaloIntensity);
+        this.m_lensFlareGhostsParams.x = value * this.m_normalizedGhostIntensity;
+        this.m_lensFlareHaloParams.x = value * this.m_normalizedHaloIntensity;
       }
     }
 
@@ -153,7 +153,7 @@ namespace AmplifyBloom
       set
       {
         this.m_normalizedGhostIntensity = (double) value >= 0.0 ? value : 0.0f;
-        this.m_lensFlareGhostsParams.x = (__Null) ((double) this.m_overallIntensity * (double) this.m_normalizedGhostIntensity);
+        this.m_lensFlareGhostsParams.x = this.m_overallIntensity * this.m_normalizedGhostIntensity;
       }
     }
 
@@ -161,11 +161,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareGhostsParams.x;
+        return this.m_lensFlareGhostsParams.x;
       }
       set
       {
-        this.m_lensFlareGhostsParams.x = (double) value >= 0.0 ? (__Null) (double) value : (__Null) 0.0;
+        this.m_lensFlareGhostsParams.x = (double) value >= 0.0 ? value : 0.0f;
       }
     }
 
@@ -173,11 +173,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareGhostsParams.y;
+        return this.m_lensFlareGhostsParams.y;
       }
       set
       {
-        this.m_lensFlareGhostsParams.y = (__Null) (double) value;
+        this.m_lensFlareGhostsParams.y = value;
       }
     }
 
@@ -185,11 +185,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareGhostsParams.z;
+        return this.m_lensFlareGhostsParams.z;
       }
       set
       {
-        this.m_lensFlareGhostsParams.z = (__Null) (double) value;
+        this.m_lensFlareGhostsParams.z = value;
       }
     }
 
@@ -197,11 +197,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareGhostsParams.w;
+        return this.m_lensFlareGhostsParams.w;
       }
       set
       {
-        this.m_lensFlareGhostsParams.w = (__Null) (double) value;
+        this.m_lensFlareGhostsParams.w = value;
       }
     }
 
@@ -238,7 +238,7 @@ namespace AmplifyBloom
       set
       {
         this.m_normalizedHaloIntensity = (double) value >= 0.0 ? value : 0.0f;
-        this.m_lensFlareHaloParams.x = (__Null) ((double) this.m_overallIntensity * (double) this.m_normalizedHaloIntensity);
+        this.m_lensFlareHaloParams.x = this.m_overallIntensity * this.m_normalizedHaloIntensity;
       }
     }
 
@@ -246,11 +246,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareHaloParams.x;
+        return this.m_lensFlareHaloParams.x;
       }
       set
       {
-        this.m_lensFlareHaloParams.x = (double) value >= 0.0 ? (__Null) (double) value : (__Null) 0.0;
+        this.m_lensFlareHaloParams.x = (double) value >= 0.0 ? value : 0.0f;
       }
     }
 
@@ -258,11 +258,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareHaloParams.y;
+        return this.m_lensFlareHaloParams.y;
       }
       set
       {
-        this.m_lensFlareHaloParams.y = (__Null) (double) value;
+        this.m_lensFlareHaloParams.y = value;
       }
     }
 
@@ -270,11 +270,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareHaloParams.z;
+        return this.m_lensFlareHaloParams.z;
       }
       set
       {
-        this.m_lensFlareHaloParams.z = (__Null) (double) value;
+        this.m_lensFlareHaloParams.z = value;
       }
     }
 
@@ -282,11 +282,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_lensFlareHaloParams.w;
+        return this.m_lensFlareHaloParams.w;
       }
       set
       {
-        this.m_lensFlareHaloParams.w = (__Null) (double) value;
+        this.m_lensFlareHaloParams.w = value;
       }
     }
 

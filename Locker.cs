@@ -16,11 +16,6 @@ public class Locker : NetworkBehaviour
   [SyncVar]
   public bool isTaken;
 
-  public Locker()
-  {
-    base.\u002Ector();
-  }
-
   public int GetItem()
   {
     if (this.isTaken)
@@ -35,12 +30,12 @@ public class Locker : NetworkBehaviour
 
   public void SetupPos()
   {
-    this.localPos = ((Component) this).get_transform().get_localPosition();
+    this.localPos = this.transform.localPosition;
   }
 
   public void Update()
   {
-    ((Component) this).get_transform().set_localPosition(this.localPos);
+    this.transform.localPosition = this.localPos;
   }
 
   private void UNetVersion()
@@ -55,11 +50,11 @@ public class Locker : NetworkBehaviour
     }
     [param: In] set
     {
-      this.SetSyncVar<bool>((M0) (value ? 1 : 0), (M0&) ref this.isTaken, 1U);
+      this.SetSyncVar<bool>(value, ref this.isTaken, 1U);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -67,21 +62,21 @@ public class Locker : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.isTaken);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

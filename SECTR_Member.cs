@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [AddComponentMenu("SECTR/Core/SECTR Member")]
 [ExecuteInEditMode]
@@ -16,22 +17,37 @@ public class SECTR_Member : MonoBehaviour
   private static Dictionary<Transform, SECTR_Member> allMemberTable = new Dictionary<Transform, SECTR_Member>(256);
   [HideInInspector]
   [SerializeField]
-  private List<SECTR_Member.Child> children;
+  private List<SECTR_Member.Child> children = new List<SECTR_Member.Child>(16);
   [HideInInspector]
   [SerializeField]
-  private List<SECTR_Member.Child> renderers;
+  private List<SECTR_Member.Child> renderers = new List<SECTR_Member.Child>(16);
   [SerializeField]
   [HideInInspector]
-  private List<SECTR_Member.Child> lights;
+  private List<SECTR_Member.Child> lights = new List<SECTR_Member.Child>(16);
   [HideInInspector]
   [SerializeField]
-  private List<SECTR_Member.Child> terrains;
+  private List<SECTR_Member.Child> terrains = new List<SECTR_Member.Child>(2);
   [SerializeField]
   [HideInInspector]
-  private List<SECTR_Member.Child> shadowLights;
+  private List<SECTR_Member.Child> shadowLights = !SECTR_Modules.VIS ? (List<SECTR_Member.Child>) null : new List<SECTR_Member.Child>(16);
   [SerializeField]
   [HideInInspector]
-  private List<SECTR_Member.Child> shadowCasters;
+  private List<SECTR_Member.Child> shadowCasters = !SECTR_Modules.VIS ? (List<SECTR_Member.Child>) null : new List<SECTR_Member.Child>(16);
+  [HideInInspector]
+  [SerializeField]
+  protected List<Light> bakedOnlyLights = !SECTR_Modules.VIS ? (List<Light>) null : new List<Light>(8);
+  private List<SECTR_Sector> sectors = new List<SECTR_Sector>(4);
+  private List<SECTR_Sector> newSectors = new List<SECTR_Sector>(4);
+  private List<SECTR_Sector> leftSectors = new List<SECTR_Sector>(4);
+  private Dictionary<Transform, SECTR_Member.Child> childTable = new Dictionary<Transform, SECTR_Member.Child>(8);
+  private Vector3 lastPosition = Vector3.zero;
+  private Stack<SECTR_Member.Child> childPool = new Stack<SECTR_Member.Child>(32);
+  [SECTR_ToolTip("Determines how often the bounds are recomputed. More frequent updates requires more CPU.")]
+  public SECTR_Member.BoundsUpdateModes BoundsUpdateMode = SECTR_Member.BoundsUpdateModes.Always;
+  [SECTR_ToolTip("Adds a buffer on bounding box to compensate for minor imprecisions.")]
+  public float ExtraBounds = 0.01f;
+  [SECTR_ToolTip("Distance by which to extend the bounds away from the shadow casting light.", "DirShadowCaster")]
+  public float DirShadowDistance = 100f;
   [HideInInspector]
   [SerializeField]
   private Bounds totalBounds;
@@ -59,47 +75,27 @@ public class SECTR_Member : MonoBehaviour
   [HideInInspector]
   [SerializeField]
   private bool neverJoin;
-  [HideInInspector]
-  [SerializeField]
-  protected List<Light> bakedOnlyLights;
   protected bool isSector;
   protected SECTR_Member childProxy;
   protected bool hasChildProxy;
   private bool started;
   private bool usedStartSector;
-  private List<SECTR_Sector> sectors;
-  private List<SECTR_Sector> newSectors;
-  private List<SECTR_Sector> leftSectors;
-  private Dictionary<Transform, SECTR_Member.Child> childTable;
   private Dictionary<Light, Light> bakedOnlyTable;
-  private Vector3 lastPosition;
-  private Stack<SECTR_Member.Child> childPool;
   [SECTR_ToolTip("Set to true if Sector membership should only change when crossing a portal.")]
   public bool PortalDetermined;
   [SECTR_ToolTip("If set, forces the initial Sector to be the specified Sector.", "PortalDetermined")]
   public SECTR_Sector ForceStartSector;
-  [SECTR_ToolTip("Determines how often the bounds are recomputed. More frequent updates requires more CPU.")]
-  public SECTR_Member.BoundsUpdateModes BoundsUpdateMode;
-  [SECTR_ToolTip("Adds a buffer on bounding box to compensate for minor imprecisions.")]
-  public float ExtraBounds;
   [SECTR_ToolTip("Override computed bounds with the user specified bounds. Advanced users only.")]
   public bool OverrideBounds;
   [SECTR_ToolTip("User specified override bounds. Auto-populated with the current bounds when override is inactive.", "OverrideBounds")]
   public Bounds BoundsOverride;
   [SECTR_ToolTip("Optional shadow casting directional light to use in membership calculations. Bounds will be extruded away from light, if set.")]
   public Light DirShadowCaster;
-  [SECTR_ToolTip("Distance by which to extend the bounds away from the shadow casting light.", "DirShadowCaster")]
-  public float DirShadowDistance;
   [SECTR_ToolTip("Determines if this SectorCuller should cull individual children, or cull all children based on the aggregate bounds.")]
   public SECTR_Member.ChildCullModes ChildCulling;
   [HideInInspector]
   [NonSerialized]
   public int LastVisibleFrameNumber;
-
-  public SECTR_Member()
-  {
-    base.\u002Ector();
-  }
 
   public static List<SECTR_Member> All
   {
@@ -259,12 +255,12 @@ public class SECTR_Member : MonoBehaviour
 
   public bool IsVisibleThisFrame()
   {
-    return this.LastVisibleFrameNumber == Time.get_frameCount();
+    return this.LastVisibleFrameNumber == Time.frameCount;
   }
 
   public bool WasVisibleLastFrame()
   {
-    return this.LastVisibleFrameNumber == Time.get_frameCount() - 1;
+    return this.LastVisibleFrameNumber == Time.frameCount - 1;
   }
 
   public bool Frozen
@@ -286,7 +282,7 @@ public class SECTR_Member : MonoBehaviour
     set
     {
       this.childProxy = value;
-      this.hasChildProxy = Object.op_Inequality((Object) this.childProxy, (Object) null);
+      this.hasChildProxy = (Object) this.childProxy != (Object) null;
     }
   }
 
@@ -310,7 +306,7 @@ public class SECTR_Member : MonoBehaviour
   {
     if (updateChildren)
       this._UpdateChildren();
-    this.lastPosition = ((Component) this).get_transform().get_position();
+    this.lastPosition = this.transform.position;
     if (this.isSector || this.neverJoin)
       return;
     this._UpdateSectorMembership();
@@ -318,7 +314,7 @@ public class SECTR_Member : MonoBehaviour
 
   public void SectorDisabled(SECTR_Sector sector)
   {
-    if (!Object.op_Implicit((Object) sector))
+    if (!(bool) ((Object) sector))
       return;
     this.sectors.Remove(sector);
     // ISSUE: reference to a compiler-generated field
@@ -341,7 +337,7 @@ public class SECTR_Member : MonoBehaviour
   protected virtual void OnEnable()
   {
     SECTR_Member.allMembers.Add(this);
-    SECTR_Member.allMemberTable.Add(((Component) this).get_transform(), this);
+    SECTR_Member.allMemberTable.Add(this.transform, this);
     if (this.bakedOnlyLights != null)
     {
       int count = this.bakedOnlyLights.Count;
@@ -349,7 +345,7 @@ public class SECTR_Member : MonoBehaviour
       for (int index = 0; index < count; ++index)
       {
         Light bakedOnlyLight = this.bakedOnlyLights[index];
-        if (Object.op_Implicit((Object) bakedOnlyLight))
+        if ((bool) ((Object) bakedOnlyLight))
           this.bakedOnlyTable[bakedOnlyLight] = bakedOnlyLight;
       }
     }
@@ -372,7 +368,7 @@ public class SECTR_Member : MonoBehaviour
       for (int index = 0; index < count; ++index)
       {
         SECTR_Sector sector = this.sectors[index];
-        if (Object.op_Implicit((Object) sector))
+        if ((bool) ((Object) sector))
           sector.Deregister(this);
       }
       this.sectors.Clear();
@@ -396,18 +392,18 @@ public class SECTR_Member : MonoBehaviour
     }
     this.bakedOnlyTable = (Dictionary<Light, Light>) null;
     SECTR_Member.allMembers.Remove(this);
-    SECTR_Member.allMemberTable.Remove(((Component) this).get_transform());
+    SECTR_Member.allMemberTable.Remove(this.transform);
   }
 
   private void LateUpdate()
   {
-    if (this.BoundsUpdateMode == SECTR_Member.BoundsUpdateModes.Static || this.BoundsUpdateMode != SECTR_Member.BoundsUpdateModes.Always && !((Component) this).get_transform().get_hasChanged())
+    if (this.BoundsUpdateMode == SECTR_Member.BoundsUpdateModes.Static || this.BoundsUpdateMode != SECTR_Member.BoundsUpdateModes.Always && !this.transform.hasChanged)
       return;
     this._UpdateChildren();
     if (!this.isSector && !this.neverJoin)
       this._UpdateSectorMembership();
-    this.lastPosition = ((Component) this).get_transform().get_position();
-    ((Component) this).get_transform().set_hasChanged(false);
+    this.lastPosition = this.transform.position;
+    this.transform.hasChanged = false;
   }
 
   public void UpdateViaScript()
@@ -415,15 +411,15 @@ public class SECTR_Member : MonoBehaviour
     this._UpdateChildren();
     if (!this.isSector && !this.neverJoin)
       this._UpdateSectorMembership();
-    this.lastPosition = ((Component) this).get_transform().get_position();
+    this.lastPosition = this.transform.position;
   }
 
   private void _UpdateChildren()
   {
-    if (this.frozen || Object.op_Implicit((Object) this.childProxy))
+    if (this.frozen || (bool) ((Object) this.childProxy))
       return;
-    bool dirShadowCaster = SECTR_Modules.VIS && Object.op_Implicit((Object) this.DirShadowCaster) && this.DirShadowCaster.get_type() == 1 && this.DirShadowCaster.get_shadows() != 0;
-    Vector3 shadowVec = !dirShadowCaster ? Vector3.get_zero() : Vector3.op_Multiply(((Component) this.DirShadowCaster).get_transform().get_forward(), this.DirShadowDistance);
+    bool dirShadowCaster = SECTR_Modules.VIS && (bool) ((Object) this.DirShadowCaster) && this.DirShadowCaster.type == LightType.Directional && this.DirShadowCaster.shadows != LightShadows.None;
+    Vector3 shadowVec = !dirShadowCaster ? Vector3.zero : this.DirShadowCaster.transform.forward * this.DirShadowDistance;
     int count1 = this.children.Count;
     int index1 = 0;
     this.hasLightBounds = false;
@@ -443,7 +439,7 @@ public class SECTR_Member : MonoBehaviour
       while (index1 < count1)
       {
         SECTR_Member.Child child = this.children[index1];
-        if (!Object.op_Implicit((Object) child.gameObject))
+        if (!(bool) ((Object) child.gameObject))
         {
           this.children.RemoveAt(index1);
           --count1;
@@ -451,7 +447,7 @@ public class SECTR_Member : MonoBehaviour
         else
         {
           child.Init(child.gameObject, child.renderer, child.light, child.terrain, child.member, dirShadowCaster, shadowVec);
-          if (Object.op_Implicit((Object) child.renderer))
+          if ((bool) ((Object) child.renderer))
           {
             if (!this.hasRenderBounds)
             {
@@ -459,10 +455,10 @@ public class SECTR_Member : MonoBehaviour
               this.hasRenderBounds = true;
             }
             else
-              ((Bounds) ref this.renderBounds).Encapsulate(child.rendererBounds);
+              this.renderBounds.Encapsulate(child.rendererBounds);
             this.renderers.Add(child);
           }
-          if (Object.op_Implicit((Object) child.terrain))
+          if ((bool) ((Object) child.terrain))
           {
             if (!this.hasRenderBounds)
             {
@@ -470,10 +466,10 @@ public class SECTR_Member : MonoBehaviour
               this.hasRenderBounds = true;
             }
             else
-              ((Bounds) ref this.renderBounds).Encapsulate(child.terrainBounds);
+              this.renderBounds.Encapsulate(child.terrainBounds);
             this.terrains.Add(child);
           }
-          if (Object.op_Implicit((Object) child.light))
+          if ((bool) ((Object) child.light))
           {
             if (SECTR_Modules.VIS && child.shadowLight)
             {
@@ -486,7 +482,7 @@ public class SECTR_Member : MonoBehaviour
               this.hasLightBounds = true;
             }
             else
-              ((Bounds) ref this.lightBounds).Encapsulate(child.lightBounds);
+              this.lightBounds.Encapsulate(child.lightBounds);
             this.lights.Add(child);
           }
           if (SECTR_Modules.VIS && (child.terrainCastsShadows || child.rendererCastsShadows))
@@ -502,7 +498,7 @@ public class SECTR_Member : MonoBehaviour
     {
       for (int index2 = 0; index2 < count1; ++index2)
         this.children[index2].processed = false;
-      this._AddChildren(((Component) this).get_transform(), dirShadowCaster, shadowVec);
+      this._AddChildren(this.transform, dirShadowCaster, shadowVec);
       int index3 = 0;
       int count2 = this.children.Count;
       while (index3 < count2)
@@ -518,14 +514,13 @@ public class SECTR_Member : MonoBehaviour
           ++index3;
       }
     }
-    Bounds bounds;
-    ((Bounds) ref bounds).\u002Ector(((Component) this).get_transform().get_position(), Vector3.get_zero());
+    Bounds bounds = new Bounds(this.transform.position, Vector3.zero);
     if (this.hasRenderBounds && (this.isSector || this.neverJoin))
       this.totalBounds = this.renderBounds;
     else if (this.hasRenderBounds && this.hasLightBounds)
     {
       this.totalBounds = this.renderBounds;
-      ((Bounds) ref this.totalBounds).Encapsulate(this.lightBounds);
+      this.totalBounds.Encapsulate(this.lightBounds);
     }
     else if (this.hasRenderBounds)
     {
@@ -543,7 +538,7 @@ public class SECTR_Member : MonoBehaviour
       this.lightBounds = bounds;
       this.renderBounds = bounds;
     }
-    ((Bounds) ref this.totalBounds).Expand(this.ExtraBounds);
+    this.totalBounds.Expand(this.ExtraBounds);
     if (!this.OverrideBounds)
       return;
     this.totalBounds = this.BoundsOverride;
@@ -551,16 +546,16 @@ public class SECTR_Member : MonoBehaviour
 
   private void _AddChildren(Transform childTransform, bool dirShadowCaster, Vector3 shadowVec)
   {
-    if (!((Component) childTransform).get_gameObject().get_activeSelf() || !Object.op_Equality((Object) childTransform, (Object) ((Component) this).get_transform()) && SECTR_Member.allMemberTable.ContainsKey(childTransform))
+    if (!childTransform.gameObject.activeSelf || !((Object) childTransform == (Object) this.transform) && SECTR_Member.allMemberTable.ContainsKey(childTransform))
       return;
     SECTR_Member.Child child1 = (SECTR_Member.Child) null;
     this.childTable.TryGetValue(childTransform, out child1);
-    Light light = !(child1 != (SECTR_Member.Child) null) ? (Light) ((Component) childTransform).GetComponent<Light>() : child1.light;
-    Renderer renderer = !(child1 != (SECTR_Member.Child) null) ? (Renderer) ((Component) childTransform).GetComponent<Renderer>() : child1.renderer;
+    Light light = !(child1 != (SECTR_Member.Child) null) ? childTransform.GetComponent<Light>() : child1.light;
+    Renderer renderer = !(child1 != (SECTR_Member.Child) null) ? childTransform.GetComponent<Renderer>() : child1.renderer;
     Terrain terrain = (Terrain) null;
     if (this.isSector || this.neverJoin)
-      terrain = !(child1 != (SECTR_Member.Child) null) ? (Terrain) ((Component) childTransform).GetComponent<Terrain>() : child1.terrain;
-    if (this.bakedOnlyLights != null && Object.op_Implicit((Object) light) && (light.get_bakingOutput().isBaked != null && LightmapSettings.get_lightmaps().Length > 0 && (this.bakedOnlyTable != null && this.bakedOnlyTable.ContainsKey(light))))
+      terrain = !(child1 != (SECTR_Member.Child) null) ? childTransform.GetComponent<Terrain>() : child1.terrain;
+    if (this.bakedOnlyLights != null && (bool) ((Object) light) && (light.bakingOutput.isBaked && LightmapSettings.lightmaps.Length > 0 && (this.bakedOnlyTable != null && this.bakedOnlyTable.ContainsKey(light))))
       light = (Light) null;
     SECTR_Member.Child child2 = child1;
     if (child2 == (SECTR_Member.Child) null)
@@ -569,11 +564,11 @@ public class SECTR_Member : MonoBehaviour
       this.childTable[childTransform] = child2;
       this.children.Add(child2);
     }
-    child2.Init(((Component) childTransform).get_gameObject(), renderer, light, terrain, this, dirShadowCaster, shadowVec);
-    if (Object.op_Implicit((Object) child2.renderer))
+    child2.Init(childTransform.gameObject, renderer, light, terrain, this, dirShadowCaster, shadowVec);
+    if ((bool) ((Object) child2.renderer))
     {
       bool flag = true;
-      if (this.isSector && ((object) renderer).GetType() == typeof (ParticleSystemRenderer))
+      if (this.isSector && renderer.GetType() == typeof (ParticleSystemRenderer))
         flag = false;
       if (flag)
       {
@@ -583,11 +578,11 @@ public class SECTR_Member : MonoBehaviour
           this.hasRenderBounds = true;
         }
         else
-          ((Bounds) ref this.renderBounds).Encapsulate(child2.rendererBounds);
+          this.renderBounds.Encapsulate(child2.rendererBounds);
       }
       this.renderers.Add(child2);
     }
-    if (Object.op_Implicit((Object) child2.light))
+    if ((bool) ((Object) child2.light))
     {
       if (SECTR_Modules.VIS && child2.shadowLight)
       {
@@ -600,10 +595,10 @@ public class SECTR_Member : MonoBehaviour
         this.hasLightBounds = true;
       }
       else
-        ((Bounds) ref this.lightBounds).Encapsulate(child2.lightBounds);
+        this.lightBounds.Encapsulate(child2.lightBounds);
       this.lights.Add(child2);
     }
-    if (Object.op_Implicit((Object) child2.terrain))
+    if ((bool) ((Object) child2.terrain))
     {
       if (!this.hasRenderBounds)
       {
@@ -611,7 +606,7 @@ public class SECTR_Member : MonoBehaviour
         this.hasRenderBounds = true;
       }
       else
-        ((Bounds) ref this.renderBounds).Encapsulate(child2.terrainBounds);
+        this.renderBounds.Encapsulate(child2.terrainBounds);
       this.terrains.Add(child2);
     }
     if (SECTR_Modules.VIS && (child2.terrainCastsShadows || child2.rendererCastsShadows))
@@ -621,7 +616,7 @@ public class SECTR_Member : MonoBehaviour
     }
     if (this.BoundsUpdateMode == SECTR_Member.BoundsUpdateModes.SelfOnly)
       return;
-    int childCount = ((Component) childTransform).get_transform().get_childCount();
+    int childCount = childTransform.transform.childCount;
     for (int index = 0; index < childCount; ++index)
       this._AddChildren(childTransform.GetChild(index), dirShadowCaster, shadowVec);
   }
@@ -639,9 +634,9 @@ public class SECTR_Member : MonoBehaviour
       {
         SECTR_Sector sector = this.sectors[index];
         SECTR_Portal sectrPortal = this._CrossedPortal(sector);
-        if (Object.op_Implicit((Object) sectrPortal))
+        if ((bool) ((Object) sectrPortal))
         {
-          SECTR_Sector sectrSector = !Object.op_Equality((Object) sectrPortal.FrontSector, (Object) sector) ? sectrPortal.FrontSector : sectrPortal.BackSector;
+          SECTR_Sector sectrSector = !((Object) sectrPortal.FrontSector == (Object) sector) ? sectrPortal.FrontSector : sectrPortal.BackSector;
           if (!this.newSectors.Contains(sectrSector))
             this.newSectors.Add(sectrSector);
           this.leftSectors.Add(sector);
@@ -662,7 +657,7 @@ public class SECTR_Member : MonoBehaviour
         this.sectors.Remove(leftSector);
       }
     }
-    else if (this.PortalDetermined && Object.op_Implicit((Object) this.ForceStartSector) && !this.usedStartSector)
+    else if (this.PortalDetermined && (bool) ((Object) this.ForceStartSector) && !this.usedStartSector)
     {
       this.ForceStartSector.Register(this);
       this.sectors.Add(this.ForceStartSector);
@@ -710,18 +705,18 @@ public class SECTR_Member : MonoBehaviour
 
   private SECTR_Portal _CrossedPortal(SECTR_Sector sector)
   {
-    if (Object.op_Implicit((Object) sector))
+    if ((bool) ((Object) sector))
     {
-      Vector3 vector3 = Vector3.op_Subtraction(((Component) this).get_transform().get_position(), this.lastPosition);
+      Vector3 lhs = this.transform.position - this.lastPosition;
       int count = sector.Portals.Count;
       for (int index = 0; index < count; ++index)
       {
         SECTR_Portal portal = sector.Portals[index];
-        if (Object.op_Implicit((Object) portal))
+        if ((bool) ((Object) portal))
         {
-          bool flag = Object.op_Equality((Object) portal.FrontSector, (Object) sector);
+          bool flag = (Object) portal.FrontSector == (Object) sector;
           Plane plane = !flag ? portal.ReverseHullPlane : portal.HullPlane;
-          if (Object.op_Implicit(!flag ? (Object) portal.FrontSector : (Object) portal.BackSector) && (double) Vector3.Dot(vector3, ((Plane) ref plane).get_normal()) < 0.0 && (((Plane) ref plane).GetSide(((Component) this).get_transform().get_position()) != ((Plane) ref plane).GetSide(this.lastPosition) && portal.IsPointInHull(((Component) this).get_transform().get_position(), ((Vector3) ref vector3).get_magnitude())))
+          if ((bool) (!flag ? (Object) portal.FrontSector : (Object) portal.BackSector) && (double) Vector3.Dot(lhs, plane.normal) < 0.0 && (plane.GetSide(this.transform.position) != plane.GetSide(this.lastPosition) && portal.IsPointInHull(this.transform.position, lhs.magnitude)))
             return portal;
         }
       }
@@ -760,24 +755,24 @@ public class SECTR_Member : MonoBehaviour
     public void Init(GameObject gameObject, Renderer renderer, Light light, Terrain terrain, SECTR_Member member, bool dirShadowCaster, Vector3 shadowVec)
     {
       this.gameObject = gameObject;
-      this.gameObjectHash = ((Object) this.gameObject).GetInstanceID();
+      this.gameObjectHash = this.gameObject.GetInstanceID();
       this.member = member;
-      this.renderer = !Object.op_Implicit((Object) renderer) || !this.renderCulled && !renderer.get_enabled() ? (Renderer) null : renderer;
-      this.light = !Object.op_Implicit((Object) light) || !this.lightCulled && !((Behaviour) light).get_enabled() || light.get_type() != 2 && light.get_type() != null ? (Light) null : light;
-      this.terrain = !Object.op_Implicit((Object) terrain) || !this.terrainCulled && !((Behaviour) terrain).get_enabled() ? (Terrain) null : terrain;
-      this.rendererBounds = !Object.op_Implicit((Object) this.renderer) ? (Bounds) null : this.renderer.get_bounds();
-      this.lightBounds = !Object.op_Implicit((Object) this.light) ? (Bounds) null : SECTR_Geometry.ComputeBounds(this.light);
-      this.terrainBounds = !Object.op_Implicit((Object) this.terrain) ? (Bounds) null : SECTR_Geometry.ComputeBounds(this.terrain);
-      this.layer = LayerMask.op_Implicit(gameObject.get_layer());
+      this.renderer = !(bool) ((Object) renderer) || !this.renderCulled && !renderer.enabled ? (Renderer) null : renderer;
+      this.light = !(bool) ((Object) light) || !this.lightCulled && !light.enabled || light.type != LightType.Point && light.type != LightType.Spot ? (Light) null : light;
+      this.terrain = !(bool) ((Object) terrain) || !this.terrainCulled && !terrain.enabled ? (Terrain) null : terrain;
+      this.rendererBounds = !(bool) ((Object) this.renderer) ? new Bounds() : this.renderer.bounds;
+      this.lightBounds = !(bool) ((Object) this.light) ? new Bounds() : SECTR_Geometry.ComputeBounds(this.light);
+      this.terrainBounds = !(bool) ((Object) this.terrain) ? new Bounds() : SECTR_Geometry.ComputeBounds(this.terrain);
+      this.layer = (LayerMask) gameObject.layer;
       if (SECTR_Modules.VIS)
       {
-        this.renderHash = !Object.op_Implicit((Object) this.renderer) ? 0 : ((Object) this.renderer).GetInstanceID();
-        this.lightHash = !Object.op_Implicit((Object) this.light) ? 0 : ((Object) this.light).GetInstanceID();
-        this.terrainHash = !Object.op_Implicit((Object) this.terrain) ? 0 : ((Object) this.terrain).GetInstanceID();
+        this.renderHash = !(bool) ((Object) this.renderer) ? 0 : this.renderer.GetInstanceID();
+        this.lightHash = !(bool) ((Object) this.light) ? 0 : this.light.GetInstanceID();
+        this.terrainHash = !(bool) ((Object) this.terrain) ? 0 : this.terrain.GetInstanceID();
         bool flag = true;
-        this.shadowLight = Object.op_Implicit((Object) this.light) && light.get_shadows() != null && (light.get_bakingOutput().isBaked == null || flag);
-        this.rendererCastsShadows = Object.op_Implicit((Object) this.renderer) && renderer.get_shadowCastingMode() != null && (renderer.get_lightmapIndex() == -1 || flag);
-        this.terrainCastsShadows = Object.op_Implicit((Object) this.terrain) && terrain.get_castShadows() && (terrain.get_lightmapIndex() == -1 || flag);
+        this.shadowLight = (bool) ((Object) this.light) && light.shadows != LightShadows.None && (!light.bakingOutput.isBaked || flag);
+        this.rendererCastsShadows = (bool) ((Object) this.renderer) && renderer.shadowCastingMode != ShadowCastingMode.Off && (renderer.lightmapIndex == -1 || flag);
+        this.terrainCastsShadows = (bool) ((Object) this.terrain) && terrain.castShadows && (terrain.lightmapIndex == -1 || flag);
         if (dirShadowCaster)
         {
           if (this.rendererCastsShadows)
@@ -787,16 +782,16 @@ public class SECTR_Member : MonoBehaviour
         }
         if (this.shadowLight)
         {
-          this.shadowLightPosition = ((Component) light).get_transform().get_position();
-          this.shadowLightRange = light.get_range();
-          this.shadowLightType = light.get_type();
-          this.shadowCullingMask = light.get_cullingMask();
+          this.shadowLightPosition = light.transform.position;
+          this.shadowLightRange = light.range;
+          this.shadowLightType = light.type;
+          this.shadowCullingMask = light.cullingMask;
         }
         else
         {
-          this.shadowLightPosition = Vector3.get_zero();
+          this.shadowLightPosition = Vector3.zero;
           this.shadowLightRange = 0.0f;
-          this.shadowLightType = (LightType) 3;
+          this.shadowLightType = LightType.Area;
           this.shadowCullingMask = 0;
         }
       }
@@ -808,9 +803,9 @@ public class SECTR_Member : MonoBehaviour
         this.shadowLight = false;
         this.rendererCastsShadows = false;
         this.terrainCastsShadows = false;
-        this.shadowLightPosition = Vector3.get_zero();
+        this.shadowLightPosition = Vector3.zero;
         this.shadowLightRange = 0.0f;
-        this.shadowLightType = (LightType) 3;
+        this.shadowLightType = LightType.Area;
         this.shadowCullingMask = 0;
       }
       this.processed = true;

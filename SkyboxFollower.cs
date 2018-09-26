@@ -11,16 +11,11 @@ public class SkyboxFollower : MonoBehaviour
   public Transform camera;
   public static bool iAm939;
 
-  public SkyboxFollower()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    if (SkyboxFollower.iAm939 || this.camera.get_position().y < 800.0)
-      ((Component) this).get_transform().set_position(Vector3.op_Multiply(Vector3.get_down(), 12345f));
+    if (SkyboxFollower.iAm939 || (double) this.camera.position.y < 800.0)
+      this.transform.position = Vector3.down * 12345f;
     else
-      ((Component) this).get_transform().set_position(this.camera.get_position());
+      this.transform.position = this.camera.position;
   }
 }

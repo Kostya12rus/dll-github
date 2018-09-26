@@ -12,34 +12,29 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_EXTRA_SHOWFPS : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
-  private Material SCMaterial;
+  private float TimeX = 1f;
   [Range(8f, 42f)]
-  public float Size;
+  public float Size = 12f;
   [Range(0.0f, 100f)]
-  private int FPS;
+  private int FPS = 1;
   [Range(0.0f, 10f)]
-  private float Value3;
+  private float Value3 = 1f;
   [Range(0.0f, 10f)]
-  private float Value4;
+  private float Value4 = 1f;
+  public float frequency = 0.5f;
+  public Shader SCShader;
+  private Material SCMaterial;
   private float accum;
   private int frames;
-  public float frequency;
-
-  public CameraFilterPack_EXTRA_SHOWFPS()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -50,16 +45,16 @@ public class CameraFilterPack_EXTRA_SHOWFPS : MonoBehaviour
     this.FPS = 0;
     this.StartCoroutine(this.FPSX());
     this.SCShader = Shader.Find("CameraFilterPack/EXTRA_SHOWFPS");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -67,7 +62,7 @@ public class CameraFilterPack_EXTRA_SHOWFPS : MonoBehaviour
       this.material.SetFloat("_Value2", (float) this.FPS);
       this.material.SetFloat("_Value3", this.Value3);
       this.material.SetFloat("_Value4", this.Value4);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -78,21 +73,18 @@ public class CameraFilterPack_EXTRA_SHOWFPS : MonoBehaviour
   private IEnumerator FPSX()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new CameraFilterPack_EXTRA_SHOWFPS.\u003CFPSX\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new CameraFilterPack_EXTRA_SHOWFPS.\u003CFPSX\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private void Update()
   {
-    this.accum += Time.get_timeScale() / Time.get_deltaTime();
+    this.accum += Time.timeScale / Time.deltaTime;
     ++this.frames;
   }
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

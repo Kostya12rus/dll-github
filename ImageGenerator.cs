@@ -10,35 +10,27 @@ using UnityEngine;
 
 public class ImageGenerator : MonoBehaviour
 {
+  public List<ImageGenerator.ColorMap> colorMap = new List<ImageGenerator.ColorMap>();
+  public List<ImageGenerator.Room> availableRooms = new List<ImageGenerator.Room>();
+  public List<GameObject> doors = new List<GameObject>();
   public int height;
   public Texture2D[] maps;
   private Texture2D map;
   private Color[] copy;
   public float gridSize;
-  public List<ImageGenerator.ColorMap> colorMap;
-  public List<ImageGenerator.Room> availableRooms;
-  public List<GameObject> doors;
   private Vector3 offset;
   public float y_offset;
   private Transform entrRooms;
   public ImageGenerator.RoomsOfType[] roomsOfType;
 
-  public ImageGenerator()
-  {
-    base.\u002Ector();
-  }
-
   public bool GenerateMap(int seed)
   {
     foreach (ImageGenerator.Room availableRoom in this.availableRooms)
     {
-      using (List<GameObject>.Enumerator enumerator = availableRoom.room.GetEnumerator())
-      {
-        while (enumerator.MoveNext())
-          enumerator.Current.SetActive(false);
-      }
+      foreach (GameObject gameObject in availableRoom.room)
+        gameObject.SetActive(false);
     }
-    ((PocketDimensionGenerator) ((Component) this).GetComponent<PocketDimensionGenerator>()).GenerateMap(seed);
+    this.GetComponent<PocketDimensionGenerator>().GenerateMap(seed);
     Random.InitState(seed);
     this.map = this.maps[Random.Range(0, this.maps.Length)];
     this.InitEntrance();
@@ -50,8 +42,8 @@ public class ImageGenerator : MonoBehaviour
     this.GeneratorTask_RemoveDoubledDoorPoints();
     this.map.SetPixels(this.copy);
     this.map.Apply();
-    if (Object.op_Inequality((Object) this.entrRooms, (Object) null))
-      this.entrRooms.set_parent((Transform) null);
+    if ((Object) this.entrRooms != (Object) null)
+      this.entrRooms.parent = (Transform) null;
     return true;
   }
 
@@ -59,18 +51,17 @@ public class ImageGenerator : MonoBehaviour
   {
     if (this.height != -1001)
       return;
-    GameObject.Find("Root_Checkpoint").get_transform();
-    this.entrRooms = GameObject.Find("EntranceRooms").get_transform();
-    for (int index1 = 0; index1 < ((Texture) this.map).get_height(); ++index1)
+    Transform transform = GameObject.Find("Root_Checkpoint").transform;
+    this.entrRooms = GameObject.Find("EntranceRooms").transform;
+    for (int y = 0; y < this.map.height; ++y)
     {
-      for (int index2 = 0; index2 < ((Texture) this.map).get_width(); ++index2)
+      for (int x = 0; x < this.map.width; ++x)
       {
-        if (Color.op_Equality(this.map.GetPixel(index2, index1), Color.get_white()))
-          this.offset = Vector3.op_Division(Vector3.op_UnaryNegation(new Vector3((float) index2 * this.gridSize, 0.0f, (float) index1 * this.gridSize)), 3f);
+        if (this.map.GetPixel(x, y) == Color.white)
+          this.offset = -new Vector3((float) x * this.gridSize, 0.0f, (float) y * this.gridSize) / 3f;
       }
     }
-    ImageGenerator imageGenerator = this;
-    imageGenerator.offset = Vector3.op_Addition(imageGenerator.offset, Vector3.get_up());
+    this.offset += Vector3.up;
   }
 
   private void GeneratorTask_Cleanup()
@@ -79,14 +70,10 @@ public class ImageGenerator : MonoBehaviour
     {
       foreach (ImageGenerator.Room room in roomsOfType.roomsOfType)
       {
-        using (List<GameObject>.Enumerator enumerator = room.room.GetEnumerator())
+        foreach (GameObject gameObject in room.room)
         {
-          while (enumerator.MoveNext())
-          {
-            GameObject current = enumerator.Current;
-            if (room.type != ImageGenerator.RoomType.Prison)
-              current.SetActive(false);
-          }
+          if (room.type != ImageGenerator.RoomType.Prison)
+            gameObject.SetActive(false);
         }
       }
     }
@@ -99,23 +86,15 @@ public class ImageGenerator : MonoBehaviour
     List<GameObject> gameObjectList = new List<GameObject>();
     foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("DoorPoint" + (object) this.height))
       gameObjectList.Add(gameObject);
-    using (List<GameObject>.Enumerator enumerator1 = gameObjectList.GetEnumerator())
+    foreach (GameObject gameObject1 in gameObjectList)
     {
-      while (enumerator1.MoveNext())
+      foreach (GameObject gameObject2 in gameObjectList)
       {
-        GameObject current1 = enumerator1.Current;
-        using (List<GameObject>.Enumerator enumerator2 = gameObjectList.GetEnumerator())
+        if ((double) Vector3.Distance(gameObject1.transform.position, gameObject2.transform.position) < 2.0 && (Object) gameObject1 != (Object) gameObject2)
         {
-          while (enumerator2.MoveNext())
-          {
-            GameObject current2 = enumerator2.Current;
-            if ((double) Vector3.Distance(current1.get_transform().get_position(), current2.get_transform().get_position()) < 2.0 && Object.op_Inequality((Object) current1, (Object) current2))
-            {
-              Object.DestroyImmediate((Object) current2);
-              this.GeneratorTask_RemoveDoubledDoorPoints();
-              return;
-            }
-          }
+          Object.DestroyImmediate((Object) gameObject2);
+          this.GeneratorTask_RemoveDoubledDoorPoints();
+          return;
         }
       }
     }
@@ -126,14 +105,14 @@ public class ImageGenerator : MonoBehaviour
       {
         if (index < gameObjectList.Count)
         {
-          this.doors[index].get_transform().set_position(gameObjectList[index].get_transform().get_position());
-          this.doors[index].get_transform().set_rotation(gameObjectList[index].get_transform().get_rotation());
-          SECTR_Portal component = (SECTR_Portal) gameObjectList[index].GetComponent<SECTR_Portal>();
-          if (Object.op_Inequality((Object) component, (Object) null))
+          this.doors[index].transform.position = gameObjectList[index].transform.position;
+          this.doors[index].transform.rotation = gameObjectList[index].transform.rotation;
+          SECTR_Portal component = gameObjectList[index].GetComponent<SECTR_Portal>();
+          if ((Object) component != (Object) null)
           {
             sectrPortalList.Add(component);
             if (this.height % 2 == 0)
-              ((Door) this.doors[index].GetComponent<Door>()).SetPortal(component);
+              this.doors[index].GetComponent<Door>().SetPortal(component);
           }
         }
         else
@@ -150,15 +129,15 @@ public class ImageGenerator : MonoBehaviour
 
   private void GeneratorTask_SetRooms()
   {
-    for (int index1 = 0; index1 < ((Texture) this.map).get_height(); ++index1)
+    for (int y = 0; y < this.map.height; ++y)
     {
-      for (int index2 = 0; index2 < ((Texture) this.map).get_width(); ++index2)
+      for (int x = 0; x < this.map.width; ++x)
       {
-        Color pixel = this.map.GetPixel(index2, index1);
+        Color pixel = this.map.GetPixel(x, y);
         foreach (ImageGenerator.ColorMap color in this.colorMap)
         {
-          if (Color.op_Equality(color.color, pixel))
-            this.PlaceRoom(Vector2.op_Addition(new Vector2((float) index2, (float) index1), color.centerOffset), color);
+          if (color.color == pixel)
+            this.PlaceRoom(new Vector2((float) x, (float) y) + color.centerOffset, color);
         }
       }
     }
@@ -196,34 +175,34 @@ public class ImageGenerator : MonoBehaviour
 
   private void GeneratorTask_CheckRooms()
   {
-    for (int index1 = 0; index1 < ((Texture) this.map).get_height(); ++index1)
+    for (int y = 0; y < this.map.height; ++y)
     {
-      for (int index2 = 0; index2 < ((Texture) this.map).get_width(); ++index2)
+      for (int x = 0; x < this.map.width; ++x)
       {
-        Color pixel = this.map.GetPixel(index2, index1);
+        Color pixel = this.map.GetPixel(x, y);
         foreach (ImageGenerator.ColorMap color in this.colorMap)
         {
-          if (Color.op_Equality(color.color, pixel))
+          if (color.color == pixel)
           {
-            this.BlankSquare(Vector2.op_Addition(new Vector2((float) index2, (float) index1), color.centerOffset));
+            this.BlankSquare(new Vector2((float) x, (float) y) + color.centerOffset);
             ++this.roomsOfType[(int) color.type].amount;
             List<ImageGenerator.Room> roomList = new List<ImageGenerator.Room>();
             bool flag1 = false;
-            for (int index3 = 0; index3 < this.availableRooms.Count; ++index3)
+            for (int index = 0; index < this.availableRooms.Count; ++index)
             {
-              if (this.availableRooms[index3].type == color.type && this.availableRooms[index3].room.Count > 0 && this.availableRooms[index3].required)
+              if (this.availableRooms[index].type == color.type && this.availableRooms[index].room.Count > 0 && this.availableRooms[index].required)
                 flag1 = true;
             }
             bool flag2;
             do
             {
               flag2 = false;
-              for (int index3 = 0; index3 < this.availableRooms.Count; ++index3)
+              for (int index = 0; index < this.availableRooms.Count; ++index)
               {
-                if (this.availableRooms[index3].type == color.type && this.availableRooms[index3].room.Count > 0 && (this.availableRooms[index3].required || !flag1))
+                if (this.availableRooms[index].type == color.type && this.availableRooms[index].room.Count > 0 && (this.availableRooms[index].required || !flag1))
                 {
-                  roomList.Add(new ImageGenerator.Room(this.availableRooms[index3]));
-                  this.availableRooms.RemoveAt(index3);
+                  roomList.Add(new ImageGenerator.Room(this.availableRooms[index]));
+                  this.availableRooms.RemoveAt(index);
                   flag2 = true;
                   break;
                 }
@@ -263,9 +242,9 @@ public class ImageGenerator : MonoBehaviour
       }
       while (room.room.Count == 0);
       str = nameof (pos);
-      room.room[0].get_transform().set_localPosition(Vector3.op_Addition(new Vector3((float) (pos.x * (double) this.gridSize / 3.0), (float) this.height, (float) (pos.y * (double) this.gridSize / 3.0)), this.offset));
+      room.room[0].transform.localPosition = new Vector3((float) ((double) pos.x * (double) this.gridSize / 3.0), (float) this.height, (float) ((double) pos.y * (double) this.gridSize / 3.0)) + this.offset;
       str = "rot";
-      room.room[0].get_transform().set_localRotation(Quaternion.Euler(Vector3.op_Multiply(Vector3.get_up(), type.rotationY + this.y_offset)));
+      room.room[0].transform.localRotation = Quaternion.Euler(Vector3.up * (type.rotationY + this.y_offset));
       str = "rev";
       room.room[0].SetActive(true);
       room.room.RemoveAt(0);
@@ -278,7 +257,7 @@ public class ImageGenerator : MonoBehaviour
 
   private void BlankSquare(Vector2 centerPoint)
   {
-    ((Vector2) ref centerPoint).\u002Ector((float) (centerPoint.x - 1.0), (float) (centerPoint.y - 1.0));
+    centerPoint = new Vector2(centerPoint.x - 1f, centerPoint.y - 1f);
     for (int index1 = 0; index1 < 3; ++index1)
     {
       for (int index2 = 0; index2 < 3; ++index2)
@@ -289,17 +268,14 @@ public class ImageGenerator : MonoBehaviour
 
   private void Awake()
   {
-    using (List<GameObject>.Enumerator enumerator = this.doors.GetEnumerator())
-    {
-      while (enumerator.MoveNext())
-        ((Door) enumerator.Current.GetComponent<Door>()).SetZero();
-    }
+    foreach (GameObject door in this.doors)
+      door.GetComponent<Door>().SetZero();
   }
 
   [Serializable]
   public class ColorMap
   {
-    public Color color = Color.get_white();
+    public Color color = Color.white;
     public ImageGenerator.RoomType type;
     public float rotationY;
     public Vector2 centerOffset;

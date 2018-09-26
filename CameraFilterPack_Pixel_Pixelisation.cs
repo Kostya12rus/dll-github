@@ -10,28 +10,23 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Pixel_Pixelisation : MonoBehaviour
 {
+  [Range(0.6f, 120f)]
+  public float _Pixelisation = 8f;
+  [Range(0.6f, 120f)]
+  public float _SizeX = 1f;
+  [Range(0.6f, 120f)]
+  public float _SizeY = 1f;
   public Shader SCShader;
-  [Range(0.6f, 120f)]
-  public float _Pixelisation;
-  [Range(0.6f, 120f)]
-  public float _SizeX;
-  [Range(0.6f, 120f)]
-  public float _SizeY;
   private Material SCMaterial;
-
-  public CameraFilterPack_Pixel_Pixelisation()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -40,14 +35,14 @@ public class CameraFilterPack_Pixel_Pixelisation : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Pixel_Pixelisation");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
       this.material.SetFloat("_Val", this._Pixelisation);
       this.material.SetFloat("_Val2", this._SizeX);
@@ -64,7 +59,7 @@ public class CameraFilterPack_Pixel_Pixelisation : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

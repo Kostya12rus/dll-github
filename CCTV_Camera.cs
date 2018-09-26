@@ -17,22 +17,17 @@ public class CCTV_Camera : MonoBehaviour
   public AnimationCurve scaleOverDistance;
   public string liftID;
 
-  public CCTV_Camera()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    ((Renderer) this.spriteRenderer).set_material(new Material(this.mat));
+    this.spriteRenderer.material = new Material(this.mat);
   }
 
   public void UpdateLOD()
   {
-    float num = Vector3.Distance(this.camera079.get_position(), ((Component) this).get_transform().get_position());
-    ((Renderer) this.spriteRenderer).get_material().set_color(new Color((float) ((Renderer) this.spriteRenderer).get_material().get_color().r, (float) ((Renderer) this.spriteRenderer).get_material().get_color().g, (float) ((Renderer) this.spriteRenderer).get_material().get_color().b, this.transparencyOverDistance.Evaluate(num)));
-    ((Component) this.spriteHolder).get_transform().set_localScale(Vector3.op_Multiply(Vector3.get_one(), this.scaleOverDistance.Evaluate(num)));
-    ((Component) this.spriteHolder).get_transform().LookAt(this.camera079);
-    ((SphereCollider) ((Component) this).GetComponent<SphereCollider>()).set_radius(Mathf.Clamp((float) (((Component) this.spriteHolder).get_transform().get_localScale().x / 2.0), 0.13f, 10f));
+    float time = Vector3.Distance(this.camera079.position, this.transform.position);
+    this.spriteRenderer.material.color = new Color(this.spriteRenderer.material.color.r, this.spriteRenderer.material.color.g, this.spriteRenderer.material.color.b, this.transparencyOverDistance.Evaluate(time));
+    this.spriteHolder.transform.localScale = Vector3.one * this.scaleOverDistance.Evaluate(time);
+    this.spriteHolder.transform.LookAt(this.camera079);
+    this.GetComponent<SphereCollider>().radius = Mathf.Clamp(this.spriteHolder.transform.localScale.x / 2f, 0.13f, 10f);
   }
 }

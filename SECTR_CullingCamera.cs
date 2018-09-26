@@ -15,60 +15,55 @@ using UnityEngine;
 public class SECTR_CullingCamera : MonoBehaviour
 {
   private static List<SECTR_CullingCamera> allCullingCameras = new List<SECTR_CullingCamera>(4);
+  private Dictionary<int, SECTR_Member.Child> hiddenRenderers = new Dictionary<int, SECTR_Member.Child>(16);
+  private Dictionary<int, SECTR_Member.Child> hiddenLights = new Dictionary<int, SECTR_Member.Child>(16);
+  private Dictionary<int, SECTR_Member.Child> hiddenTerrains = new Dictionary<int, SECTR_Member.Child>(2);
+  private List<SECTR_Sector> initialSectors = new List<SECTR_Sector>(4);
+  private Stack<SECTR_CullingCamera.VisibilityNode> nodeStack = new Stack<SECTR_CullingCamera.VisibilityNode>(10);
+  private List<SECTR_CullingCamera.ClipVertex> portalVertices = new List<SECTR_CullingCamera.ClipVertex>(16);
+  private List<Plane> newFrustum = new List<Plane>(16);
+  private List<Plane> cullingPlanes = new List<Plane>(16);
+  private List<List<Plane>> occluderFrustums = new List<List<Plane>>(10);
+  private Dictionary<SECTR_Occluder, SECTR_Occluder> activeOccluders = new Dictionary<SECTR_Occluder, SECTR_Occluder>(10);
+  private List<SECTR_CullingCamera.ClipVertex> occluderVerts = new List<SECTR_CullingCamera.ClipVertex>(10);
+  private Dictionary<SECTR_Member.Child, int> shadowLights = new Dictionary<SECTR_Member.Child, int>(10);
+  private List<SECTR_Sector> shadowSectors = new List<SECTR_Sector>(4);
+  private Dictionary<SECTR_Sector, List<SECTR_Member.Child>> shadowSectorTable = new Dictionary<SECTR_Sector, List<SECTR_Member.Child>>(4);
+  private Dictionary<int, SECTR_Member.Child> visibleRenderers = new Dictionary<int, SECTR_Member.Child>(1024);
+  private Dictionary<int, SECTR_Member.Child> visibleLights = new Dictionary<int, SECTR_Member.Child>(256);
+  private Dictionary<int, SECTR_Member.Child> visibleTerrains = new Dictionary<int, SECTR_Member.Child>(32);
+  private Stack<List<Plane>> frustumPool = new Stack<List<Plane>>(32);
+  private Stack<List<SECTR_Member.Child>> shadowLightPool = new Stack<List<SECTR_Member.Child>>(32);
+  private Stack<Dictionary<int, SECTR_Member.Child>> threadVisibleListPool = new Stack<Dictionary<int, SECTR_Member.Child>>(4);
+  private Stack<Dictionary<SECTR_Member.Child, int>> threadShadowLightPool = new Stack<Dictionary<SECTR_Member.Child, int>>(32);
+  private Stack<List<Plane>> threadFrustumPool = new Stack<List<Plane>>(32);
+  private Stack<List<List<Plane>>> threadOccluderPool = new Stack<List<List<Plane>>>(32);
+  private List<Thread> workerThreads = new List<Thread>();
+  private Queue<SECTR_CullingCamera.ThreadCullData> cullingWorkQueue = new Queue<SECTR_CullingCamera.ThreadCullData>(32);
+  [SECTR_ToolTip("Allows multiple culling cameras to be active at once, but at the cost of some performance.")]
+  public bool MultiCameraCulling = true;
+  [SECTR_ToolTip("Distance to draw clipped frustums.", 0.0f, 100f)]
+  public float GizmoDistance = 10f;
+  [SECTR_ToolTip("Set to false to disable shadow culling post pass.", true)]
+  public bool CullShadows = true;
   private Camera myCamera;
   private SECTR_Member cullingMember;
-  private Dictionary<int, SECTR_Member.Child> hiddenRenderers;
-  private Dictionary<int, SECTR_Member.Child> hiddenLights;
-  private Dictionary<int, SECTR_Member.Child> hiddenTerrains;
   private int renderersCulled;
   private int lightsCulled;
   private int terrainsCulled;
   private bool didCull;
   private bool runOnce;
-  private List<SECTR_Sector> initialSectors;
-  private Stack<SECTR_CullingCamera.VisibilityNode> nodeStack;
-  private List<SECTR_CullingCamera.ClipVertex> portalVertices;
-  private List<Plane> newFrustum;
-  private List<Plane> cullingPlanes;
-  private List<List<Plane>> occluderFrustums;
-  private Dictionary<SECTR_Occluder, SECTR_Occluder> activeOccluders;
-  private List<SECTR_CullingCamera.ClipVertex> occluderVerts;
-  private Dictionary<SECTR_Member.Child, int> shadowLights;
-  private List<SECTR_Sector> shadowSectors;
-  private Dictionary<SECTR_Sector, List<SECTR_Member.Child>> shadowSectorTable;
-  private Dictionary<int, SECTR_Member.Child> visibleRenderers;
-  private Dictionary<int, SECTR_Member.Child> visibleLights;
-  private Dictionary<int, SECTR_Member.Child> visibleTerrains;
-  private Stack<List<Plane>> frustumPool;
-  private Stack<List<SECTR_Member.Child>> shadowLightPool;
-  private Stack<Dictionary<int, SECTR_Member.Child>> threadVisibleListPool;
-  private Stack<Dictionary<SECTR_Member.Child, int>> threadShadowLightPool;
-  private Stack<List<Plane>> threadFrustumPool;
-  private Stack<List<List<Plane>>> threadOccluderPool;
-  private List<Thread> workerThreads;
-  private Queue<SECTR_CullingCamera.ThreadCullData> cullingWorkQueue;
   private int remainingThreadWork;
-  [SECTR_ToolTip("Allows multiple culling cameras to be active at once, but at the cost of some performance.")]
-  public bool MultiCameraCulling;
   [SECTR_ToolTip("Forces culling into a mode designed for 2D and iso games where the camera is always outside the scene.")]
   public bool SimpleCulling;
-  [SECTR_ToolTip("Distance to draw clipped frustums.", 0.0f, 100f)]
-  public float GizmoDistance;
   [SECTR_ToolTip("Material to use to render the debug frustum mesh.")]
   public Material GizmoMaterial;
   [SECTR_ToolTip("Makes the Editor camera display the Game view's culling while playing in editor.")]
   public bool CullInEditor;
-  [SECTR_ToolTip("Set to false to disable shadow culling post pass.", true)]
-  public bool CullShadows;
   [SECTR_ToolTip("Use another camera for culling properties.", true)]
   public Camera cullingProxy;
   [SECTR_ToolTip("Number of worker threads for culling. Do not set this too high or you may see hitching.", 0.0f, -1f)]
   public int NumWorkerThreads;
-
-  public SECTR_CullingCamera()
-  {
-    base.\u002Ector();
-  }
 
   public static List<SECTR_CullingCamera> All
   {
@@ -112,11 +107,11 @@ public class SECTR_CullingCamera : MonoBehaviour
 
   private void OnEnable()
   {
-    this.myCamera = (Camera) ((Component) this).GetComponent<Camera>();
-    this.cullingMember = (SECTR_Member) ((Component) this).GetComponent<SECTR_Member>();
+    this.myCamera = this.GetComponent<Camera>();
+    this.cullingMember = this.GetComponent<SECTR_Member>();
     SECTR_CullingCamera.allCullingCameras.Add(this);
     this.runOnce = false;
-    int num = Mathf.Min(this.NumWorkerThreads, SystemInfo.get_processorCount());
+    int num = Mathf.Min(this.NumWorkerThreads, SystemInfo.processorCount);
     for (int index = 0; index < num; ++index)
     {
       Thread thread = new Thread(new ThreadStart(this._CullingWorker));
@@ -143,14 +138,14 @@ public class SECTR_CullingCamera : MonoBehaviour
 
   private void OnPreCull()
   {
-    Camera camera = !Object.op_Inequality((Object) this.cullingProxy, (Object) null) ? this.myCamera : this.cullingProxy;
-    Vector3 position = ((Component) camera).get_transform().get_position();
-    float num1 = Mathf.Cos(Mathf.Max(camera.get_fieldOfView(), camera.get_fieldOfView() * camera.get_aspect()) * 0.5f * ((float) Math.PI / 180f));
-    float distanceTolerance = (float) ((double) camera.get_nearClipPlane() / (double) num1 * 1.00100004673004);
-    if (Object.op_Implicit((Object) this.cullingProxy))
+    Camera camera = !((Object) this.cullingProxy != (Object) null) ? this.myCamera : this.cullingProxy;
+    Vector3 position = camera.transform.position;
+    float num1 = Mathf.Cos(Mathf.Max(camera.fieldOfView, camera.fieldOfView * camera.aspect) * 0.5f * ((float) Math.PI / 180f));
+    float num2 = (float) ((double) camera.nearClipPlane / (double) num1 * 1.00100004673004);
+    if ((bool) ((Object) this.cullingProxy))
     {
-      SECTR_CullingCamera component = (SECTR_CullingCamera) ((Component) this.cullingProxy).GetComponent<SECTR_CullingCamera>();
-      if (Object.op_Implicit((Object) component))
+      SECTR_CullingCamera component = this.cullingProxy.GetComponent<SECTR_CullingCamera>();
+      if ((bool) ((Object) component))
       {
         this.SimpleCulling = component.SimpleCulling;
         this.CullShadows = component.CullShadows;
@@ -162,18 +157,18 @@ public class SECTR_CullingCamera : MonoBehaviour
     int count1 = SECTR_LOD.All.Count;
     for (int index = 0; index < count1; ++index)
       SECTR_LOD.All[index].SelectLOD(camera);
-    int num2 = 0;
+    int num3 = 0;
     if (!this.SimpleCulling)
     {
-      if (Object.op_Implicit((Object) this.cullingMember) && ((Behaviour) this.cullingMember).get_enabled())
+      if ((bool) ((Object) this.cullingMember) && this.cullingMember.enabled)
       {
         this.initialSectors.Clear();
         this.initialSectors.AddRange((IEnumerable<SECTR_Sector>) this.cullingMember.Sectors);
       }
       else
-        SECTR_Sector.GetContaining(ref this.initialSectors, new Bounds(position, new Vector3(distanceTolerance, distanceTolerance, distanceTolerance)));
-      num2 = this.initialSectors.Count;
-      for (int index = 0; index < num2; ++index)
+        SECTR_Sector.GetContaining(ref this.initialSectors, new Bounds(position, new Vector3(num2, num2, num2)));
+      num3 = this.initialSectors.Count;
+      for (int index = 0; index < num3; ++index)
       {
         if (this.initialSectors[index].IsConnectedTerrain)
         {
@@ -186,9 +181,9 @@ public class SECTR_CullingCamera : MonoBehaviour
     {
       this.initialSectors.Clear();
       this.initialSectors.AddRange((IEnumerable<SECTR_Sector>) SECTR_Sector.All);
-      num2 = this.initialSectors.Count;
+      num3 = this.initialSectors.Count;
     }
-    if (!((Behaviour) this).get_enabled() || !((Behaviour) camera).get_enabled() || num2 <= 0)
+    if (!this.enabled || !camera.enabled || num3 <= 0)
       return;
     int count2 = this.workerThreads.Count;
     if (!this.MultiCameraCulling)
@@ -203,7 +198,7 @@ public class SECTR_CullingCamera : MonoBehaviour
     }
     else
       this._HideAllMembers();
-    float shadowDistance = QualitySettings.get_shadowDistance();
+    float shadowDistance = QualitySettings.shadowDistance;
     int count3 = SECTR_Member.All.Count;
     for (int index1 = 0; index1 < count3; ++index1)
     {
@@ -214,10 +209,10 @@ public class SECTR_CullingCamera : MonoBehaviour
         for (int index2 = 0; index2 < count4; ++index2)
         {
           SECTR_Member.Child shadowLight = sectrMember.ShadowLights[index2];
-          if (Object.op_Implicit((Object) shadowLight.light))
+          if ((bool) ((Object) shadowLight.light))
           {
-            shadowLight.shadowLightPosition = ((Component) shadowLight.light).get_transform().get_position();
-            shadowLight.shadowLightRange = shadowLight.light.get_range();
+            shadowLight.shadowLightPosition = shadowLight.light.transform.position;
+            shadowLight.shadowLightRange = shadowLight.light.range;
           }
           sectrMember.ShadowLights[index2] = shadowLight;
         }
@@ -229,7 +224,7 @@ public class SECTR_CullingCamera : MonoBehaviour
     this.visibleLights.Clear();
     this.visibleTerrains.Clear();
     Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(camera);
-    for (int index = 0; index < num2; ++index)
+    for (int index = 0; index < num3; ++index)
       this.nodeStack.Push(new SECTR_CullingCamera.VisibilityNode(this, this.initialSectors[index], (SECTR_Portal) null, frustumPlanes, true));
     while (this.nodeStack.Count > 0)
     {
@@ -243,27 +238,26 @@ public class SECTR_CullingCamera : MonoBehaviour
         {
           Plane cullingPlane1 = this.cullingPlanes[index];
           Plane cullingPlane2 = this.cullingPlanes[(index + 1) % this.cullingPlanes.Count];
-          float num3 = Vector3.Dot(((Plane) ref cullingPlane1).get_normal(), ((Plane) ref cullingPlane2).get_normal());
-          if ((double) num3 < -0.899999976158142 && (double) num3 > -0.990000009536743)
+          float num4 = Vector3.Dot(cullingPlane1.normal, cullingPlane2.normal);
+          if ((double) num4 < -0.899999976158142 && (double) num4 > -0.990000009536743)
           {
-            Vector3 vector3_1 = Vector3.op_Addition(((Plane) ref cullingPlane1).get_normal(), ((Plane) ref cullingPlane2).get_normal());
-            Vector3 vector3_2 = Vector3.Cross(((Plane) ref cullingPlane1).get_normal(), ((Plane) ref cullingPlane2).get_normal());
-            Vector3 vector3_3 = Vector3.op_Subtraction(vector3_1, Vector3.op_Multiply(Vector3.Dot(vector3_1, vector3_2), vector3_2));
-            ((Vector3) ref vector3_3).Normalize();
-            Matrix4x4 matrix4x4 = (Matrix4x4) null;
-            ((Matrix4x4) ref matrix4x4).SetRow(0, new Vector4((float) ((Plane) ref cullingPlane1).get_normal().x, (float) ((Plane) ref cullingPlane1).get_normal().y, (float) ((Plane) ref cullingPlane1).get_normal().z, 0.0f));
-            ((Matrix4x4) ref matrix4x4).SetRow(1, new Vector4((float) ((Plane) ref cullingPlane2).get_normal().x, (float) ((Plane) ref cullingPlane2).get_normal().y, (float) ((Plane) ref cullingPlane2).get_normal().z, 0.0f));
-            ((Matrix4x4) ref matrix4x4).SetRow(2, new Vector4((float) vector3_2.x, (float) vector3_2.y, (float) vector3_2.z, 0.0f));
-            ((Matrix4x4) ref matrix4x4).SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1f));
-            Matrix4x4 inverse = ((Matrix4x4) ref matrix4x4).get_inverse();
-            Vector3 vector3_4 = ((Matrix4x4) ref inverse).MultiplyPoint3x4(new Vector3(-((Plane) ref cullingPlane1).get_distance(), -((Plane) ref cullingPlane2).get_distance(), 0.0f));
-            this.cullingPlanes.Insert(++index, new Plane(vector3_3, vector3_4));
+            Vector3 lhs = cullingPlane1.normal + cullingPlane2.normal;
+            Vector3 rhs = Vector3.Cross(cullingPlane1.normal, cullingPlane2.normal);
+            Vector3 inNormal = lhs - Vector3.Dot(lhs, rhs) * rhs;
+            inNormal.Normalize();
+            Matrix4x4 matrix4x4 = new Matrix4x4();
+            matrix4x4.SetRow(0, new Vector4(cullingPlane1.normal.x, cullingPlane1.normal.y, cullingPlane1.normal.z, 0.0f));
+            matrix4x4.SetRow(1, new Vector4(cullingPlane2.normal.x, cullingPlane2.normal.y, cullingPlane2.normal.z, 0.0f));
+            matrix4x4.SetRow(2, new Vector4(rhs.x, rhs.y, rhs.z, 0.0f));
+            matrix4x4.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1f));
+            Vector3 inPoint = matrix4x4.inverse.MultiplyPoint3x4(new Vector3(-cullingPlane1.distance, -cullingPlane2.distance, 0.0f));
+            this.cullingPlanes.Insert(++index, new Plane(inNormal, inPoint));
           }
         }
         int count5 = this.cullingPlanes.Count;
-        int num4 = 0;
+        int num5 = 0;
         for (int index = 0; index < count5; ++index)
-          num4 |= 1 << index;
+          num5 |= 1 << index;
         SECTR_Sector sector1 = visibilityNode.sector;
         if (SECTR_Occluder.All.Count > 0)
         {
@@ -274,26 +268,24 @@ public class SECTR_CullingCamera : MonoBehaviour
             for (int index1 = 0; index1 < count6; ++index1)
             {
               SECTR_Occluder key = occludersInSector[index1];
-              if (Object.op_Implicit((Object) key.HullMesh) && !this.activeOccluders.ContainsKey(key))
+              if ((bool) ((Object) key.HullMesh) && !this.activeOccluders.ContainsKey(key))
               {
                 Matrix4x4 cullingMatrix = key.GetCullingMatrix(position);
                 Vector3[] vertsCw = key.VertsCW;
-                Vector3 vector3_1 = ((Matrix4x4) ref cullingMatrix).MultiplyVector(Vector3.op_UnaryNegation(key.MeshNormal));
-                Vector3 normalized = ((Vector3) ref vector3_1).get_normalized();
+                Vector3 normalized = cullingMatrix.MultiplyVector(-key.MeshNormal).normalized;
                 if (vertsCw != null && !SECTR_Geometry.IsPointInFrontOfPlane(position, key.Center, normalized))
                 {
                   int length = vertsCw.Length;
                   this.occluderVerts.Clear();
-                  Bounds bounds;
-                  ((Bounds) ref bounds).\u002Ector(((Component) key).get_transform().get_position(), Vector3.get_zero());
+                  Bounds bounds = new Bounds(key.transform.position, Vector3.zero);
                   for (int index2 = 0; index2 < length; ++index2)
                   {
-                    Vector3 vector3_2 = ((Matrix4x4) ref cullingMatrix).MultiplyPoint3x4(vertsCw[index2]);
-                    ((Bounds) ref bounds).Encapsulate(vector3_2);
-                    this.occluderVerts.Add(new SECTR_CullingCamera.ClipVertex(new Vector4((float) vector3_2.x, (float) vector3_2.y, (float) vector3_2.z, 1f), 0.0f));
+                    Vector3 point = cullingMatrix.MultiplyPoint3x4(vertsCw[index2]);
+                    bounds.Encapsulate(point);
+                    this.occluderVerts.Add(new SECTR_CullingCamera.ClipVertex(new Vector4(point.x, point.y, point.z, 1f), 0.0f));
                   }
                   int outMask;
-                  if (SECTR_Geometry.FrustumIntersectsBounds(key.BoundingBox, this.cullingPlanes, num4, out outMask))
+                  if (SECTR_Geometry.FrustumIntersectsBounds(key.BoundingBox, this.cullingPlanes, num5, out outMask))
                   {
                     List<Plane> newFrustum;
                     if (this.frustumPool.Count > 0)
@@ -317,30 +309,27 @@ public class SECTR_CullingCamera : MonoBehaviour
         {
           lock ((object) this.cullingWorkQueue)
           {
-            this.cullingWorkQueue.Enqueue(new SECTR_CullingCamera.ThreadCullData(sector1, this, position, this.cullingPlanes, this.occluderFrustums, num4, shadowDistance, this.SimpleCulling));
+            this.cullingWorkQueue.Enqueue(new SECTR_CullingCamera.ThreadCullData(sector1, this, position, this.cullingPlanes, this.occluderFrustums, num5, shadowDistance, this.SimpleCulling));
             Monitor.Pulse((object) this.cullingWorkQueue);
           }
           Interlocked.Increment(ref this.remainingThreadWork);
         }
         else
-          SECTR_CullingCamera._FrustumCullSector(sector1, position, this.cullingPlanes, this.occluderFrustums, num4, shadowDistance, this.SimpleCulling, ref this.visibleRenderers, ref this.visibleLights, ref this.visibleTerrains, ref this.shadowLights);
-        int num5 = !this.SimpleCulling ? visibilityNode.sector.Portals.Count : 0;
-        for (int index1 = 0; index1 < num5; ++index1)
+          SECTR_CullingCamera._FrustumCullSector(sector1, position, this.cullingPlanes, this.occluderFrustums, num5, shadowDistance, this.SimpleCulling, ref this.visibleRenderers, ref this.visibleLights, ref this.visibleTerrains, ref this.shadowLights);
+        int num6 = !this.SimpleCulling ? visibilityNode.sector.Portals.Count : 0;
+        for (int index1 = 0; index1 < num6; ++index1)
         {
           SECTR_Portal portal = visibilityNode.sector.Portals[index1];
           bool flag1 = (portal.Flags & SECTR_Portal.PortalFlags.PassThrough) != (SECTR_Portal.PortalFlags) 0;
-          if ((Object.op_Implicit((Object) portal.HullMesh) || flag1) && (portal.Flags & SECTR_Portal.PortalFlags.Closed) == (SECTR_Portal.PortalFlags) 0)
+          if (((bool) ((Object) portal.HullMesh) || flag1) && (portal.Flags & SECTR_Portal.PortalFlags.Closed) == (SECTR_Portal.PortalFlags) 0)
           {
-            bool forwardTraversal = Object.op_Equality((Object) visibilityNode.sector, (Object) portal.FrontSector);
+            bool forwardTraversal = (Object) visibilityNode.sector == (Object) portal.FrontSector;
             SECTR_Sector sector2 = !forwardTraversal ? portal.FrontSector : portal.BackSector;
-            bool flag2 = !Object.op_Implicit((Object) sector2);
+            bool flag2 = !(bool) ((Object) sector2);
             if (!flag2)
               flag2 = SECTR_Geometry.IsPointInFrontOfPlane(position, portal.Center, portal.Normal) != forwardTraversal;
-            if (!flag2 && Object.op_Implicit((Object) visibilityNode.portal))
-            {
-              Vector3 vector3 = Vector3.op_Subtraction(portal.Center, visibilityNode.portal.Center);
-              flag2 = (double) Vector3.Dot(((Vector3) ref vector3).get_normalized(), !visibilityNode.forwardTraversal ? visibilityNode.portal.Normal : visibilityNode.portal.ReverseNormal) < 0.0;
-            }
+            if (!flag2 && (bool) ((Object) visibilityNode.portal))
+              flag2 = (double) Vector3.Dot((portal.Center - visibilityNode.portal.Center).normalized, !visibilityNode.forwardTraversal ? visibilityNode.portal.Normal : visibilityNode.portal.ReverseNormal) < 0.0;
             if (!flag2 && !flag1)
             {
               int count6 = this.occluderFrustums.Count;
@@ -358,33 +347,32 @@ public class SECTR_CullingCamera : MonoBehaviour
               if (!flag1)
               {
                 this.portalVertices.Clear();
-                Matrix4x4 localToWorldMatrix = ((Component) portal).get_transform().get_localToWorldMatrix();
+                Matrix4x4 localToWorldMatrix = portal.transform.localToWorldMatrix;
                 Vector3[] vertsCw = portal.VertsCW;
                 if (vertsCw != null)
                 {
                   int length = vertsCw.Length;
                   for (int index2 = 0; index2 < length; ++index2)
                   {
-                    Vector3 vector3 = ((Matrix4x4) ref localToWorldMatrix).MultiplyPoint3x4(vertsCw[index2]);
-                    this.portalVertices.Add(new SECTR_CullingCamera.ClipVertex(new Vector4((float) vector3.x, (float) vector3.y, (float) vector3.z, 1f), 0.0f));
+                    Vector3 vector3 = localToWorldMatrix.MultiplyPoint3x4(vertsCw[index2]);
+                    this.portalVertices.Add(new SECTR_CullingCamera.ClipVertex(new Vector4(vector3.x, vector3.y, vector3.z, 1f), 0.0f));
                   }
                 }
               }
               this.newFrustum.Clear();
-              if (!flag1 && !portal.IsPointInHull(position, distanceTolerance))
+              if (!flag1 && !portal.IsPointInHull(position, num2))
               {
                 int count6 = visibilityNode.frustumPlanes.Count;
                 for (int index2 = 0; index2 < count6; ++index2)
                 {
                   Plane frustumPlane = visibilityNode.frustumPlanes[index2];
-                  Vector4 vector4;
-                  ((Vector4) ref vector4).\u002Ector((float) ((Plane) ref frustumPlane).get_normal().x, (float) ((Plane) ref frustumPlane).get_normal().y, (float) ((Plane) ref frustumPlane).get_normal().z, ((Plane) ref frustumPlane).get_distance());
+                  Vector4 a = new Vector4(frustumPlane.normal.x, frustumPlane.normal.y, frustumPlane.normal.z, frustumPlane.distance);
                   bool flag3 = true;
                   bool flag4 = true;
                   for (int index3 = 0; index3 < this.portalVertices.Count; ++index3)
                   {
                     Vector4 vertex = this.portalVertices[index3].vertex;
-                    float side = Vector4.Dot(vector4, vertex);
+                    float side = Vector4.Dot(a, vertex);
                     this.portalVertices[index3] = new SECTR_CullingCamera.ClipVertex(vertex, side);
                     flag3 = flag3 && (double) side > 0.0;
                     flag4 = flag4 && (double) side <= -1.0 / 1000.0;
@@ -406,9 +394,9 @@ public class SECTR_CullingCamera : MonoBehaviour
                       {
                         Vector4 vertex1 = this.portalVertices[index3].vertex;
                         Vector4 vertex2 = this.portalVertices[index4].vertex;
-                        float num3 = side1 / Vector4.Dot(vector4, Vector4.op_Subtraction(vertex1, vertex2));
-                        Vector4 vertex3 = Vector4.op_Addition(vertex1, Vector4.op_Multiply(num3, Vector4.op_Subtraction(vertex2, vertex1)));
-                        vertex3.w = (__Null) 1.0;
+                        float num4 = side1 / Vector4.Dot(a, vertex1 - vertex2);
+                        Vector4 vertex3 = vertex1 + num4 * (vertex2 - vertex1);
+                        vertex3.w = 1f;
                         this.portalVertices.Insert(index3 + 1, new SECTR_CullingCamera.ClipVertex(vertex3, 0.0f));
                         ++count7;
                       }
@@ -471,13 +459,13 @@ public class SECTR_CullingCamera : MonoBehaviour
       {
         SECTR_Member.Child key1 = enumerator1.Current.Key;
         List<SECTR_Sector> sectrSectorList;
-        if (Object.op_Implicit((Object) key1.member) && key1.member.IsSector)
+        if ((bool) ((Object) key1.member) && key1.member.IsSector)
         {
           this.shadowSectors.Clear();
           this.shadowSectors.Add((SECTR_Sector) key1.member);
           sectrSectorList = this.shadowSectors;
         }
-        else if (Object.op_Implicit((Object) key1.member) && key1.member.Sectors.Count > 0)
+        else if ((bool) ((Object) key1.member) && key1.member.Sectors.Count > 0)
         {
           sectrSectorList = key1.member.Sectors;
         }
@@ -783,7 +771,7 @@ public class SECTR_CullingCamera : MonoBehaviour
           for (int index2 = 0; index2 < count1; ++index2)
           {
             SECTR_Member.Child shadowLight = shadowLights[index2];
-            if ((shadowLight.shadowCullingMask & 1 << LayerMask.op_Implicit(shadowCaster.layer)) != 0 && (shadowLight.shadowLightType == null && ((Bounds) ref shadowCaster.rendererBounds).Intersects(shadowLight.lightBounds) || shadowLight.shadowLightType == 2 && SECTR_Geometry.BoundsIntersectsSphere(shadowCaster.rendererBounds, shadowLight.shadowLightPosition, shadowLight.shadowLightRange)))
+            if ((shadowLight.shadowCullingMask & 1 << (int) shadowCaster.layer) != 0 && (shadowLight.shadowLightType == LightType.Spot && shadowCaster.rendererBounds.Intersects(shadowLight.lightBounds) || shadowLight.shadowLightType == LightType.Point && SECTR_Geometry.BoundsIntersectsSphere(shadowCaster.rendererBounds, shadowLight.shadowLightPosition, shadowLight.shadowLightRange)))
             {
               visibleRenderers.Add(shadowCaster.renderHash, shadowCaster);
               break;
@@ -795,7 +783,7 @@ public class SECTR_CullingCamera : MonoBehaviour
           for (int index2 = 0; index2 < count1; ++index2)
           {
             SECTR_Member.Child shadowLight = shadowLights[index2];
-            if ((shadowLight.shadowCullingMask & 1 << LayerMask.op_Implicit(shadowCaster.layer)) != 0 && (shadowLight.shadowLightType == null && ((Bounds) ref shadowCaster.terrainBounds).Intersects(shadowLight.lightBounds) || shadowLight.shadowLightType == 2 && SECTR_Geometry.BoundsIntersectsSphere(shadowCaster.terrainBounds, shadowLight.shadowLightPosition, shadowLight.shadowLightRange)))
+            if ((shadowLight.shadowCullingMask & 1 << (int) shadowCaster.layer) != 0 && (shadowLight.shadowLightType == LightType.Spot && shadowCaster.terrainBounds.Intersects(shadowLight.lightBounds) || shadowLight.shadowLightType == LightType.Point && SECTR_Geometry.BoundsIntersectsSphere(shadowCaster.terrainBounds, shadowLight.shadowLightPosition, shadowLight.shadowLightRange)))
             {
               visibleTerrains.Add(shadowCaster.terrainHash, shadowCaster);
               break;
@@ -809,15 +797,7 @@ public class SECTR_CullingCamera : MonoBehaviour
       for (int index1 = 0; index1 < count1; ++index1)
       {
         SECTR_Member.Child shadowLight = shadowLights[index1];
-        int num;
-        if (shadowLight.shadowLightType == null)
-        {
-          Bounds renderBounds = member.RenderBounds;
-          num = ((Bounds) ref renderBounds).Intersects(shadowLight.lightBounds) ? 1 : 0;
-        }
-        else
-          num = SECTR_Geometry.BoundsIntersectsSphere(member.RenderBounds, shadowLight.shadowLightPosition, shadowLight.shadowLightRange) ? 1 : 0;
-        if (num != 0)
+        if (shadowLight.shadowLightType != LightType.Spot ? SECTR_Geometry.BoundsIntersectsSphere(member.RenderBounds, shadowLight.shadowLightPosition, shadowLight.shadowLightRange) : member.RenderBounds.Intersects(shadowLight.lightBounds))
         {
           int shadowCullingMask = shadowLight.shadowCullingMask;
           for (int index2 = 0; index2 < count2; ++index2)
@@ -825,7 +805,7 @@ public class SECTR_CullingCamera : MonoBehaviour
             SECTR_Member.Child shadowCaster = member.ShadowCasters[index2];
             if (shadowCaster.renderHash != 0 && shadowCaster.terrainHash != 0)
             {
-              if ((shadowCullingMask & 1 << LayerMask.op_Implicit(shadowCaster.layer)) != 0)
+              if ((shadowCullingMask & 1 << (int) shadowCaster.layer) != 0)
               {
                 if (!visibleRenderers.ContainsKey(shadowCaster.renderHash))
                   visibleRenderers.Add(shadowCaster.renderHash, shadowCaster);
@@ -833,9 +813,9 @@ public class SECTR_CullingCamera : MonoBehaviour
                   visibleTerrains.Add(shadowCaster.terrainHash, shadowCaster);
               }
             }
-            else if (shadowCaster.renderHash != 0 && !visibleRenderers.ContainsKey(shadowCaster.renderHash) && (shadowCullingMask & 1 << LayerMask.op_Implicit(shadowCaster.layer)) != 0)
+            else if (shadowCaster.renderHash != 0 && !visibleRenderers.ContainsKey(shadowCaster.renderHash) && (shadowCullingMask & 1 << (int) shadowCaster.layer) != 0)
               visibleRenderers.Add(shadowCaster.renderHash, shadowCaster);
-            else if (shadowCaster.terrainHash != 0 && !visibleTerrains.ContainsKey(shadowCaster.terrainHash) && (shadowCullingMask & 1 << LayerMask.op_Implicit(shadowCaster.layer)) != 0)
+            else if (shadowCaster.terrainHash != 0 && !visibleTerrains.ContainsKey(shadowCaster.terrainHash) && (shadowCullingMask & 1 << (int) shadowCaster.layer) != 0)
               visibleTerrains.Add(shadowCaster.terrainHash, shadowCaster);
           }
         }
@@ -868,8 +848,8 @@ public class SECTR_CullingCamera : MonoBehaviour
       {
         SECTR_Member.Child renderer = sectrMember.Renderers[index2];
         renderer.renderCulled = true;
-        if (Object.op_Implicit((Object) renderer.renderer))
-          renderer.renderer.set_enabled(false);
+        if ((bool) ((Object) renderer.renderer))
+          renderer.renderer.enabled = false;
         this.hiddenRenderers[renderer.renderHash] = renderer;
       }
       int count3 = sectrMember.Lights.Count;
@@ -877,8 +857,8 @@ public class SECTR_CullingCamera : MonoBehaviour
       {
         SECTR_Member.Child light = sectrMember.Lights[index2];
         light.lightCulled = true;
-        if (Object.op_Implicit((Object) light.light))
-          ((Behaviour) light.light).set_enabled(false);
+        if ((bool) ((Object) light.light))
+          light.light.enabled = false;
         this.hiddenLights[light.lightHash] = light;
       }
       int count4 = sectrMember.Terrains.Count;
@@ -886,10 +866,10 @@ public class SECTR_CullingCamera : MonoBehaviour
       {
         SECTR_Member.Child terrain = sectrMember.Terrains[index2];
         terrain.terrainCulled = true;
-        if (Object.op_Implicit((Object) terrain.terrain))
+        if ((bool) ((Object) terrain.terrain))
         {
-          terrain.terrain.set_drawHeightmap(false);
-          terrain.terrain.set_drawTreesAndFoliage(false);
+          terrain.terrain.drawHeightmap = false;
+          terrain.terrain.drawTreesAndFoliage = false;
         }
         this.hiddenTerrains[terrain.terrainHash] = terrain;
       }
@@ -902,8 +882,8 @@ public class SECTR_CullingCamera : MonoBehaviour
     while (enumerator1.MoveNext())
     {
       SECTR_Member.Child child = enumerator1.Current.Value;
-      if (Object.op_Implicit((Object) child.renderer))
-        child.renderer.set_enabled(visible);
+      if ((bool) ((Object) child.renderer))
+        child.renderer.enabled = visible;
       child.renderCulled = !visible;
       if (visible)
         this.hiddenRenderers.Remove(enumerator1.Current.Key);
@@ -916,8 +896,8 @@ public class SECTR_CullingCamera : MonoBehaviour
     while (enumerator2.MoveNext())
     {
       SECTR_Member.Child child = enumerator2.Current.Value;
-      if (Object.op_Implicit((Object) child.light))
-        ((Behaviour) child.light).set_enabled(visible);
+      if ((bool) ((Object) child.light))
+        child.light.enabled = visible;
       child.lightCulled = !visible;
       if (visible)
         this.hiddenLights.Remove(enumerator2.Current.Key);
@@ -930,10 +910,10 @@ public class SECTR_CullingCamera : MonoBehaviour
     while (enumerator3.MoveNext())
     {
       SECTR_Member.Child child = enumerator3.Current.Value;
-      if (Object.op_Implicit((Object) child.terrain))
+      if ((bool) ((Object) child.terrain))
       {
-        child.terrain.set_drawHeightmap(visible);
-        child.terrain.set_drawTreesAndFoliage(visible);
+        child.terrain.drawHeightmap = visible;
+        child.terrain.drawTreesAndFoliage = visible;
       }
       child.terrainCulled = !visible;
       if (visible)
@@ -954,8 +934,8 @@ public class SECTR_CullingCamera : MonoBehaviour
     while (enumerator1.MoveNext())
     {
       SECTR_Member.Child child = enumerator1.Current.Value;
-      if (Object.op_Implicit((Object) child.renderer))
-        child.renderer.set_enabled(true);
+      if ((bool) ((Object) child.renderer))
+        child.renderer.enabled = true;
       child.renderCulled = false;
     }
     this.hiddenRenderers.Clear();
@@ -963,8 +943,8 @@ public class SECTR_CullingCamera : MonoBehaviour
     while (enumerator2.MoveNext())
     {
       SECTR_Member.Child child = enumerator2.Current.Value;
-      if (Object.op_Implicit((Object) child.light))
-        ((Behaviour) child.light).set_enabled(true);
+      if ((bool) ((Object) child.light))
+        child.light.enabled = true;
       child.lightCulled = false;
     }
     this.hiddenLights.Clear();
@@ -973,10 +953,10 @@ public class SECTR_CullingCamera : MonoBehaviour
     {
       SECTR_Member.Child child = enumerator3.Current.Value;
       Terrain terrain = child.terrain;
-      if (Object.op_Implicit((Object) child.terrain))
+      if ((bool) ((Object) child.terrain))
       {
-        terrain.set_drawHeightmap(true);
-        terrain.set_drawTreesAndFoliage(true);
+        terrain.drawHeightmap = true;
+        terrain.drawTreesAndFoliage = true;
       }
       child.terrainCulled = false;
     }
@@ -991,14 +971,14 @@ public class SECTR_CullingCamera : MonoBehaviour
       return;
     for (int index = 0; index < count; ++index)
     {
-      Vector3 vector3_1 = Vector4.op_Implicit(portalVertices[index].vertex);
-      Vector3 vector3_2 = Vector3.op_Subtraction(Vector4.op_Implicit(portalVertices[(index + 1) % count].vertex), vector3_1);
-      if ((double) Vector3.SqrMagnitude(vector3_2) > 1.0 / 1000.0)
+      Vector3 vertex = (Vector3) portalVertices[index].vertex;
+      Vector3 vector3_1 = (Vector3) portalVertices[(index + 1) % count].vertex - vertex;
+      if ((double) Vector3.SqrMagnitude(vector3_1) > 1.0 / 1000.0)
       {
-        Vector3 vector3_3 = Vector3.op_Subtraction(vector3_1, ((Component) cullingCamera).get_transform().get_position());
-        Vector3 vector3_4 = !forwardTraversal ? Vector3.Cross(vector3_3, vector3_2) : Vector3.Cross(vector3_2, vector3_3);
-        ((Vector3) ref vector3_4).Normalize();
-        newFrustum.Add(new Plane(vector3_4, vector3_1));
+        Vector3 vector3_2 = vertex - cullingCamera.transform.position;
+        Vector3 inNormal = !forwardTraversal ? Vector3.Cross(vector3_2, vector3_1) : Vector3.Cross(vector3_1, vector3_2);
+        inNormal.Normalize();
+        newFrustum.Add(new Plane(inNormal, vertex));
       }
     }
   }

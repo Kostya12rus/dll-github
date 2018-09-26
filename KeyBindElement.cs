@@ -10,13 +10,8 @@ public class KeyBindElement : MonoBehaviour
 {
   public string axis;
 
-  public KeyBindElement()
-  {
-    base.\u002Ector();
-  }
-
   public void Click()
   {
-    ((ChangeKeyBinding) ((Component) this).GetComponentInParent<ChangeKeyBinding>()).ChangeKey(this.axis);
+    this.GetComponentInParent<ChangeKeyBinding>().ChangeKey(this.axis);
   }
 }

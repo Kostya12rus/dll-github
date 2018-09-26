@@ -14,14 +14,9 @@ namespace IESLights
   [RequireComponent(typeof (IESToCubemap))]
   public class IESConverter : MonoBehaviour
   {
-    public int Resolution;
+    public int Resolution = 512;
     public NormalizationMode NormalizationMode;
     private Texture2D _iesTexture;
-
-    public IESConverter()
-    {
-      base.\u002Ector();
-    }
 
     public void ConvertIES(string filePath, string targetPath, bool createSpotlightCookies, bool rawImport, bool applyVignette, out Cubemap pointLightCookie, out Texture2D spotlightCookie, out EXRData exrData, out string targetFilename)
     {
@@ -38,7 +33,7 @@ namespace IESLights
         spotlightCookie = (Texture2D) null;
         this.RawImport(iesData, filePath, targetPath, createSpotlightCookies, out exrData, out targetFilename);
       }
-      if (!Object.op_Inequality((Object) this._iesTexture, (Object) null))
+      if (!((Object) this._iesTexture != (Object) null))
         return;
       Object.Destroy((Object) this._iesTexture);
     }
@@ -48,14 +43,14 @@ namespace IESLights
       if (createSpotlightCookies && iesData.VerticalType != VerticalType.Full || iesData.PhotometricType == PhotometricType.TypeA)
       {
         pointLightCookie = (Cubemap) null;
-        ((IESToSpotlightCookie) ((Component) this).GetComponent<IESToSpotlightCookie>()).CreateSpotlightCookie(this._iesTexture, iesData, this.Resolution, applyVignette, false, out spotlightCookie);
+        this.GetComponent<IESToSpotlightCookie>().CreateSpotlightCookie(this._iesTexture, iesData, this.Resolution, applyVignette, false, out spotlightCookie);
       }
       else
       {
         spotlightCookie = (Texture2D) null;
-        ((IESToCubemap) ((Component) this).GetComponent<IESToCubemap>()).CreateCubemap(this._iesTexture, iesData, this.Resolution, out pointLightCookie);
+        this.GetComponent<IESToCubemap>().CreateCubemap(this._iesTexture, iesData, this.Resolution, out pointLightCookie);
       }
-      this.BuildTargetFilename(Path.GetFileNameWithoutExtension(filePath), targetPath, Object.op_Inequality((Object) pointLightCookie, (Object) null), false, this.NormalizationMode, iesData, out targetFilename);
+      this.BuildTargetFilename(Path.GetFileNameWithoutExtension(filePath), targetPath, (Object) pointLightCookie != (Object) null, false, this.NormalizationMode, iesData, out targetFilename);
     }
 
     private void RawImport(IESData iesData, string filePath, string targetPath, bool createSpotlightCookie, out EXRData exrData, out string targetFilename)
@@ -63,19 +58,19 @@ namespace IESLights
       if (createSpotlightCookie && iesData.VerticalType != VerticalType.Full || iesData.PhotometricType == PhotometricType.TypeA)
       {
         Texture2D cookie = (Texture2D) null;
-        ((IESToSpotlightCookie) ((Component) this).GetComponent<IESToSpotlightCookie>()).CreateSpotlightCookie(this._iesTexture, iesData, this.Resolution, false, true, out cookie);
+        this.GetComponent<IESToSpotlightCookie>().CreateSpotlightCookie(this._iesTexture, iesData, this.Resolution, false, true, out cookie);
         exrData = new EXRData(cookie.GetPixels(), this.Resolution, this.Resolution);
         Object.DestroyImmediate((Object) cookie);
       }
       else
-        exrData = new EXRData(((IESToCubemap) ((Component) this).GetComponent<IESToCubemap>()).CreateRawCubemap(this._iesTexture, iesData, this.Resolution), this.Resolution * 6, this.Resolution);
+        exrData = new EXRData(this.GetComponent<IESToCubemap>().CreateRawCubemap(this._iesTexture, iesData, this.Resolution), this.Resolution * 6, this.Resolution);
       this.BuildTargetFilename(Path.GetFileNameWithoutExtension(filePath), targetPath, false, true, NormalizationMode.Linear, iesData, out targetFilename);
     }
 
     private void BuildTargetFilename(string name, string folderHierarchy, bool isCubemap, bool isRaw, NormalizationMode normalizationMode, IESData iesData, out string targetFilePath)
     {
-      if (!Directory.Exists(Path.Combine(Application.get_dataPath(), string.Format("IES/Imports/{0}", (object) folderHierarchy))))
-        Directory.CreateDirectory(Path.Combine(Application.get_dataPath(), string.Format("IES/Imports/{0}", (object) folderHierarchy)));
+      if (!Directory.Exists(Path.Combine(Application.dataPath, string.Format("IES/Imports/{0}", (object) folderHierarchy))))
+        Directory.CreateDirectory(Path.Combine(Application.dataPath, string.Format("IES/Imports/{0}", (object) folderHierarchy)));
       float num = 0.0f;
       if (iesData.PhotometricType == PhotometricType.TypeA)
         num = iesData.HorizontalAngles.Max() - iesData.HorizontalAngles.Min();

@@ -8,27 +8,21 @@ using UnityEngine;
 
 public class BrowserLerp : MonoBehaviour
 {
+  public float speed = 2f;
   private Vector3 prevPos;
   private RectTransform rectTransform;
   private Vector3 targetPos;
-  public float speed;
-
-  public BrowserLerp()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this.rectTransform = (RectTransform) ((Component) this).GetComponent<RectTransform>();
+    this.rectTransform = this.GetComponent<RectTransform>();
   }
 
   private void LateUpdate()
   {
-    BrowserLerp browserLerp = this;
-    browserLerp.targetPos = Vector3.op_Addition(browserLerp.targetPos, Vector3.op_Subtraction(((Transform) this.rectTransform).get_localPosition(), this.prevPos));
-    ((Transform) this.rectTransform).set_localPosition(this.prevPos);
-    ((Transform) this.rectTransform).set_localPosition(Vector3.Lerp(((Transform) this.rectTransform).get_localPosition(), this.targetPos, (float) ((double) Time.get_deltaTime() * (double) this.speed * 4.0)));
-    this.prevPos = ((Transform) this.rectTransform).get_localPosition();
+    this.targetPos += this.rectTransform.localPosition - this.prevPos;
+    this.rectTransform.localPosition = this.prevPos;
+    this.rectTransform.localPosition = Vector3.Lerp(this.rectTransform.localPosition, this.targetPos, (float) ((double) Time.deltaTime * (double) this.speed * 4.0));
+    this.prevPos = this.rectTransform.localPosition;
   }
 }

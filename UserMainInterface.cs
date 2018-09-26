@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class UserMainInterface : MonoBehaviour
 {
+  public float lerpSpeed = 3f;
   public Slider sliderHP;
   public Slider searchProgress;
   public Text textHP;
@@ -23,13 +24,7 @@ public class UserMainInterface : MonoBehaviour
   [Space]
   public Text fps;
   public static UserMainInterface singleton;
-  public float lerpSpeed;
   public float lerpedHP;
-
-  public UserMainInterface()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -38,32 +33,32 @@ public class UserMainInterface : MonoBehaviour
 
   private void Start()
   {
-    this.playerlistText.set_text("PRESS<b> " + NewInput.GetKey("Player List").ToString() + " </b>TO OPEN THE PLAYER LIST");
-    this.voiceInfo.set_text(NewInput.GetKey("Voice Chat").ToString());
+    this.playerlistText.text = "PRESS<b> " + NewInput.GetKey("Player List").ToString() + " </b>TO OPEN THE PLAYER LIST";
+    this.voiceInfo.text = NewInput.GetKey("Voice Chat").ToString();
     ResolutionManager.RefreshScreen();
   }
 
   public void SearchProgress(float curProgress, float targetProgress)
   {
-    this.searchProgress.set_maxValue(targetProgress);
-    this.searchProgress.set_value(curProgress);
+    this.searchProgress.maxValue = targetProgress;
+    this.searchProgress.value = curProgress;
     this.searchOBJ.SetActive((double) curProgress != 0.0);
   }
 
   public void SetHP(int _hp, int _maxhp)
   {
     float num = (float) _maxhp;
-    this.lerpedHP = Mathf.Lerp(this.lerpedHP, (float) _hp, Time.get_deltaTime() * this.lerpSpeed);
-    this.sliderHP.set_value(this.lerpedHP);
-    this.textHP.set_text(((double) Mathf.Clamp(Mathf.Round((float) ((double) this.sliderHP.get_value() / (double) num * 100.0)), 1f, 100f)).ToString() + "%");
-    this.sliderHP.set_maxValue(num);
+    this.lerpedHP = Mathf.Lerp(this.lerpedHP, (float) _hp, Time.deltaTime * this.lerpSpeed);
+    this.sliderHP.value = this.lerpedHP;
+    this.textHP.text = ((double) Mathf.Clamp(Mathf.Round((float) ((double) this.sliderHP.value / (double) num * 100.0)), 1f, 100f)).ToString() + "%";
+    this.sliderHP.maxValue = num;
   }
 
   private void Update()
   {
     try
     {
-      this.fps.set_text(((NetworkClient) ((NetworkManager) NetworkManager.singleton).client).GetRTT().ToString() + " ms");
+      this.fps.text = NetworkManager.singleton.client.GetRTT().ToString() + " ms";
     }
     catch
     {

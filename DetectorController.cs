@@ -8,15 +8,10 @@ using UnityEngine;
 
 public class DetectorController : MonoBehaviour
 {
+  public float viewRange = 30f;
+  public float fov = -0.75f;
   public float detectionProgress;
-  public float viewRange;
-  public float fov;
   public GameObject[] detectors;
-
-  public DetectorController()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
@@ -35,19 +30,18 @@ public class DetectorController : MonoBehaviour
     bool flag = false;
     foreach (GameObject detector in this.detectors)
     {
-      if ((double) Vector3.Distance(detector.get_transform().get_position(), ((Component) this).get_transform().get_position()) > (double) this.viewRange)
+      if ((double) Vector3.Distance(detector.transform.position, this.transform.position) > (double) this.viewRange)
       {
-        Vector3 vector3 = Vector3.op_Subtraction(((Component) this).get_transform().get_position(), detector.get_transform().get_position());
-        Vector3 normalized = ((Vector3) ref vector3).get_normalized();
-        RaycastHit raycastHit;
-        if ((double) Vector3.Dot(detector.get_transform().get_forward(), normalized) < (double) this.fov && Physics.Raycast(detector.get_transform().get_position(), normalized, ref raycastHit) && ((Component) ((RaycastHit) ref raycastHit).get_transform()).get_tag() == "Detector")
+        Vector3 normalized = (this.transform.position - detector.transform.position).normalized;
+        RaycastHit hitInfo;
+        if ((double) Vector3.Dot(detector.transform.forward, normalized) < (double) this.fov && Physics.Raycast(detector.transform.position, normalized, out hitInfo) && hitInfo.transform.tag == "Detector")
         {
           flag = true;
           break;
         }
       }
     }
-    this.detectionProgress += Time.get_deltaTime() * (!flag ? -0.5f : 0.3f);
+    this.detectionProgress += Time.deltaTime * (!flag ? -0.5f : 0.3f);
     this.detectionProgress = Mathf.Clamp01(this.detectionProgress);
   }
 }

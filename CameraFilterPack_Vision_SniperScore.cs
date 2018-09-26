@@ -10,46 +10,41 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Vision/SniperScore")]
 public class CameraFilterPack_Vision_SniperScore : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
-  private Material SCMaterial;
+  private float TimeX = 1f;
   [Range(0.0f, 1f)]
-  public float Fade;
+  public float Fade = 1f;
   [Range(0.0f, 1f)]
-  public float Size;
+  public float Size = 0.45f;
   [Range(0.01f, 0.4f)]
-  public float Smooth;
+  public float Smooth = 0.045f;
   [Range(0.0f, 1f)]
-  public float _Cible;
+  public float _Cible = 0.5f;
   [Range(0.0f, 1f)]
-  public float _Distortion;
+  public float _Distortion = 0.5f;
   [Range(0.0f, 1f)]
-  public float _ExtraColor;
+  public float _ExtraColor = 0.5f;
   [Range(0.0f, 1f)]
-  public float _ExtraLight;
-  public Color _Tint;
+  public float _ExtraLight = 0.35f;
+  public Color _Tint = new Color(0.0f, 0.6f, 0.0f, 0.25f);
   [Range(0.0f, 10f)]
-  private float StretchX;
+  private float StretchX = 1f;
   [Range(0.0f, 10f)]
-  private float StretchY;
+  private float StretchY = 1f;
+  public Shader SCShader;
+  private Material SCMaterial;
   [Range(-1f, 1f)]
   public float _PosX;
   [Range(-1f, 1f)]
   public float _PosY;
 
-  public CameraFilterPack_Vision_SniperScore()
-  {
-    base.\u002Ector();
-  }
-
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -58,16 +53,16 @@ public class CameraFilterPack_Vision_SniperScore : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Vision_SniperScore");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_Fade", this.Fade);
@@ -83,9 +78,8 @@ public class CameraFilterPack_Vision_SniperScore : MonoBehaviour
       this.material.SetFloat("_PosY", this._PosY);
       this.material.SetColor("_Tint", this._Tint);
       this.material.SetFloat("_ExtraLight", this._ExtraLight);
-      Vector2 vector2;
-      ((Vector2) ref vector2).\u002Ector((float) Screen.get_width(), (float) Screen.get_height());
-      this.material.SetVector("_ScreenResolution", new Vector4((float) vector2.x, (float) vector2.y, (float) (vector2.y / vector2.x), 0.0f));
+      Vector2 vector2 = new Vector2((float) Screen.width, (float) Screen.height);
+      this.material.SetVector("_ScreenResolution", new Vector4(vector2.x, vector2.y, vector2.y / vector2.x, 0.0f));
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -98,7 +92,7 @@ public class CameraFilterPack_Vision_SniperScore : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

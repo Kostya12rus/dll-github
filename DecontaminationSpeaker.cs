@@ -14,16 +14,11 @@ public class DecontaminationSpeaker : MonoBehaviour
   public Door[] doorsToOpen;
   private Transform lplayer;
 
-  public DecontaminationSpeaker()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     DecontaminationSpeaker.singleton = this;
     DecontaminationSpeaker.isGlobal = false;
-    DecontaminationSpeaker.source = (AudioSource) ((Component) this).GetComponent<AudioSource>();
+    DecontaminationSpeaker.source = this.GetComponent<AudioSource>();
   }
 
   public static void OpenDoors()
@@ -37,18 +32,18 @@ public class DecontaminationSpeaker : MonoBehaviour
 
   private void Start()
   {
-    this.lplayer = ((Component) ((SpectatorCamera) Object.FindObjectOfType<SpectatorCamera>()).cam).get_transform();
+    this.lplayer = Object.FindObjectOfType<SpectatorCamera>().cam.transform;
   }
 
   private void Update()
   {
-    if (!DecontaminationSpeaker.source.get_isPlaying())
+    if (!DecontaminationSpeaker.source.isPlaying)
       DecontaminationSpeaker.isGlobal = false;
-    float y = (float) this.lplayer.get_position().y;
+    float y = this.lplayer.position.y;
     int num = DecontaminationSpeaker.isGlobal || (double) y > -100.0 && (double) y < 100.0 ? 1 : 0;
-    if (num == 0 && (double) DecontaminationSpeaker.source.get_volume() > 0.850000023841858 && DecontaminationSpeaker.source.get_isPlaying())
+    if (num == 0 && (double) DecontaminationSpeaker.source.volume > 0.850000023841858 && DecontaminationSpeaker.source.isPlaying)
       return;
-    DecontaminationSpeaker.source.set_volume(Mathf.Lerp(DecontaminationSpeaker.source.get_volume(), (float) num, Time.get_deltaTime() * 2f));
+    DecontaminationSpeaker.source.volume = Mathf.Lerp(DecontaminationSpeaker.source.volume, (float) num, Time.deltaTime * 2f);
   }
 
   public static void PlaySound(AudioClip clip, bool global)
@@ -57,6 +52,6 @@ public class DecontaminationSpeaker : MonoBehaviour
     DecontaminationSpeaker.source.PlayOneShot(clip);
     if (!DecontaminationSpeaker.isGlobal)
       return;
-    DecontaminationSpeaker.source.set_volume(1f);
+    DecontaminationSpeaker.source.volume = 1f;
   }
 }

@@ -10,55 +10,50 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Weather/Rain_Pro_3D")]
 public class CameraFilterPack_Atmosphere_Rain_Pro_3D : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 100f)]
+  public float _FixDistance = 3f;
+  [Range(0.0f, 1f)]
+  public float Fade = 1f;
+  [Range(0.0f, 2f)]
+  public float Intensity = 0.5f;
+  [Range(-0.45f, 0.45f)]
+  public float DirectionX = 0.12f;
+  [Range(0.4f, 2f)]
+  public float Size = 1.5f;
+  [Range(0.0f, 0.5f)]
+  public float Speed = 0.275f;
+  [Range(0.0f, 0.5f)]
+  public float Distortion = 0.025f;
+  [Range(0.0f, 1f)]
+  public float StormFlashOnOff = 1f;
+  [Range(0.0f, 1f)]
+  public float DropOnOff = 1f;
+  [Range(0.0f, 1f)]
+  public float Drop_Far = 0.5f;
+  [Range(0.0f, 1f)]
+  public float Drop_With_Obj = 0.2f;
+  [Range(0.0f, 1f)]
+  public float Myst = 0.1f;
+  public Color Myst_Color = new Color(0.5f, 0.5f, 0.5f, 1f);
   public Shader SCShader;
   public bool _Visualize;
-  private float TimeX;
   private Material SCMaterial;
-  [Range(0.0f, 100f)]
-  public float _FixDistance;
-  [Range(0.0f, 1f)]
-  public float Fade;
-  [Range(0.0f, 2f)]
-  public float Intensity;
   public bool DirectionFollowCameraZ;
-  [Range(-0.45f, 0.45f)]
-  public float DirectionX;
-  [Range(0.4f, 2f)]
-  public float Size;
-  [Range(0.0f, 0.5f)]
-  public float Speed;
-  [Range(0.0f, 0.5f)]
-  public float Distortion;
-  [Range(0.0f, 1f)]
-  public float StormFlashOnOff;
-  [Range(0.0f, 1f)]
-  public float DropOnOff;
   [Range(-0.5f, 0.99f)]
   public float Drop_Near;
   [Range(0.0f, 1f)]
-  public float Drop_Far;
-  [Range(0.0f, 1f)]
-  public float Drop_With_Obj;
-  [Range(0.0f, 1f)]
-  public float Myst;
-  [Range(0.0f, 1f)]
   public float Drop_Floor_Fluid;
-  public Color Myst_Color;
   private Texture2D Texture2;
-
-  public CameraFilterPack_Atmosphere_Rain_Pro_3D()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -68,16 +63,16 @@ public class CameraFilterPack_Atmosphere_Rain_Pro_3D : MonoBehaviour
   {
     this.Texture2 = Resources.Load("CameraFilterPack_Atmosphere_Rain_FX") as Texture2D;
     this.SCShader = Shader.Find("CameraFilterPack/Atmosphere_Rain_Pro_3D");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -85,7 +80,7 @@ public class CameraFilterPack_Atmosphere_Rain_Pro_3D : MonoBehaviour
       this.material.SetFloat("_Value2", this.Intensity);
       if (this.DirectionFollowCameraZ)
       {
-        float z = (float) ((Component) ((Component) this).GetComponent<Camera>()).get_transform().get_rotation().z;
+        float z = this.GetComponent<Camera>().transform.rotation.z;
         if ((double) z > 0.0 && (double) z < 360.0)
           this.material.SetFloat("_Value3", z);
         if ((double) z < 0.0)
@@ -106,9 +101,9 @@ public class CameraFilterPack_Atmosphere_Rain_Pro_3D : MonoBehaviour
       this.material.SetFloat("Myst", this.Myst);
       this.material.SetColor("Myst_Color", this.Myst_Color);
       this.material.SetFloat("Drop_Floor_Fluid", this.Drop_Floor_Fluid);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
       this.material.SetTexture("Texture2", (Texture) this.Texture2);
-      ((Camera) ((Component) this).GetComponent<Camera>()).set_depthTextureMode((DepthTextureMode) 1);
+      this.GetComponent<Camera>().depthTextureMode = DepthTextureMode.Depth;
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -121,7 +116,7 @@ public class CameraFilterPack_Atmosphere_Rain_Pro_3D : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

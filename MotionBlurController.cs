@@ -14,19 +14,14 @@ public class MotionBlurController : MonoBehaviour
   private bool b;
   private PostProcessingProfile[] profiles;
 
-  public MotionBlurController()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.profiles = (PostProcessingProfile[]) Resources.FindObjectsOfTypeAll<PostProcessingProfile>();
+    this.profiles = Resources.FindObjectsOfTypeAll<PostProcessingProfile>();
   }
 
   private void Update()
   {
-    this.t += Time.get_deltaTime();
+    this.t += Time.deltaTime;
     ++this.f;
     if ((double) this.t <= 1.0)
       return;

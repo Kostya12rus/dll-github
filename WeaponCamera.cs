@@ -19,24 +19,19 @@ public class WeaponCamera : MonoBehaviour
   public float _intens;
   public float _glare;
 
-  public WeaponCamera()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.bloom = (AmplifyBloomEffect) ((Component) this).GetComponent<AmplifyBloomEffect>();
-    this.ppbeh = (PostProcessingBehaviour) ((Component) this).GetComponent<PostProcessingBehaviour>();
-    this.myvaca = (VignetteAndChromaticAberration) ((Component) this).GetComponent<VignetteAndChromaticAberration>();
-    this.vaca = (VignetteAndChromaticAberration) ((Component) this).GetComponentInParent<VignetteAndChromaticAberration>();
-    ((Behaviour) this.bloom).set_enabled(PlayerPrefs.GetInt("gfxsets_cc", 1) == 1);
+    this.bloom = this.GetComponent<AmplifyBloomEffect>();
+    this.ppbeh = this.GetComponent<PostProcessingBehaviour>();
+    this.myvaca = this.GetComponent<VignetteAndChromaticAberration>();
+    this.vaca = this.GetComponentInParent<VignetteAndChromaticAberration>();
+    this.bloom.enabled = PlayerPrefs.GetInt("gfxsets_cc", 1) == 1;
   }
 
   private void Update()
   {
     this.myvaca = this.vaca;
-    float num = this.intensityOverScreen.Evaluate((float) Screen.get_height());
+    float num = this.intensityOverScreen.Evaluate((float) Screen.height);
     this.bloom.OverallIntensity = this._intens * num;
     this.bloom.LensGlareInstance.Intensity = this._glare * num;
   }

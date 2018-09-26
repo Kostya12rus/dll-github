@@ -19,25 +19,16 @@ public class StartScreen : MonoBehaviour
   public Text wihtd;
   private CoroutineHandle handle;
 
-  public StartScreen()
-  {
-    base.\u002Ector();
-  }
-
   public void PlayAnimation(int classID)
   {
     Timing.KillCoroutines(this.handle);
-    this.handle = Timing.RunCoroutine(this._Animate(classID), (Segment) 1);
+    this.handle = Timing.RunCoroutine(this._Animate(classID), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _Animate(int classID)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new StartScreen.\u003C_Animate\u003Ec__Iterator0()
-    {
-      classID = classID,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new StartScreen.\u003C_Animate\u003Ec__Iterator0() { classID = classID, \u0024this = this };
   }
 }

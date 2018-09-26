@@ -10,33 +10,28 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Oculus_NightVision5 : MonoBehaviour
 {
-  private string ShaderName;
+  private string ShaderName = "CameraFilterPack/Oculus_NightVision5";
+  [Range(0.0f, 1f)]
+  public float FadeFX = 1f;
+  [Range(0.0f, 1f)]
+  public float _Size = 0.37f;
+  [Range(0.0f, 1f)]
+  public float _Smooth = 0.15f;
+  [Range(0.0f, 1f)]
+  public float _Dist = 0.285f;
+  private float TimeX = 1f;
   public Shader SCShader;
-  [Range(0.0f, 1f)]
-  public float FadeFX;
-  [Range(0.0f, 1f)]
-  public float _Size;
-  [Range(0.0f, 1f)]
-  public float _Smooth;
-  [Range(0.0f, 1f)]
-  public float _Dist;
-  private float TimeX;
   private Material SCMaterial;
   private float[] Matrix9;
-
-  public CameraFilterPack_Oculus_NightVision5()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -65,16 +60,16 @@ public class CameraFilterPack_Oculus_NightVision5 : MonoBehaviour
   {
     this.ChangeFilters();
     this.SCShader = Shader.Find(this.ShaderName);
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -94,7 +89,7 @@ public class CameraFilterPack_Oculus_NightVision5 : MonoBehaviour
       this.material.SetFloat("_Size", this._Size);
       this.material.SetFloat("_Dist", this._Dist);
       this.material.SetFloat("_Smooth", this._Smooth);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -112,7 +107,7 @@ public class CameraFilterPack_Oculus_NightVision5 : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

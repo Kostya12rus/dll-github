@@ -21,12 +21,12 @@ namespace UnityEngine.PostProcessing
     public void Render(RenderTexture source, RenderTexture destination)
     {
       AntialiasingModel.FxaaSettings fxaaSettings = this.model.settings.fxaaSettings;
-      Material material = this.context.materialFactory.Get("Hidden/Post FX/FXAA");
+      Material mat = this.context.materialFactory.Get("Hidden/Post FX/FXAA");
       AntialiasingModel.FxaaQualitySettings preset1 = AntialiasingModel.FxaaQualitySettings.presets[(int) fxaaSettings.preset];
       AntialiasingModel.FxaaConsoleSettings preset2 = AntialiasingModel.FxaaConsoleSettings.presets[(int) fxaaSettings.preset];
-      material.SetVector(FxaaComponent.Uniforms._QualitySettings, Vector4.op_Implicit(new Vector3(preset1.subpixelAliasingRemovalAmount, preset1.edgeDetectionThreshold, preset1.minimumRequiredLuminance)));
-      material.SetVector(FxaaComponent.Uniforms._ConsoleSettings, new Vector4(preset2.subpixelSpreadAmount, preset2.edgeSharpnessAmount, preset2.edgeDetectionThreshold, preset2.minimumRequiredLuminance));
-      Graphics.Blit((Texture) source, destination, material, 0);
+      mat.SetVector(FxaaComponent.Uniforms._QualitySettings, (Vector4) new Vector3(preset1.subpixelAliasingRemovalAmount, preset1.edgeDetectionThreshold, preset1.minimumRequiredLuminance));
+      mat.SetVector(FxaaComponent.Uniforms._ConsoleSettings, new Vector4(preset2.subpixelSpreadAmount, preset2.edgeSharpnessAmount, preset2.edgeDetectionThreshold, preset2.minimumRequiredLuminance));
+      Graphics.Blit((Texture) source, destination, mat, 0);
     }
 
     private static class Uniforms

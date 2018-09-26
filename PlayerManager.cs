@@ -16,11 +16,6 @@ public class PlayerManager : MonoBehaviour
   public static GameObject localPlayer;
   public static SpectatorManager spect;
 
-  public PlayerManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     PlayerManager.singleton = this;
@@ -36,7 +31,7 @@ public class PlayerManager : MonoBehaviour
     this.players = gameObjectList.ToArray();
     DiscordManager.singleton.ChangeLobbyStatus(this.players.Length, PlayButton.maxPlayers);
     PlayerList.AddPlayer(player);
-    if (Object.op_Inequality((Object) PlayerManager.spect, (Object) null))
+    if ((Object) PlayerManager.spect != (Object) null)
       PlayerManager.spect.RefreshList();
     QueryProcessor.StaticRefreshPlayerList();
   }
@@ -51,7 +46,7 @@ public class PlayerManager : MonoBehaviour
       gameObjectList.Remove(player);
     this.players = gameObjectList.ToArray();
     DiscordManager.singleton.ChangeLobbyStatus(this.players.Length, PlayButton.maxPlayers);
-    if (Object.op_Inequality((Object) PlayerManager.spect, (Object) null))
+    if ((Object) PlayerManager.spect != (Object) null)
       PlayerManager.spect.RefreshList();
     QueryProcessor.StaticRefreshPlayerList();
   }

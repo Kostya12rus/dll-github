@@ -15,14 +15,9 @@ public class GameMenuButton : MonoBehaviour
   private float status;
   private RectTransform rectTransform;
 
-  public GameMenuButton()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.rectTransform = (RectTransform) ((Component) this).GetComponent<RectTransform>();
+    this.rectTransform = this.GetComponent<RectTransform>();
   }
 
   public void Focus(bool b)
@@ -32,8 +27,8 @@ public class GameMenuButton : MonoBehaviour
 
   private void Update()
   {
-    this.status += Time.get_deltaTime() * (!this.isFocused ? -1f : 1f);
+    this.status += Time.deltaTime * (!this.isFocused ? -1f : 1f);
     this.status = Mathf.Clamp01(this.status);
-    ((Transform) this.rectTransform).set_localPosition(Vector3.op_Addition(this.normalPos, Vector3.op_Multiply(Vector3.op_Subtraction(this.focusedPos, this.normalPos), this.anim.Evaluate(this.status))));
+    this.rectTransform.localPosition = this.normalPos + (this.focusedPos - this.normalPos) * this.anim.Evaluate(this.status);
   }
 }

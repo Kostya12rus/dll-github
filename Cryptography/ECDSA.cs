@@ -8,7 +8,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.IO.Pem;
 using System;
 using System.IO;
 using System.Text;
@@ -21,8 +20,8 @@ namespace Cryptography
     public static AsymmetricCipherKeyPair GenerateKeys(int size = 384)
     {
       ECKeyPairGenerator keyPairGenerator = new ECKeyPairGenerator();
-      KeyGenerationParameters generationParameters = new KeyGenerationParameters(new SecureRandom(), size);
-      keyPairGenerator.Init(generationParameters);
+      KeyGenerationParameters parameters = new KeyGenerationParameters(new SecureRandom(), size);
+      keyPairGenerator.Init(parameters);
       return keyPairGenerator.GenerateKeyPair();
     }
 
@@ -64,7 +63,7 @@ namespace Cryptography
       }
       catch (Exception ex)
       {
-        GameConsole.Console.singleton.AddLog("ECDSA Verification Error (BouncyCastle): " + ex.Message + ", " + ex.StackTrace, Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("ECDSA Verification Error (BouncyCastle): " + ex.Message + ", " + ex.StackTrace, (Color32) Color.red, false);
         return false;
       }
     }
@@ -76,11 +75,11 @@ namespace Cryptography
 
     public static string KeyToString(AsymmetricKeyParameter key)
     {
-      TextWriter textWriter = (TextWriter) new StringWriter();
-      PemWriter pemWriter = new PemWriter(textWriter);
+      TextWriter writer = (TextWriter) new StringWriter();
+      PemWriter pemWriter = new PemWriter(writer);
       pemWriter.WriteObject((object) key);
-      ((PemWriter) pemWriter).get_Writer().Flush();
-      return textWriter.ToString();
+      pemWriter.Writer.Flush();
+      return writer.ToString();
     }
   }
 }

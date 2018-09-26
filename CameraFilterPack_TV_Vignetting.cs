@@ -10,30 +10,25 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_TV_Vignetting : MonoBehaviour
 {
+  [Range(0.0f, 1f)]
+  public float Vignetting = 1f;
+  public Color VignettingColor = new Color(0.0f, 0.0f, 0.0f, 1f);
   public Shader SCShader;
   private Material SCMaterial;
   private Texture2D Vignette;
   [Range(0.0f, 1f)]
-  public float Vignetting;
-  [Range(0.0f, 1f)]
   public float VignettingFull;
   [Range(0.0f, 1f)]
   public float VignettingDirt;
-  public Color VignettingColor;
-
-  public CameraFilterPack_TV_Vignetting()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -43,14 +38,14 @@ public class CameraFilterPack_TV_Vignetting : MonoBehaviour
   {
     this.SCShader = Shader.Find("CameraFilterPack/TV_Vignetting");
     this.Vignette = Resources.Load("CameraFilterPack_TV_Vignetting1") as Texture2D;
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
       this.material.SetTexture("Vignette", (Texture) this.Vignette);
       this.material.SetFloat("_Vignetting", this.Vignetting);
@@ -69,7 +64,7 @@ public class CameraFilterPack_TV_Vignetting : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

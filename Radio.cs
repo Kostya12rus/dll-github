@@ -17,6 +17,7 @@ using UnityEngine.Networking;
 public class Radio : NetworkBehaviour
 {
   private static int kCmdCmdSyncTransmitionStatus = 860412084;
+  private int myRadio = -1;
   public static Radio localRadio;
   public AudioMixerGroup g_voice;
   public AudioMixerGroup g_radio;
@@ -34,7 +35,6 @@ public class Radio : NetworkBehaviour
   public int curPreset;
   [SyncVar]
   public bool isTransmitting;
-  private int myRadio;
   private float timeToNextTransmition;
   private AudioSource noiseSource;
   private int lastPreset;
@@ -55,40 +55,35 @@ public class Radio : NetworkBehaviour
   private static int kRpcRpcPlaySound;
   private static int kCmdCmdUpdatePreset;
 
-  public Radio()
-  {
-    base.\u002Ector();
-  }
-
   public void ResetPreset()
   {
     this.NetworkcurPreset = 1;
     this.CallCmdUpdatePreset(1);
     if (this.myRadio >= 0)
       return;
-    for (int index = 0; index < (int) this.inv.items.get_Count(); ++index)
+    for (int index = 0; index < (int) this.inv.items.Count; ++index)
     {
-      if (((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(index).id == 12)
-        this.radioUniq = ((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(index).uniq;
+      if (this.inv.items[index].id == 12)
+        this.radioUniq = this.inv.items[index].uniq;
     }
   }
 
   private void Start()
   {
-    if (Object.op_Equality((Object) Radio.comms, (Object) null))
-      Radio.comms = (DissonanceComms) Object.FindObjectOfType<DissonanceComms>();
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    this.noiseSource = (AudioSource) GameObject.Find("RadioNoiseSound").GetComponent<AudioSource>();
-    this.inv = (Inventory) ((Component) this).GetComponent<Inventory>();
-    this.scp939 = (Scp939PlayerScript) ((Component) this).GetComponent<Scp939PlayerScript>();
-    if (this.get_isLocalPlayer())
+    if ((Object) Radio.comms == (Object) null)
+      Radio.comms = Object.FindObjectOfType<DissonanceComms>();
+    this.ccm = this.GetComponent<CharacterClassManager>();
+    this.noiseSource = GameObject.Find("RadioNoiseSound").GetComponent<AudioSource>();
+    this.inv = this.GetComponent<Inventory>();
+    this.scp939 = this.GetComponent<Scp939PlayerScript>();
+    if (this.isLocalPlayer)
     {
       Radio.roundEnded = false;
       Radio.localRadio = this;
     }
-    if (NetworkServer.get_active())
-      ((MonoBehaviour) this).InvokeRepeating("UseBattery", 1f, 1f);
-    this.icon = (SpeakerIcon) ((Component) this).GetComponentInChildren<SpeakerIcon>();
+    if (NetworkServer.active)
+      this.InvokeRepeating("UseBattery", 1f, 1f);
+    this.icon = this.GetComponentInChildren<SpeakerIcon>();
   }
 
   public void UpdateClass()
@@ -108,35 +103,35 @@ public class Radio : NetworkBehaviour
 
   private void Update()
   {
-    if (Object.op_Equality((Object) this.unityPlayback, (Object) null) && !string.IsNullOrEmpty(((HlapiPlayer) ((Component) this).GetComponent<HlapiPlayer>()).PlayerId))
+    if ((Object) this.unityPlayback == (Object) null && !string.IsNullOrEmpty(this.GetComponent<HlapiPlayer>().PlayerId))
     {
-      this.state = Radio.comms.FindPlayer(((HlapiPlayer) ((Component) this).GetComponent<HlapiPlayer>()).PlayerId);
-      if (this.state != null && this.state.get_Playback() != null)
-        this.unityPlayback = (VoicePlayback) this.state.get_Playback();
+      this.state = Radio.comms.FindPlayer(this.GetComponent<HlapiPlayer>().PlayerId);
+      if (this.state != null && this.state.Playback != null)
+        this.unityPlayback = (VoicePlayback) this.state.Playback;
     }
     this.UpdateClass();
-    if (Object.op_Equality((Object) this.host, (Object) null))
+    if ((Object) this.host == (Object) null)
       this.host = GameObject.Find("Host");
-    if (this.inv.GetItemIndex() != -1 && ((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(this.inv.GetItemIndex()).id == 12)
-      this.radioUniq = ((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(this.inv.GetItemIndex()).uniq;
+    if (this.inv.GetItemIndex() != -1 && this.inv.items[this.inv.GetItemIndex()].id == 12)
+      this.radioUniq = this.inv.items[this.inv.GetItemIndex()].uniq;
     this.myRadio = -1;
-    for (int index = 0; index < (int) this.inv.items.get_Count(); ++index)
+    for (int index = 0; index < (int) this.inv.items.Count; ++index)
     {
-      if (((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(index).uniq == this.radioUniq)
+      if (this.inv.items[index].uniq == this.radioUniq)
         this.myRadio = index;
     }
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
-    this.noiseSource.set_volume(Radio.noiseIntensity * this.noiseMultiplier);
+    this.noiseSource.volume = Radio.noiseIntensity * this.noiseMultiplier;
     Radio.noiseIntensity = 0.0f;
     this.GetInput();
     if (this.myRadio != -1)
     {
-      RadioDisplay.battery = Mathf.Clamp(Mathf.CeilToInt(((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(this.myRadio).durability), 0, 100).ToString();
+      RadioDisplay.battery = Mathf.Clamp(Mathf.CeilToInt(this.inv.items[this.myRadio].durability), 0, 100).ToString();
       RadioDisplay.power = this.presets[this.curPreset].powerText;
       RadioDisplay.label = this.presets[this.curPreset].label;
     }
-    using (IEnumerator<Inventory.SyncItemInfo> enumerator = ((SyncList<Inventory.SyncItemInfo>) this.inv.items).GetEnumerator())
+    using (IEnumerator<Inventory.SyncItemInfo> enumerator = this.inv.items.GetEnumerator())
     {
       do
         ;
@@ -146,9 +141,9 @@ public class Radio : NetworkBehaviour
 
   private void UseBattery()
   {
-    if (!this.CheckRadio() || ((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(this.myRadio).id != 12)
+    if (!this.CheckRadio() || this.inv.items[this.myRadio].id != 12)
       return;
-    float num = ((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(this.myRadio).durability - (float) (1.66999995708466 * (1.0 / (double) this.presets[this.curPreset].powerTime) * (!this.isTransmitting ? 1.0 : 3.0));
+    float num = this.inv.items[this.myRadio].durability - (float) (1.66999995708466 * (1.0 / (double) this.presets[this.curPreset].powerTime) * (!this.isTransmitting ? 1.0 : 3.0));
     if ((double) num <= -1.0 || (double) num >= 101.0)
       return;
     this.inv.items.ModifyDuration(this.myRadio, num);
@@ -157,13 +152,13 @@ public class Radio : NetworkBehaviour
   private void GetInput()
   {
     if ((double) this.timeToNextTransmition > 0.0)
-      this.timeToNextTransmition -= Time.get_deltaTime();
+      this.timeToNextTransmition -= Time.deltaTime;
     bool b = Input.GetKey(NewInput.GetKey("Voice Chat")) && this.CheckRadio();
     if (b != this.isTransmitting && (double) this.timeToNextTransmition <= 0.0)
     {
       this.NetworkisTransmitting = b;
       this.timeToNextTransmition = 0.5f;
-      this.CallCmdSyncTransmitionStatus(b, ((Component) this).get_transform().get_position());
+      this.CallCmdSyncTransmitionStatus(b, this.transform.position);
     }
     if (this.inv.curItem != 12 || (double) Inventory.inventoryCooldown > 0.0)
       return;
@@ -185,19 +180,19 @@ public class Radio : NetworkBehaviour
 
   public void SetRelationship()
   {
-    if (this.get_isLocalPlayer() || Object.op_Equality((Object) this.unityPlayback, (Object) null))
+    if (this.isLocalPlayer || (Object) this.unityPlayback == (Object) null)
       return;
-    this.mySource = this.unityPlayback.get_AudioSource();
+    this.mySource = this.unityPlayback.AudioSource;
     this.icon.id = 0;
     bool flag1 = false;
     bool flag2 = false;
-    this.mySource.set_outputAudioMixerGroup(this.g_voice);
-    this.mySource.set_volume(0.0f);
-    this.mySource.set_spatialBlend(1f);
+    this.mySource.outputAudioMixerGroup = this.g_voice;
+    this.mySource.volume = 0.0f;
+    this.mySource.spatialBlend = 1f;
     if (!Radio.roundStarted || Radio.roundEnded || this.voiceInfo.IsDead() && Radio.localRadio.voiceInfo.IsDead())
     {
-      this.mySource.set_volume(1f);
-      this.mySource.set_spatialBlend(0.0f);
+      this.mySource.volume = 1f;
+      this.mySource.spatialBlend = 0.0f;
     }
     else
     {
@@ -211,32 +206,32 @@ public class Radio : NetworkBehaviour
       if (flag2)
       {
         this.icon.id = 1;
-        this.mySource.set_volume(1f);
+        this.mySource.volume = 1f;
       }
-      if (!flag1 && Object.op_Inequality((Object) this.host, (Object) null) && Object.op_Equality((Object) ((Component) this).get_gameObject(), (Object) ((Intercom) this.host.GetComponent<Intercom>()).speaker))
+      if (!flag1 && (Object) this.host != (Object) null && (Object) this.gameObject == (Object) this.host.GetComponent<Intercom>().speaker)
       {
         this.icon.id = 2;
-        this.mySource.set_outputAudioMixerGroup(this.g_icom);
+        this.mySource.outputAudioMixerGroup = this.g_icom;
         flag1 = true;
         if ((double) this.icomNoise > (double) Radio.noiseIntensity)
           Radio.noiseIntensity = this.icomNoise;
       }
       else if (this.isTransmitting && Radio.localRadio.CheckRadio() && !flag1)
       {
-        this.mySource.set_outputAudioMixerGroup(this.g_radio);
+        this.mySource.outputAudioMixerGroup = this.g_radio;
         flag1 = true;
         int lowerPresetId = this.GetLowerPresetID();
-        float num1 = Vector3.Distance(((Component) Radio.localRadio).get_transform().get_position(), ((Component) this).get_transform().get_position());
-        this.mySource.set_volume(this.presets[lowerPresetId].volume.Evaluate(num1));
-        float num2 = this.presets[lowerPresetId].nosie.Evaluate(num1);
-        if ((double) num2 > (double) Radio.noiseIntensity && !this.get_isLocalPlayer())
-          Radio.noiseIntensity = num2;
+        float time = Vector3.Distance(Radio.localRadio.transform.position, this.transform.position);
+        this.mySource.volume = this.presets[lowerPresetId].volume.Evaluate(time);
+        float num = this.presets[lowerPresetId].nosie.Evaluate(time);
+        if ((double) num > (double) Radio.noiseIntensity && !this.isLocalPlayer)
+          Radio.noiseIntensity = num;
       }
       if (this.isTransmitting)
         this.icon.id = 2;
       if (!flag1)
         return;
-      this.mySource.set_spatialBlend(0.0f);
+      this.mySource.spatialBlend = 0.0f;
     }
   }
 
@@ -249,7 +244,7 @@ public class Radio : NetworkBehaviour
 
   public bool CheckRadio()
   {
-    if (this.myRadio != -1 && ((double) ((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(this.myRadio).durability > 0.0 && this.voiceInfo.isAliveHuman))
+    if (this.myRadio != -1 && ((double) this.inv.items[this.myRadio].durability > 0.0 && this.voiceInfo.isAliveHuman))
       return this.curPreset > 0;
     return false;
   }
@@ -264,20 +259,20 @@ public class Radio : NetworkBehaviour
   [ClientRpc]
   private void RpcPlaySound(bool b, Vector3 myPos)
   {
-    if (!Object.op_Inequality((Object) Radio.localRadio, (Object) null) || !Radio.localRadio.CheckRadio() || (double) this.presets[this.GetLowerPresetID()].beepRange <= (double) this.Distance(myPos, ((Component) Radio.localRadio).get_transform().get_position()))
+    if (!((Object) Radio.localRadio != (Object) null) || !Radio.localRadio.CheckRadio() || (double) this.presets[this.GetLowerPresetID()].beepRange <= (double) this.Distance(myPos, Radio.localRadio.transform.position))
       return;
     this.beepSource.PlayOneShot(!b ? this.b_off : this.b_on);
   }
 
   private float Distance(Vector3 a, Vector3 b)
   {
-    return Vector3.Distance(new Vector3((float) a.x, (float) (a.y / 4.0), (float) a.z), new Vector3((float) b.x, (float) (b.y / 4.0), (float) b.z));
+    return Vector3.Distance(new Vector3(a.x, a.y / 4f, a.z), new Vector3(b.x, b.y / 4f, b.z));
   }
 
   public bool ShouldBeVisible(GameObject localplayer)
   {
     if (this.isTransmitting)
-      return (double) this.presets[this.GetLowerPresetID()].beepRange > (double) this.Distance(((Component) this).get_transform().get_position(), localplayer.get_transform().get_position());
+      return (double) this.presets[this.GetLowerPresetID()].beepRange > (double) this.Distance(this.transform.position, localplayer.transform.position);
     return true;
   }
 
@@ -307,13 +302,13 @@ public class Radio : NetworkBehaviour
       int num1 = value;
       ref int local = ref this.curPreset;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetPreset(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<int>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<int>(num1, ref local, (uint) num2);
     }
   }
 
@@ -325,21 +320,21 @@ public class Radio : NetworkBehaviour
     }
     [param: In] set
     {
-      this.SetSyncVar<bool>((M0) (value ? 1 : 0), (M0&) ref this.isTransmitting, 2U);
+      this.SetSyncVar<bool>(value, ref this.isTransmitting, 2U);
     }
   }
 
   protected static void InvokeCmdCmdSyncTransmitionStatus(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdSyncTransmitionStatus called on client.");
     else
-      ((Radio) obj).CmdSyncTransmitionStatus(reader.ReadBoolean(), (Vector3) reader.ReadVector3());
+      ((Radio) obj).CmdSyncTransmitionStatus(reader.ReadBoolean(), reader.ReadVector3());
   }
 
   protected static void InvokeCmdCmdUpdatePreset(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdUpdatePreset called on client.");
     else
       ((Radio) obj).CmdUpdatePreset((int) reader.ReadPackedUInt32());
@@ -347,86 +342,83 @@ public class Radio : NetworkBehaviour
 
   public void CallCmdSyncTransmitionStatus(bool b, Vector3 myPos)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdSyncTransmitionStatus called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdSyncTransmitionStatus(b, myPos);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Radio.kCmdCmdSyncTransmitionStatus);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(b);
-      networkWriter.Write((Vector3) myPos);
-      this.SendCommandInternal(networkWriter, 6, "CmdSyncTransmitionStatus");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Radio.kCmdCmdSyncTransmitionStatus);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(b);
+      writer.Write(myPos);
+      this.SendCommandInternal(writer, 6, "CmdSyncTransmitionStatus");
     }
   }
 
   public void CallCmdUpdatePreset(int preset)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdUpdatePreset called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdUpdatePreset(preset);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Radio.kCmdCmdUpdatePreset);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) preset);
-      this.SendCommandInternal(networkWriter, 6, "CmdUpdatePreset");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Radio.kCmdCmdUpdatePreset);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) preset);
+      this.SendCommandInternal(writer, 6, "CmdUpdatePreset");
     }
   }
 
   protected static void InvokeRpcRpcPlaySound(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcPlaySound called on server.");
     else
-      ((Radio) obj).RpcPlaySound(reader.ReadBoolean(), (Vector3) reader.ReadVector3());
+      ((Radio) obj).RpcPlaySound(reader.ReadBoolean(), reader.ReadVector3());
   }
 
   public void CallRpcPlaySound(bool b, Vector3 myPos)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcPlaySound called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) Radio.kRpcRpcPlaySound);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(b);
-      networkWriter.Write((Vector3) myPos);
-      this.SendRPCInternal(networkWriter, 0, "RpcPlaySound");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) Radio.kRpcRpcPlaySound);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(b);
+      writer.Write(myPos);
+      this.SendRPCInternal(writer, 0, "RpcPlaySound");
     }
   }
 
   static Radio()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Radio), Radio.kCmdCmdSyncTransmitionStatus, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdSyncTransmitionStatus)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Radio), Radio.kCmdCmdSyncTransmitionStatus, new NetworkBehaviour.CmdDelegate(Radio.InvokeCmdCmdSyncTransmitionStatus));
     Radio.kCmdCmdUpdatePreset = -1209260349;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Radio), Radio.kCmdCmdUpdatePreset, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdUpdatePreset)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Radio), Radio.kCmdCmdUpdatePreset, new NetworkBehaviour.CmdDelegate(Radio.InvokeCmdCmdUpdatePreset));
     Radio.kRpcRpcPlaySound = 1107833674;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (Radio), Radio.kRpcRpcPlaySound, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcPlaySound)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (Radio), Radio.kRpcRpcPlaySound, new NetworkBehaviour.CmdDelegate(Radio.InvokeRpcRpcPlaySound));
     NetworkCRC.RegisterBehaviour(nameof (Radio), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -435,30 +427,30 @@ public class Radio : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.WritePackedUInt32((uint) this.curPreset);
     }
-    if (((int) this.get_syncVarDirtyBits() & 2) != 0)
+    if (((int) this.syncVarDirtyBits & 2) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.isTransmitting);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

@@ -22,6 +22,6 @@ public class GrenadeSettings
 
   public Vector3 GetStartPos(GameObject ply)
   {
-    return ((Scp049PlayerScript) ply.GetComponent<Scp049PlayerScript>()).plyCam.get_transform().TransformPoint(this.startPointOffset);
+    return ply.GetComponent<Scp049PlayerScript>().plyCam.transform.TransformPoint(this.startPointOffset);
   }
 }

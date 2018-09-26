@@ -10,35 +10,30 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_AAA_BloodOnScreen : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
+  private float TimeX = 1f;
   [Range(0.02f, 1.6f)]
-  public float Blood_On_Screen;
-  public Color Blood_Color;
+  public float Blood_On_Screen = 1f;
+  public Color Blood_Color = Color.red;
   [Range(0.0f, 2f)]
-  public float Blood_Intensify;
+  public float Blood_Intensify = 0.7f;
   [Range(0.0f, 2f)]
-  public float Blood_Darkness;
+  public float Blood_Darkness = 0.5f;
   [Range(0.0f, 1f)]
-  public float Blood_Distortion_Speed;
+  public float Blood_Distortion_Speed = 0.25f;
   [Range(0.0f, 1f)]
-  public float Blood_Fade;
+  public float Blood_Fade = 1f;
+  public Shader SCShader;
   private Material SCMaterial;
   private Texture2D Texture2;
-
-  public CameraFilterPack_AAA_BloodOnScreen()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -48,16 +43,16 @@ public class CameraFilterPack_AAA_BloodOnScreen : MonoBehaviour
   {
     this.Texture2 = Resources.Load("CameraFilterPack_AAA_BloodOnScreen1") as Texture2D;
     this.SCShader = Shader.Find("CameraFilterPack/AAA_BloodOnScreen");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -80,7 +75,7 @@ public class CameraFilterPack_AAA_BloodOnScreen : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

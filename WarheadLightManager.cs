@@ -9,15 +9,10 @@ using UnityEngine;
 
 public class WarheadLightManager : MonoBehaviour
 {
+  private WarheadLight[] lightlist = new WarheadLight[0];
   public static WarheadLightManager singleton;
-  private WarheadLight[] lightlist;
   public WarheadLightManager.MaterialColorChange[] materials;
   private bool prevStatus;
-
-  public WarheadLightManager()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -35,7 +30,7 @@ public class WarheadLightManager : MonoBehaviour
 
   private void LateUpdate()
   {
-    bool b = Object.op_Inequality((Object) AlphaWarheadController.host, (Object) null) && AlphaWarheadController.host.inProgress;
+    bool b = (Object) AlphaWarheadController.host != (Object) null && AlphaWarheadController.host.inProgress;
     if (this.prevStatus == b)
       return;
     this.prevStatus = b;
@@ -60,7 +55,7 @@ public class WarheadLightManager : MonoBehaviour
 
     public void SetStatus(bool b)
     {
-      this.targetMaterial.SetColor("_EmissionColor", Color.op_Multiply(!b ? this.normalColor : this.targetColor, this.multiplier));
+      this.targetMaterial.SetColor("_EmissionColor", (!b ? this.normalColor : this.targetColor) * this.multiplier);
     }
   }
 }

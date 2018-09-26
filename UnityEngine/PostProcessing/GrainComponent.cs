@@ -14,7 +14,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        if (this.model.enabled && ((double) this.model.settings.intensity > 0.0 && SystemInfo.SupportsRenderTextureFormat((RenderTextureFormat) 2)))
+        if (this.model.enabled && ((double) this.model.settings.intensity > 0.0 && SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf)))
           return !this.context.interrupted;
         return false;
       }
@@ -30,26 +30,26 @@ namespace UnityEngine.PostProcessing
     {
       GrainModel.Settings settings = this.model.settings;
       uberMaterial.EnableKeyword("GRAIN");
-      float realtimeSinceStartup = Time.get_realtimeSinceStartup();
-      float num1 = Random.get_value();
-      float num2 = Random.get_value();
-      if (Object.op_Equality((Object) this.m_GrainLookupRT, (Object) null) || !this.m_GrainLookupRT.IsCreated())
+      float realtimeSinceStartup = Time.realtimeSinceStartup;
+      float z = Random.value;
+      float w = Random.value;
+      if ((Object) this.m_GrainLookupRT == (Object) null || !this.m_GrainLookupRT.IsCreated())
       {
         GraphicsUtils.Destroy((Object) this.m_GrainLookupRT);
-        RenderTexture renderTexture = new RenderTexture(192, 192, 0, (RenderTextureFormat) 2);
-        ((Texture) renderTexture).set_filterMode((FilterMode) 1);
-        ((Texture) renderTexture).set_wrapMode((TextureWrapMode) 0);
-        ((Texture) renderTexture).set_anisoLevel(0);
-        ((Object) renderTexture).set_name("Grain Lookup Texture");
+        RenderTexture renderTexture = new RenderTexture(192, 192, 0, RenderTextureFormat.ARGBHalf);
+        renderTexture.filterMode = FilterMode.Bilinear;
+        renderTexture.wrapMode = TextureWrapMode.Repeat;
+        renderTexture.anisoLevel = 0;
+        renderTexture.name = "Grain Lookup Texture";
         this.m_GrainLookupRT = renderTexture;
         this.m_GrainLookupRT.Create();
       }
-      Material material = this.context.materialFactory.Get("Hidden/Post FX/Grain Generator");
-      material.SetFloat(GrainComponent.Uniforms._Phase, realtimeSinceStartup / 20f);
-      Graphics.Blit((Texture) null, this.m_GrainLookupRT, material, !settings.colored ? 0 : 1);
+      Material mat = this.context.materialFactory.Get("Hidden/Post FX/Grain Generator");
+      mat.SetFloat(GrainComponent.Uniforms._Phase, realtimeSinceStartup / 20f);
+      Graphics.Blit((Texture) null, this.m_GrainLookupRT, mat, !settings.colored ? 0 : 1);
       uberMaterial.SetTexture(GrainComponent.Uniforms._GrainTex, (Texture) this.m_GrainLookupRT);
-      uberMaterial.SetVector(GrainComponent.Uniforms._Grain_Params1, Vector4.op_Implicit(new Vector2(settings.luminanceContribution, settings.intensity * 20f)));
-      uberMaterial.SetVector(GrainComponent.Uniforms._Grain_Params2, new Vector4((float) this.context.width / (float) ((Texture) this.m_GrainLookupRT).get_width() / settings.size, (float) this.context.height / (float) ((Texture) this.m_GrainLookupRT).get_height() / settings.size, num1, num2));
+      uberMaterial.SetVector(GrainComponent.Uniforms._Grain_Params1, (Vector4) new Vector2(settings.luminanceContribution, settings.intensity * 20f));
+      uberMaterial.SetVector(GrainComponent.Uniforms._Grain_Params2, new Vector4((float) this.context.width / (float) this.m_GrainLookupRT.width / settings.size, (float) this.context.height / (float) this.m_GrainLookupRT.height / settings.size, z, w));
     }
 
     private static class Uniforms

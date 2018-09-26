@@ -8,36 +8,31 @@ using UnityEngine;
 
 public class PositionTrigger : MonoBehaviour
 {
-  public bool disableOnEnd;
+  public bool disableOnEnd = true;
   public int id;
   public float range;
   private GameObject ply;
 
-  public PositionTrigger()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    if (Object.op_Equality((Object) this.ply, (Object) null))
+    if ((Object) this.ply == (Object) null)
     {
       this.ply = GameObject.FindGameObjectWithTag("Player");
     }
     else
     {
-      if ((double) Vector3.Distance(this.ply.get_transform().get_position(), ((Component) this).get_transform().get_position()) > (double) this.range)
+      if ((double) Vector3.Distance(this.ply.transform.position, this.transform.position) > (double) this.range)
         return;
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Trigger(this.id);
+      Object.FindObjectOfType<TutorialManager>().Trigger(this.id);
       if (!this.disableOnEnd)
         return;
-      Object.Destroy((Object) ((Component) this).get_gameObject());
+      Object.Destroy((Object) this.gameObject);
     }
   }
 
   private void OnDrawGizmosSelected()
   {
-    Gizmos.set_color(new Color(0.0f, 0.1f, 0.2f, 0.2f));
-    Gizmos.DrawSphere(((Component) this).get_transform().get_position(), this.range);
+    Gizmos.color = new Color(0.0f, 0.1f, 0.2f, 0.2f);
+    Gizmos.DrawSphere(this.transform.position, this.range);
   }
 }

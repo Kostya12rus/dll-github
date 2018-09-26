@@ -10,46 +10,41 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Split Screen/Split 3D")]
 public class CameraFilterPack_Blend2Camera_SplitScreen3D : MonoBehaviour
 {
-  private string ShaderName;
+  private string ShaderName = "CameraFilterPack/Blend2Camera_SplitScreen3D";
+  private float TimeX = 1f;
+  [Range(0.0f, 100f)]
+  public float _FixDistance = 1f;
+  [Range(-0.99f, 0.99f)]
+  public float _Distance = 0.5f;
+  [Range(0.0f, 0.5f)]
+  public float _Size = 0.1f;
+  [Range(0.0f, 1f)]
+  public float BlendFX = 1f;
+  [Range(-3f, 3f)]
+  public float SplitX = 0.5f;
+  [Range(-3f, 3f)]
+  public float SplitY = 0.5f;
+  [Range(0.0f, 2f)]
+  public float Smooth = 0.1f;
+  [Range(-3.14f, 3.14f)]
+  public float Rotation = 3.14f;
   public Shader SCShader;
   public Camera Camera2;
-  private float TimeX;
   private Material SCMaterial;
-  [Range(0.0f, 100f)]
-  public float _FixDistance;
-  [Range(-0.99f, 0.99f)]
-  public float _Distance;
-  [Range(0.0f, 0.5f)]
-  public float _Size;
   [Range(0.0f, 1f)]
   public float SwitchCameraToCamera2;
-  [Range(0.0f, 1f)]
-  public float BlendFX;
-  [Range(-3f, 3f)]
-  public float SplitX;
-  [Range(-3f, 3f)]
-  public float SplitY;
-  [Range(0.0f, 2f)]
-  public float Smooth;
-  [Range(-3.14f, 3.14f)]
-  public float Rotation;
   private bool ForceYSwap;
   private RenderTexture Camera2tex;
   private Vector2 ScreenSize;
-
-  public CameraFilterPack_Blend2Camera_SplitScreen3D()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -57,31 +52,31 @@ public class CameraFilterPack_Blend2Camera_SplitScreen3D : MonoBehaviour
 
   private void OnValidate()
   {
-    this.ScreenSize.x = (__Null) (double) Screen.get_width();
-    this.ScreenSize.y = (__Null) (double) Screen.get_height();
+    this.ScreenSize.x = (float) Screen.width;
+    this.ScreenSize.y = (float) Screen.height;
   }
 
   private void Start()
   {
-    if (Object.op_Inequality((Object) this.Camera2, (Object) null))
+    if ((Object) this.Camera2 != (Object) null)
     {
       this.Camera2tex = new RenderTexture((int) this.ScreenSize.x, (int) this.ScreenSize.y, 24);
-      this.Camera2.set_targetTexture(this.Camera2tex);
+      this.Camera2.targetTexture = this.Camera2tex;
     }
     this.SCShader = Shader.Find(this.ShaderName);
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
-      if (Object.op_Inequality((Object) this.Camera2, (Object) null))
+      if ((Object) this.Camera2 != (Object) null)
         this.material.SetTexture("_MainTex2", (Texture) this.Camera2tex);
       this.material.SetFloat("_Near", this._Distance);
       this.material.SetFloat("_Far", this._Size);
@@ -94,7 +89,7 @@ public class CameraFilterPack_Blend2Camera_SplitScreen3D : MonoBehaviour
       this.material.SetFloat("_Value4", this.Smooth);
       this.material.SetFloat("_Value5", this.Rotation);
       this.material.SetInt("_ForceYSwap", !this.ForceYSwap ? 1 : 0);
-      ((Camera) ((Component) this).GetComponent<Camera>()).set_depthTextureMode((DepthTextureMode) 1);
+      this.GetComponent<Camera>().depthTextureMode = DepthTextureMode.Depth;
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -103,8 +98,8 @@ public class CameraFilterPack_Blend2Camera_SplitScreen3D : MonoBehaviour
 
   private void Update()
   {
-    this.ScreenSize.x = (__Null) (double) Screen.get_width();
-    this.ScreenSize.y = (__Null) (double) Screen.get_height();
+    this.ScreenSize.x = (float) Screen.width;
+    this.ScreenSize.y = (float) Screen.height;
   }
 
   private void OnEnable()
@@ -114,9 +109,9 @@ public class CameraFilterPack_Blend2Camera_SplitScreen3D : MonoBehaviour
 
   private void OnDisable()
   {
-    if (Object.op_Inequality((Object) this.Camera2, (Object) null))
-      this.Camera2.set_targetTexture((RenderTexture) null);
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if ((Object) this.Camera2 != (Object) null)
+      this.Camera2.targetTexture = (RenderTexture) null;
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

@@ -13,46 +13,41 @@ namespace Dissonance.Integrations.UNet_HLAPI
 {
   public class HlapiClient : BaseClient<HlapiServer, HlapiClient, HlapiConn>
   {
+    private readonly byte[] _receiveBuffer = new byte[1024];
     private readonly HlapiCommsNetwork _network;
     private readonly NetworkWriter _sendWriter;
-    private readonly byte[] _receiveBuffer;
 
     public HlapiClient([NotNull] HlapiCommsNetwork network)
+      : base((ICommsNetworkState) network)
     {
-      this.\u002Ector((ICommsNetworkState) network);
-      if (Object.op_Equality((Object) network, (Object) null))
+      if ((Object) network == (Object) null)
         throw new ArgumentNullException(nameof (network));
       this._network = network;
       this._sendWriter = new NetworkWriter(new byte[1024]);
     }
 
-    public virtual void Connect()
+    public override void Connect()
     {
-      if (!NetworkModeExtensions.IsServerEnabled(this._network.get_Mode()))
-      {
-        // ISSUE: method pointer
-        ((NetworkClient) ((NetworkManager) NetworkManager.singleton).client).RegisterHandler(this._network.TypeCode, new NetworkMessageDelegate((object) this, __methodptr(OnMessageReceivedHandler)));
-      }
+      if (!this._network.Mode.IsServerEnabled())
+        NetworkManager.singleton.client.RegisterHandler(this._network.TypeCode, new NetworkMessageDelegate(this.OnMessageReceivedHandler));
       this.Connected();
     }
 
-    public virtual void Disconnect()
+    public override void Disconnect()
     {
-      if (!NetworkModeExtensions.IsServerEnabled(this._network.get_Mode()) && ((NetworkManager) NetworkManager.singleton).client != null)
+      if (!this._network.Mode.IsServerEnabled() && NetworkManager.singleton.client != null)
       {
-        // ISSUE: variable of the null type
-        __Null client = ((NetworkManager) NetworkManager.singleton).client;
+        NetworkClient client = NetworkManager.singleton.client;
         int typeCode = (int) this._network.TypeCode;
         // ISSUE: reference to a compiler-generated field
         if (HlapiClient.\u003C\u003Ef__mg\u0024cache0 == null)
         {
           // ISSUE: reference to a compiler-generated field
-          // ISSUE: method pointer
-          HlapiClient.\u003C\u003Ef__mg\u0024cache0 = new NetworkMessageDelegate((object) null, __methodptr(NullMessageReceivedHandler));
+          HlapiClient.\u003C\u003Ef__mg\u0024cache0 = new NetworkMessageDelegate(HlapiCommsNetwork.NullMessageReceivedHandler);
         }
         // ISSUE: reference to a compiler-generated field
         NetworkMessageDelegate fMgCache0 = HlapiClient.\u003C\u003Ef__mg\u0024cache0;
-        ((NetworkClient) client).RegisterHandler((short) typeCode, fMgCache0);
+        client.RegisterHandler((short) typeCode, fMgCache0);
       }
       base.Disconnect();
     }
@@ -61,21 +56,21 @@ namespace Dissonance.Integrations.UNet_HLAPI
     {
       if (netMsg == null)
         return;
-      this.NetworkReceivedPacket(this._network.CopyToArraySegment((NetworkReader) netMsg.reader, new ArraySegment<byte>(this._receiveBuffer)));
+      this.NetworkReceivedPacket(this._network.CopyToArraySegment(netMsg.reader, new ArraySegment<byte>(this._receiveBuffer)));
     }
 
-    protected virtual void ReadMessages()
+    protected override void ReadMessages()
     {
     }
 
-    protected virtual void SendReliable(ArraySegment<byte> packet)
+    protected override void SendReliable(ArraySegment<byte> packet)
     {
       if (this.Send(packet, this._network.ReliableSequencedChannel))
         return;
       this.FatalError("Failed to send reliable packet (unknown HLAPI error)");
     }
 
-    protected virtual void SendUnreliable(ArraySegment<byte> packet)
+    protected override void SendUnreliable(ArraySegment<byte> packet)
     {
       this.Send(packet, this._network.UnreliableChannel);
     }
@@ -85,7 +80,7 @@ namespace Dissonance.Integrations.UNet_HLAPI
       if (this._network.PreprocessPacketToServer(packet))
         return true;
       int networkWriter = this._network.CopyPacketToNetworkWriter(packet, this._sendWriter);
-      return ((NetworkClient) ((NetworkManager) NetworkManager.singleton).client).get_connection().SendBytes(this._sendWriter.AsArray(), networkWriter, (int) channel);
+      return NetworkManager.singleton.client.connection.SendBytes(this._sendWriter.AsArray(), networkWriter, (int) channel);
     }
   }
 }

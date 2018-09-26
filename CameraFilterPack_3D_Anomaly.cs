@@ -10,40 +10,35 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/3D/Anomaly")]
 public class CameraFilterPack_3D_Anomaly : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 100f)]
+  public float _FixDistance = 23f;
+  [Range(-0.5f, 0.99f)]
+  public float Anomaly_Near = 0.045f;
+  [Range(0.0f, 1f)]
+  public float Anomaly_Far = 0.11f;
+  [Range(0.0f, 2f)]
+  public float Intensity = 1f;
+  [Range(0.0f, 1f)]
+  public float AnomalyWithoutObject = 1f;
+  [Range(0.1f, 1f)]
+  public float Anomaly_Distortion = 0.25f;
+  [Range(4f, 64f)]
+  public float Anomaly_Distortion_Size = 12f;
+  [Range(-4f, 8f)]
+  public float Anomaly_Intensity = 2f;
   public Shader SCShader;
   public bool _Visualize;
-  private float TimeX;
   private Material SCMaterial;
-  [Range(0.0f, 100f)]
-  public float _FixDistance;
-  [Range(-0.5f, 0.99f)]
-  public float Anomaly_Near;
-  [Range(0.0f, 1f)]
-  public float Anomaly_Far;
-  [Range(0.0f, 2f)]
-  public float Intensity;
-  [Range(0.0f, 1f)]
-  public float AnomalyWithoutObject;
-  [Range(0.1f, 1f)]
-  public float Anomaly_Distortion;
-  [Range(4f, 64f)]
-  public float Anomaly_Distortion_Size;
-  [Range(-4f, 8f)]
-  public float Anomaly_Intensity;
-
-  public CameraFilterPack_3D_Anomaly()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -52,16 +47,16 @@ public class CameraFilterPack_3D_Anomaly : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/3D_Anomaly");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -74,8 +69,8 @@ public class CameraFilterPack_3D_Anomaly : MonoBehaviour
       this.material.SetFloat("Anomaly_Near", this.Anomaly_Near);
       this.material.SetFloat("Anomaly_Far", this.Anomaly_Far);
       this.material.SetFloat("Anomaly_With_Obj", this.AnomalyWithoutObject);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
-      ((Camera) ((Component) this).GetComponent<Camera>()).set_depthTextureMode((DepthTextureMode) 1);
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
+      this.GetComponent<Camera>().depthTextureMode = DepthTextureMode.Depth;
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -88,7 +83,7 @@ public class CameraFilterPack_3D_Anomaly : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

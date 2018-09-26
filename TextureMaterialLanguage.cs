@@ -11,13 +11,8 @@ public class TextureMaterialLanguage : MonoBehaviour
   public Texture englishVersion;
   public Material mat;
 
-  public TextureMaterialLanguage()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.mat.set_mainTexture(this.englishVersion);
+    this.mat.mainTexture = this.englishVersion;
   }
 }

@@ -9,19 +9,14 @@ using UnityEngine.UI;
 
 public class VSyncFPSlimit : MonoBehaviour
 {
-  public VSyncFPSlimit()
-  {
-    base.\u002Ector();
-  }
-
   public void Check()
   {
-    if ((double) ((Slider) ((Component) this).get_gameObject().GetComponent<Slider>()).get_value() != 0.0)
+    if ((double) this.gameObject.GetComponent<Slider>().value != 0.0)
       return;
     int num = PlayerPrefs.GetInt("MaxFramerate", 969);
     if (num == 969)
-      Application.set_targetFrameRate(-1);
+      Application.targetFrameRate = -1;
     else
-      Application.set_targetFrameRate(num);
+      Application.targetFrameRate = num;
   }
 }

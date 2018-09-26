@@ -20,7 +20,6 @@ public class NineTailedFoxUnits : NetworkBehaviour
 
   public NineTailedFoxUnits()
   {
-    base.\u002Ector();
     this.list = new SyncListString();
   }
 
@@ -31,7 +30,7 @@ public class NineTailedFoxUnits : NetworkBehaviour
 
   private void AddUnit(string unit)
   {
-    ((SyncList<string>) this.list).Add(unit);
+    this.list.Add(unit);
   }
 
   private string GenerateName()
@@ -41,11 +40,11 @@ public class NineTailedFoxUnits : NetworkBehaviour
 
   private void Start()
   {
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    this.txtlist = (TextMeshProUGUI) GameObject.Find("NTFlist").GetComponent<TextMeshProUGUI>();
-    if (!this.get_isLocalPlayer())
+    this.ccm = this.GetComponent<CharacterClassManager>();
+    this.txtlist = GameObject.Find("NTFlist").GetComponent<TextMeshProUGUI>();
+    if (!this.isLocalPlayer)
       return;
-    if (NetworkServer.get_active())
+    if (NetworkServer.active)
     {
       this.NewName();
       NineTailedFoxUnits.host = this;
@@ -56,34 +55,30 @@ public class NineTailedFoxUnits : NetworkBehaviour
 
   private void Update()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
-    if (Object.op_Equality((Object) NineTailedFoxUnits.host, (Object) null))
+    if ((Object) NineTailedFoxUnits.host == (Object) null)
     {
       GameObject gameObject = GameObject.Find("Host");
-      if (!Object.op_Inequality((Object) gameObject, (Object) null))
+      if (!((Object) gameObject != (Object) null))
         return;
-      NineTailedFoxUnits.host = (NineTailedFoxUnits) gameObject.GetComponent<NineTailedFoxUnits>();
+      NineTailedFoxUnits.host = gameObject.GetComponent<NineTailedFoxUnits>();
     }
     else
     {
-      ((TMP_Text) this.txtlist).set_text(string.Empty);
+      this.txtlist.text = string.Empty;
       if (this.ccm.curClass <= 0 || this.ccm.klasy[this.ccm.curClass].team != Team.MTF)
         return;
-      for (int id = 0; id < ((SyncList<string>) NineTailedFoxUnits.host.list).get_Count(); ++id)
+      for (int id = 0; id < NineTailedFoxUnits.host.list.Count; ++id)
       {
         if (id == this.ccm.ntfUnit)
         {
           TextMeshProUGUI txtlist = this.txtlist;
-          ((TMP_Text) txtlist).set_text(((TMP_Text) txtlist).get_text() + "<u>" + NineTailedFoxUnits.host.GetNameById(id) + "</u>");
+          txtlist.text = txtlist.text + "<u>" + NineTailedFoxUnits.host.GetNameById(id) + "</u>";
         }
         else
-        {
-          TextMeshProUGUI txtlist = this.txtlist;
-          ((TMP_Text) txtlist).set_text(((TMP_Text) txtlist).get_text() + NineTailedFoxUnits.host.GetNameById(id));
-        }
-        TextMeshProUGUI txtlist1 = this.txtlist;
-        ((TMP_Text) txtlist1).set_text(((TMP_Text) txtlist1).get_text() + "\n");
+          this.txtlist.text += NineTailedFoxUnits.host.GetNameById(id);
+        this.txtlist.text += "\n";
       }
     }
   }
@@ -92,12 +87,12 @@ public class NineTailedFoxUnits : NetworkBehaviour
   {
     int num = 0;
     string name;
-    for (name = this.GenerateName(); ((SyncList<string>) this.list).Contains(name) && num < 100; name = this.GenerateName())
+    for (name = this.GenerateName(); this.list.Contains(name) && num < 100; name = this.GenerateName())
       ++num;
     letter = name.ToUpper()[0];
     number = int.Parse(name.Split('-')[1]);
     this.AddUnit(name);
-    return ((SyncList<string>) this.list).get_Count() - 1;
+    return this.list.Count - 1;
   }
 
   public int NewName()
@@ -109,7 +104,7 @@ public class NineTailedFoxUnits : NetworkBehaviour
 
   public string GetNameById(int id)
   {
-    return ((SyncList<string>) this.list).get_Item(id);
+    return this.list[id];
   }
 
   private void UNetVersion()
@@ -118,25 +113,24 @@ public class NineTailedFoxUnits : NetworkBehaviour
 
   protected static void InvokeSyncListlist(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "SyncList list called on server.");
     else
-      ((SyncList<string>) ((NineTailedFoxUnits) obj).list).HandleMsg(reader);
+      ((NineTailedFoxUnits) obj).list.HandleMsg(reader);
   }
 
   static NineTailedFoxUnits()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterSyncListDelegate(typeof (NineTailedFoxUnits), NineTailedFoxUnits.kListlist, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeSyncListlist)));
+    NetworkBehaviour.RegisterSyncListDelegate(typeof (NineTailedFoxUnits), NineTailedFoxUnits.kListlist, new NetworkBehaviour.CmdDelegate(NineTailedFoxUnits.InvokeSyncListlist));
     NetworkCRC.RegisterBehaviour(nameof (NineTailedFoxUnits), 0);
   }
 
   private void Awake()
   {
-    ((SyncList<string>) this.list).InitializeBehaviour((NetworkBehaviour) this, NineTailedFoxUnits.kListlist);
+    this.list.InitializeBehaviour((NetworkBehaviour) this, NineTailedFoxUnits.kListlist);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -144,21 +138,21 @@ public class NineTailedFoxUnits : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       SyncListString.WriteInstance(writer, this.list);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

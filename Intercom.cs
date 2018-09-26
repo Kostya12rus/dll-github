@@ -16,6 +16,7 @@ using UnityEngine.UI;
 public class Intercom : NetworkBehaviour
 {
   private static int kCmdCmdSetTransmit = 1248049261;
+  private string content = string.Empty;
   private CharacterClassManager ccm;
   private Transform area;
   public float triggerDistance;
@@ -29,17 +30,11 @@ public class Intercom : NetworkBehaviour
   public static Intercom host;
   public GameObject start_sound;
   public GameObject stop_sound;
-  private string content;
   private bool inUse;
   private bool isTransmitting;
   private NetworkInstanceId ___speakerNetId;
   private static int kRpcRpcPlaySound;
   private static int kRpcRpcUpdateText;
-
-  public Intercom()
-  {
-    base.\u002Ector();
-  }
 
   private void SetSpeaker(GameObject go)
   {
@@ -54,27 +49,23 @@ public class Intercom : NetworkBehaviour
   private IEnumerator<float> _StartTransmitting(GameObject sp)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new Intercom.\u003C_StartTransmitting\u003Ec__Iterator0()
-    {
-      sp = sp,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new Intercom.\u003C_StartTransmitting\u003Ec__Iterator0() { sp = sp, \u0024this = this };
   }
 
   private void Start()
   {
     if (TutorialManager.status)
       return;
-    this.txt = (Text) GameObject.Find("IntercomMonitor").GetComponent<Text>();
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    this.area = GameObject.Find("IntercomSpeakingZone").get_transform();
+    this.txt = GameObject.Find("IntercomMonitor").GetComponent<Text>();
+    this.ccm = this.GetComponent<CharacterClassManager>();
+    this.area = GameObject.Find("IntercomSpeakingZone").transform;
     this.speechTime = (float) ConfigFile.ServerConfig.GetInt("intercom_max_speech_time", 20);
     this.cooldownAfter = (float) ConfigFile.ServerConfig.GetInt("intercom_cooldown", 180);
     Timing.RunCoroutine(this._FindHost());
     Timing.RunCoroutine(this._CheckForInput());
-    if (!this.get_isLocalPlayer() || !this.get_isServer())
+    if (!this.isLocalPlayer || !this.isServer)
       return;
-    ((MonoBehaviour) this).InvokeRepeating("RefreshText", 5f, 7f);
+    this.InvokeRepeating("RefreshText", 5f, 7f);
   }
 
   private void RefreshText()
@@ -94,22 +85,22 @@ public class Intercom : NetworkBehaviour
   [ClientRpc]
   public void RpcPlaySound(bool start, int transmitterID)
   {
-    if (((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).PlayerId == transmitterID)
+    if (PlayerManager.localPlayer.GetComponent<QueryProcessor>().PlayerId == transmitterID)
       AchievementManager.Achieve("isthisthingon");
-    Object.Destroy((Object) Object.Instantiate<GameObject>(!start ? (M0) this.stop_sound : (M0) this.start_sound), 10f);
+    Object.Destroy((Object) Object.Instantiate<GameObject>(!start ? this.stop_sound : this.start_sound), 10f);
   }
 
   private void Update()
   {
-    if (TutorialManager.status || !this.get_isLocalPlayer() || !this.get_isServer())
+    if (TutorialManager.status || !this.isLocalPlayer || !this.isServer)
       return;
     this.UpdateText();
   }
 
   private void UpdateText()
   {
-    this.content = (double) this.remainingCooldown <= 0.0 ? (!Object.op_Inequality((Object) this.speaker, (Object) null) ? "READY" : "TRANSMITTING...\nTIME LEFT - " + (object) Mathf.CeilToInt(this.speechRemainingTime)) : "RESTARTING\n" + (object) Mathf.CeilToInt(this.remainingCooldown);
-    if (!(this.content != this.txt.get_text()))
+    this.content = (double) this.remainingCooldown <= 0.0 ? (!((Object) this.speaker != (Object) null) ? "READY" : "TRANSMITTING...\nTIME LEFT - " + (object) Mathf.CeilToInt(this.speechRemainingTime)) : "RESTARTING\n" + (object) Mathf.CeilToInt(this.remainingCooldown);
+    if (!(this.content != this.txt.text))
       return;
     this.CallRpcUpdateText(this.content);
   }
@@ -119,7 +110,7 @@ public class Intercom : NetworkBehaviour
   {
     try
     {
-      this.txt.set_text(t);
+      this.txt.text = t;
     }
     catch
     {
@@ -128,16 +119,16 @@ public class Intercom : NetworkBehaviour
 
   public void RequestTransmission(GameObject spk)
   {
-    if (Object.op_Equality((Object) spk, (Object) null))
+    if ((Object) spk == (Object) null)
     {
       this.SetSpeaker((GameObject) null);
     }
     else
     {
-      if ((double) this.remainingCooldown > 0.0 && !((ServerRoles) ((Component) this).GetComponent<ServerRoles>()).BypassMode || this.inUse)
+      if ((double) this.remainingCooldown > 0.0 && !this.GetComponent<ServerRoles>().BypassMode || this.inUse)
         return;
       this.inUse = true;
-      Timing.RunCoroutine(this._StartTransmitting(spk), (Segment) 0);
+      Timing.RunCoroutine(this._StartTransmitting(spk), Segment.Update);
     }
   }
 
@@ -152,7 +143,7 @@ public class Intercom : NetworkBehaviour
   {
     try
     {
-      return (double) Vector3.Distance(((Component) this).get_transform().get_position(), this.area.get_position()) < (double) this.triggerDistance && Input.GetKey(NewInput.GetKey("Voice Chat")) && this.ccm.klasy[this.ccm.curClass].team != Team.SCP;
+      return (double) Vector3.Distance(this.transform.position, this.area.position) < (double) this.triggerDistance && Input.GetKey(NewInput.GetKey("Voice Chat")) && this.ccm.klasy[this.ccm.curClass].team != Team.SCP;
     }
     catch
     {
@@ -162,7 +153,7 @@ public class Intercom : NetworkBehaviour
 
   private bool ServerAllowToSpeak()
   {
-    if ((double) Vector3.Distance(((Component) this).get_transform().get_position(), this.area.get_position()) < (double) this.triggerDistance)
+    if ((double) Vector3.Distance(this.transform.position, this.area.position) < (double) this.triggerDistance)
       return this.ccm.klasy[this.ccm.curClass].team != Team.SCP;
     return false;
   }
@@ -174,11 +165,11 @@ public class Intercom : NetworkBehaviour
     {
       if (!this.ServerAllowToSpeak())
         return;
-      Intercom.host.RequestTransmission(((Component) this).get_gameObject());
+      Intercom.host.RequestTransmission(this.gameObject);
     }
     else
     {
-      if (!Object.op_Equality((Object) Intercom.host.speaker, (Object) ((Component) this).get_gameObject()))
+      if (!((Object) Intercom.host.speaker == (Object) this.gameObject))
         return;
       Intercom.host.RequestTransmission((GameObject) null);
     }
@@ -196,23 +187,23 @@ public class Intercom : NetworkBehaviour
     }
     [param: In] set
     {
-      GameObject gameObject = value;
+      GameObject newGameObject = value;
       ref GameObject local1 = ref this.speaker;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetSpeaker(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
       ref NetworkInstanceId local2 = ref this.___speakerNetId;
-      this.SetSyncVarGameObject((GameObject) gameObject, (GameObject&) ref local1, (uint) num, ref local2);
+      this.SetSyncVarGameObject(newGameObject, ref local1, (uint) num, ref local2);
     }
   }
 
   protected static void InvokeCmdCmdSetTransmit(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdSetTransmit called on client.");
     else
       ((Intercom) obj).CmdSetTransmit(reader.ReadBoolean());
@@ -220,27 +211,27 @@ public class Intercom : NetworkBehaviour
 
   public void CallCmdSetTransmit(bool player)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdSetTransmit called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdSetTransmit(player);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Intercom.kCmdCmdSetTransmit);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(player);
-      this.SendCommandInternal(networkWriter, 2, "CmdSetTransmit");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Intercom.kCmdCmdSetTransmit);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(player);
+      this.SendCommandInternal(writer, 2, "CmdSetTransmit");
     }
   }
 
   protected static void InvokeRpcRpcPlaySound(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcPlaySound called on server.");
     else
       ((Intercom) obj).RpcPlaySound(reader.ReadBoolean(), (int) reader.ReadPackedUInt32());
@@ -248,7 +239,7 @@ public class Intercom : NetworkBehaviour
 
   protected static void InvokeRpcRpcUpdateText(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcUpdateText called on server.");
     else
       ((Intercom) obj).RpcUpdateText(reader.ReadString());
@@ -256,77 +247,74 @@ public class Intercom : NetworkBehaviour
 
   public void CallRpcPlaySound(bool start, int transmitterID)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcPlaySound called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) Intercom.kRpcRpcPlaySound);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(start);
-      networkWriter.WritePackedUInt32((uint) transmitterID);
-      this.SendRPCInternal(networkWriter, 0, "RpcPlaySound");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) Intercom.kRpcRpcPlaySound);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(start);
+      writer.WritePackedUInt32((uint) transmitterID);
+      this.SendRPCInternal(writer, 0, "RpcPlaySound");
     }
   }
 
   public void CallRpcUpdateText(string t)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcUpdateText called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) Intercom.kRpcRpcUpdateText);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(t);
-      this.SendRPCInternal(networkWriter, 2, "RpcUpdateText");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) Intercom.kRpcRpcUpdateText);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(t);
+      this.SendRPCInternal(writer, 2, "RpcUpdateText");
     }
   }
 
   static Intercom()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Intercom), Intercom.kCmdCmdSetTransmit, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdSetTransmit)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Intercom), Intercom.kCmdCmdSetTransmit, new NetworkBehaviour.CmdDelegate(Intercom.InvokeCmdCmdSetTransmit));
     Intercom.kRpcRpcPlaySound = 239129888;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (Intercom), Intercom.kRpcRpcPlaySound, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcPlaySound)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (Intercom), Intercom.kRpcRpcPlaySound, new NetworkBehaviour.CmdDelegate(Intercom.InvokeRpcRpcPlaySound));
     Intercom.kRpcRpcUpdateText = 1243388753;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (Intercom), Intercom.kRpcRpcUpdateText, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcUpdateText)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (Intercom), Intercom.kRpcRpcUpdateText, new NetworkBehaviour.CmdDelegate(Intercom.InvokeRpcRpcUpdateText));
     NetworkCRC.RegisterBehaviour(nameof (Intercom), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
-      writer.Write((GameObject) this.speaker);
+      writer.Write(this.speaker);
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
-      writer.Write((GameObject) this.speaker);
+      writer.Write(this.speaker);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {
@@ -336,14 +324,14 @@ public class Intercom : NetworkBehaviour
     {
       if (((int) reader.ReadPackedUInt32() & 1) == 0)
         return;
-      this.SetSpeaker((GameObject) reader.ReadGameObject());
+      this.SetSpeaker(reader.ReadGameObject());
     }
   }
 
-  public virtual void PreStartClient()
+  public override void PreStartClient()
   {
-    if (((NetworkInstanceId) ref this.___speakerNetId).IsEmpty())
+    if (this.___speakerNetId.IsEmpty())
       return;
-    this.Networkspeaker = (GameObject) ClientScene.FindLocalObject(this.___speakerNetId);
+    this.Networkspeaker = ClientScene.FindLocalObject(this.___speakerNetId);
   }
 }

@@ -21,24 +21,16 @@ public class PlayerPositionManager : NetworkBehaviour
   private PlayerPositionData[] receivedData;
   private CharacterClassManager myCCM;
 
-  public PlayerPositionManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    Timing.RunCoroutine(this._Start(), (Segment) 0);
+    Timing.RunCoroutine(this._Start(), Segment.Update);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _Start()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new PlayerPositionManager.\u003C_Start\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new PlayerPositionManager.\u003C_Start\u003Ec__Iterator0() { \u0024this = this };
   }
 
   public static void StaticReceiveData(PlayerPositionData[] data)
@@ -54,7 +46,7 @@ public class PlayerPositionManager : NetworkBehaviour
   private void FixedUpdate()
   {
     this.ReceiveData();
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     this.TransmitData();
   }
@@ -62,44 +54,34 @@ public class PlayerPositionManager : NetworkBehaviour
   [ServerCallback]
   private void TransmitData()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     List<PlayerPositionData> playerPositionDataList1 = new List<PlayerPositionData>();
     List<GameObject> list = ((IEnumerable<GameObject>) PlayerManager.singleton.players).ToList<GameObject>();
-    using (List<GameObject>.Enumerator enumerator = list.GetEnumerator())
-    {
-      while (enumerator.MoveNext())
-      {
-        GameObject current = enumerator.Current;
-        playerPositionDataList1.Add(new PlayerPositionData(current));
-      }
-    }
+    foreach (GameObject _player in list)
+      playerPositionDataList1.Add(new PlayerPositionData(_player));
     this.receivedData = playerPositionDataList1.ToArray();
-    using (List<GameObject>.Enumerator enumerator = list.GetEnumerator())
+    foreach (GameObject gameObject in list)
     {
-      while (enumerator.MoveNext())
+      CharacterClassManager component1 = gameObject.GetComponent<CharacterClassManager>();
+      if (component1.curClass >= 0 && component1.klasy[component1.curClass].fullName.Contains("939"))
       {
-        GameObject current = enumerator.Current;
-        CharacterClassManager component1 = (CharacterClassManager) current.GetComponent<CharacterClassManager>();
-        if (component1.curClass >= 0 && component1.klasy[component1.curClass].fullName.Contains("939"))
+        List<PlayerPositionData> playerPositionDataList2 = new List<PlayerPositionData>((IEnumerable<PlayerPositionData>) playerPositionDataList1);
+        for (int index = 0; index < playerPositionDataList2.Count; ++index)
         {
-          List<PlayerPositionData> playerPositionDataList2 = new List<PlayerPositionData>((IEnumerable<PlayerPositionData>) playerPositionDataList1);
-          for (int index = 0; index < playerPositionDataList2.Count; ++index)
-          {
-            CharacterClassManager component2 = (CharacterClassManager) list[index].GetComponent<CharacterClassManager>();
-            if (playerPositionDataList2[index].position.y < 800.0 && component2.klasy[component2.curClass].team != Team.SCP && (component2.klasy[component2.curClass].team != Team.RIP && !((Scp939_VisionController) list[index].GetComponent<Scp939_VisionController>()).CanSee((Scp939PlayerScript) ((Component) component1).GetComponent<Scp939PlayerScript>())))
-              playerPositionDataList2[index] = new PlayerPositionData()
-              {
-                position = Vector3.op_Multiply(Vector3.get_up(), 6000f),
-                rotation = 0.0f,
-                playerID = playerPositionDataList2[index].playerID
-              };
-          }
-          this.CallTargetTransmit(((NetworkIdentity) current.GetComponent<NetworkIdentity>()).get_connectionToClient(), playerPositionDataList2.ToArray());
+          CharacterClassManager component2 = list[index].GetComponent<CharacterClassManager>();
+          if ((double) playerPositionDataList2[index].position.y < 800.0 && component2.klasy[component2.curClass].team != Team.SCP && (component2.klasy[component2.curClass].team != Team.RIP && !list[index].GetComponent<Scp939_VisionController>().CanSee(component1.GetComponent<Scp939PlayerScript>())))
+            playerPositionDataList2[index] = new PlayerPositionData()
+            {
+              position = Vector3.up * 6000f,
+              rotation = 0.0f,
+              playerID = playerPositionDataList2[index].playerID
+            };
         }
-        else
-          this.CallTargetTransmit(((NetworkIdentity) current.GetComponent<NetworkIdentity>()).get_connectionToClient(), playerPositionDataList1.ToArray());
+        this.CallTargetTransmit(gameObject.GetComponent<NetworkIdentity>().connectionToClient, playerPositionDataList2.ToArray());
       }
+      else
+        this.CallTargetTransmit(gameObject.GetComponent<NetworkIdentity>().connectionToClient, playerPositionDataList1.ToArray());
     }
   }
 
@@ -113,35 +95,32 @@ public class PlayerPositionManager : NetworkBehaviour
   {
     if (!this.isReadyToWork)
       return;
-    if (Object.op_Inequality((Object) this.myCCM, (Object) null))
+    if ((Object) this.myCCM != (Object) null)
     {
       foreach (GameObject player in PlayerManager.singleton.players)
       {
-        QueryProcessor component1 = (QueryProcessor) player.GetComponent<QueryProcessor>();
+        QueryProcessor component1 = player.GetComponent<QueryProcessor>();
         foreach (PlayerPositionData playerPositionData in this.receivedData)
         {
           if (component1.PlayerId == playerPositionData.playerID)
           {
-            if (!component1.get_isLocalPlayer())
+            if (!component1.isLocalPlayer)
             {
-              CharacterClassManager component2 = (CharacterClassManager) player.GetComponent<CharacterClassManager>();
-              if ((double) Vector3.Distance(player.get_transform().get_position(), playerPositionData.position) < 10.0 && this.myCCM.curClass != -1 && (component2.curClass != 0 || !this.myCCM.IsHuman()))
+              CharacterClassManager component2 = player.GetComponent<CharacterClassManager>();
+              if ((double) Vector3.Distance(player.transform.position, playerPositionData.position) < 10.0 && this.myCCM.curClass != -1 && (component2.curClass != 0 || !this.myCCM.IsHuman()))
               {
-                player.get_transform().set_position(Vector3.Lerp(player.get_transform().get_position(), playerPositionData.position, 0.2f));
-                CharacterClassManager target = component2;
-                Quaternion rotation = player.get_transform().get_rotation();
-                Quaternion quat = Quaternion.Lerp(Quaternion.Euler(((Quaternion) ref rotation).get_eulerAngles()), Quaternion.Euler(Vector3.op_Multiply(Vector3.get_up(), playerPositionData.rotation)), 0.3f);
-                this.SetRotation(target, quat);
+                player.transform.position = Vector3.Lerp(player.transform.position, playerPositionData.position, 0.2f);
+                this.SetRotation(component2, Quaternion.Lerp(Quaternion.Euler(player.transform.rotation.eulerAngles), Quaternion.Euler(Vector3.up * playerPositionData.rotation), 0.3f));
               }
               else
               {
-                player.get_transform().set_position(playerPositionData.position);
+                player.transform.position = playerPositionData.position;
                 this.SetRotation(component2, Quaternion.Euler(0.0f, playerPositionData.rotation, 0.0f));
               }
             }
-            if (!NetworkServer.get_active())
+            if (!NetworkServer.active)
             {
-              ((PlyMovementSync) player.GetComponent<PlyMovementSync>()).SetupPosRot(playerPositionData.position, playerPositionData.rotation);
+              player.GetComponent<PlyMovementSync>().SetupPosRot(playerPositionData.position, playerPositionData.rotation);
               break;
             }
             break;
@@ -150,14 +129,14 @@ public class PlayerPositionManager : NetworkBehaviour
       }
     }
     else
-      this.myCCM = (CharacterClassManager) PlayerManager.localPlayer.GetComponent<CharacterClassManager>();
+      this.myCCM = PlayerManager.localPlayer.GetComponent<CharacterClassManager>();
   }
 
   private void SetRotation(CharacterClassManager target, Quaternion quat)
   {
     if (target.curClass == 0 && this.myCCM.IsHuman() && !Scp173PlayerScript.isBlinking)
       return;
-    ((Component) target).get_transform().set_rotation(quat);
+    target.transform.rotation = quat;
   }
 
   private void UNetVersion()
@@ -166,15 +145,15 @@ public class PlayerPositionManager : NetworkBehaviour
 
   protected static void InvokeRpcTargetTransmit(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "TargetRPC TargetTransmit called on server.");
     else
-      ((PlayerPositionManager) obj).TargetTransmit(ClientScene.get_readyConnection(), GeneratedNetworkCode._ReadArrayPlayerPositionData_None(reader));
+      ((PlayerPositionManager) obj).TargetTransmit(ClientScene.readyConnection, GeneratedNetworkCode._ReadArrayPlayerPositionData_None(reader));
   }
 
   public void CallTargetTransmit(NetworkConnection conn, PlayerPositionData[] data)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "TargetRPC Function TargetTransmit called on client.");
     else if (conn is ULocalConnectionToServer)
     {
@@ -186,7 +165,7 @@ public class PlayerPositionManager : NetworkBehaviour
       writer.Write((short) 0);
       writer.Write((short) 2);
       writer.WritePackedUInt32((uint) PlayerPositionManager.kTargetRpcTargetTransmit);
-      writer.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
       GeneratedNetworkCode._WriteArrayPlayerPositionData_None(writer, data);
       this.SendTargetRPCInternal(conn, writer, 5, "TargetTransmit");
     }
@@ -194,18 +173,17 @@ public class PlayerPositionManager : NetworkBehaviour
 
   static PlayerPositionManager()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (PlayerPositionManager), PlayerPositionManager.kTargetRpcTargetTransmit, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcTargetTransmit)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (PlayerPositionManager), PlayerPositionManager.kTargetRpcTargetTransmit, new NetworkBehaviour.CmdDelegate(PlayerPositionManager.InvokeRpcTargetTransmit));
     NetworkCRC.RegisterBehaviour(nameof (PlayerPositionManager), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

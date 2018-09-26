@@ -13,22 +13,17 @@ using UnityEngine.UI;
 
 public class ClassPresetChooser : MonoBehaviour
 {
+  private List<ClassPresetChooser.PickerPreset> curPresets = new List<ClassPresetChooser.PickerPreset>();
   public GameObject bottomMenuItem;
   public Transform bottomMenuHolder;
   public ClassPresetChooser.PickerPreset[] presets;
   private string curKey;
-  private List<ClassPresetChooser.PickerPreset> curPresets;
   public Slider health;
   public Slider wSpeed;
   public Slider rSpeed;
   public RawImage[] startItems;
   public RawImage avatar;
   public TextMeshProUGUI addInfo;
-
-  public ClassPresetChooser()
-  {
-    base.\u002Ector();
-  }
 
   public void RefreshBottomItems(string key)
   {
@@ -46,7 +41,7 @@ public class ClassPresetChooser : MonoBehaviour
     try
     {
       while (enumerator.MoveNext())
-        Object.Destroy((Object) ((Component) enumerator.Current).get_gameObject());
+        Object.Destroy((Object) ((Component) enumerator.Current).gameObject);
     }
     finally
     {
@@ -56,9 +51,9 @@ public class ClassPresetChooser : MonoBehaviour
     }
     for (int i = 0; i < num; ++i)
     {
-      GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) this.bottomMenuItem, this.bottomMenuHolder);
-      ((BottomPickerItem) gameObject.GetComponent<BottomPickerItem>()).SetupButton(key, i);
-      ((Text) gameObject.GetComponentInChildren<Text>()).set_text("ABCDEFGHIJKL"[i].ToString());
+      GameObject gameObject = Object.Instantiate<GameObject>(this.bottomMenuItem, this.bottomMenuHolder);
+      gameObject.GetComponent<BottomPickerItem>().SetupButton(key, i);
+      gameObject.GetComponentInChildren<Text>().text = "ABCDEFGHIJKL"[i].ToString();
     }
   }
 
@@ -67,20 +62,20 @@ public class ClassPresetChooser : MonoBehaviour
     if (this.curPresets.Count <= 0)
       return;
     ClassPresetChooser.PickerPreset curPreset = this.curPresets[PlayerPrefs.GetInt(this.curKey, 0)];
-    this.health.set_value((float) curPreset.health);
-    this.wSpeed.set_value(curPreset.wSpeed);
-    this.rSpeed.set_value(curPreset.rSpeed);
-    this.avatar.set_texture(curPreset.icon);
+    this.health.value = (float) curPreset.health;
+    this.wSpeed.value = curPreset.wSpeed;
+    this.rSpeed.value = curPreset.rSpeed;
+    this.avatar.texture = curPreset.icon;
     for (int index = 0; index < this.startItems.Length; ++index)
     {
       if (index >= curPreset.startingItems.Length)
       {
-        ((Graphic) this.startItems[index]).set_color(Color.get_clear());
+        this.startItems[index].color = Color.clear;
       }
       else
       {
-        ((Graphic) this.startItems[index]).set_color(Color.get_white());
-        this.startItems[index].set_texture(curPreset.startingItems[index]);
+        this.startItems[index].color = Color.white;
+        this.startItems[index].texture = curPreset.startingItems[index];
       }
     }
   }

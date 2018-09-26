@@ -20,21 +20,16 @@ public class MenuAnimator : MonoBehaviour
   public GameObject lang;
   public GameObject key;
 
-  public MenuAnimator()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    bool flag = this.con1.get_activeSelf() | this.con2.get_activeSelf() | ((MainMenuScript) ((Component) this).GetComponent<MainMenuScript>()).submenus[6].get_activeSelf() | this.dsc.get_activeSelf() | this.lang.get_activeSelf() | this.key.get_activeSelf();
-    this.kamera.get_transform().set_position(Vector3.Lerp(this.kamera.get_transform().get_position(), !flag ? this.unfoc.get_transform().get_position() : this.foc.get_transform().get_position(), Time.get_deltaTime() * 2f));
-    this.kamera.get_transform().set_rotation(Quaternion.Lerp(this.kamera.get_transform().get_rotation(), !flag ? this.unfoc.get_transform().get_rotation() : this.foc.get_transform().get_rotation(), Time.get_deltaTime()));
+    bool flag = this.con1.activeSelf | this.con2.activeSelf | this.GetComponent<MainMenuScript>().submenus[6].activeSelf | this.dsc.activeSelf | this.lang.activeSelf | this.key.activeSelf;
+    this.kamera.transform.position = Vector3.Lerp(this.kamera.transform.position, !flag ? this.unfoc.transform.position : this.foc.transform.position, Time.deltaTime * 2f);
+    this.kamera.transform.rotation = Quaternion.Lerp(this.kamera.transform.rotation, !flag ? this.unfoc.transform.rotation : this.foc.transform.rotation, Time.deltaTime);
   }
 
   private void Start()
   {
-    Timing.RunCoroutine(this._Animate(), (Segment) 1);
+    Timing.RunCoroutine(this._Animate(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]

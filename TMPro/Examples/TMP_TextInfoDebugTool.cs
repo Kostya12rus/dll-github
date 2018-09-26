@@ -22,10 +22,5 @@ namespace TMPro.Examples
     public string ObjectStats;
     private TMP_Text m_TextComponent;
     private Transform m_Transform;
-
-    public TMP_TextInfoDebugTool()
-    {
-      base.\u002Ector();
-    }
   }
 }

@@ -21,12 +21,12 @@ namespace Dissonance.Integrations.UNet_HLAPI
 
     public override int GetHashCode()
     {
-      return ((object) this.Connection).GetHashCode();
+      return this.Connection.GetHashCode();
     }
 
     public override string ToString()
     {
-      return ((object) this.Connection).ToString();
+      return this.Connection.ToString();
     }
 
     public override bool Equals(object obj)
@@ -39,7 +39,7 @@ namespace Dissonance.Integrations.UNet_HLAPI
     public bool Equals(HlapiConn other)
     {
       if (this.Connection != null)
-        return ((object) this.Connection).Equals((object) other.Connection);
+        return this.Connection.Equals((object) other.Connection);
       return other.Connection == null;
     }
   }

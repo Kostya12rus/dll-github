@@ -11,28 +11,23 @@ namespace AmplifyBloom
 {
   public class DemoCameraMovement : MonoBehaviour
   {
+    public float moveSpeed = 1f;
+    public float yawSpeed = 3f;
+    public float pitchSpeed = 3f;
     private const string X_AXIS_KEYBOARD = "Mouse X";
     private const string Y_AXIS_KEYBOARD = "Mouse Y";
     private const string X_AXIS_GAMEPAD = "Horizontal";
     private const string Y_AXIS_GAMEPAD = "Vertical";
     private bool m_gamePadMode;
-    public float moveSpeed;
-    public float yawSpeed;
-    public float pitchSpeed;
     private float _yaw;
     private float _pitch;
     private Transform _transform;
 
-    public DemoCameraMovement()
-    {
-      base.\u002Ector();
-    }
-
     private void Start()
     {
-      this._transform = ((Component) this).get_transform();
-      this._pitch = (float) this._transform.get_localEulerAngles().x;
-      this._yaw = (float) this._transform.get_localEulerAngles().y;
+      this._transform = this.transform;
+      this._pitch = this._transform.localEulerAngles.x;
+      this._yaw = this._transform.localEulerAngles.y;
       if (Input.GetJoystickNames().Length <= 0)
         return;
       this.m_gamePadMode = true;
@@ -47,7 +42,7 @@ namespace AmplifyBloom
       }
       else
       {
-        if (!Input.GetMouseButton(0) || EventSystem.get_current().IsPointerOverGameObject())
+        if (!Input.GetMouseButton(0) || EventSystem.current.IsPointerOverGameObject())
           return;
         this.ChangeYaw(Input.GetAxisRaw("Mouse X") * this.yawSpeed);
         this.ChangePitch(-Input.GetAxisRaw("Mouse Y") * this.pitchSpeed);
@@ -56,28 +51,26 @@ namespace AmplifyBloom
 
     private void MoveForwards(float delta)
     {
-      Transform transform = this._transform;
-      transform.set_position(Vector3.op_Addition(transform.get_position(), Vector3.op_Multiply(delta, this._transform.get_forward())));
+      this._transform.position += delta * this._transform.forward;
     }
 
     private void Strafe(float delta)
     {
-      Transform transform = this._transform;
-      transform.set_position(Vector3.op_Addition(transform.get_position(), Vector3.op_Multiply(delta, this._transform.get_right())));
+      this._transform.position += delta * this._transform.right;
     }
 
     private void ChangeYaw(float delta)
     {
       this._yaw += delta;
       this.WrapAngle(ref this._yaw);
-      this._transform.set_localEulerAngles(new Vector3(this._pitch, this._yaw, 0.0f));
+      this._transform.localEulerAngles = new Vector3(this._pitch, this._yaw, 0.0f);
     }
 
     private void ChangePitch(float delta)
     {
       this._pitch += delta;
       this.WrapAngle(ref this._pitch);
-      this._transform.set_localEulerAngles(new Vector3(this._pitch, this._yaw, 0.0f));
+      this._transform.localEulerAngles = new Vector3(this._pitch, this._yaw, 0.0f);
     }
 
     public void WrapAngle(ref float angle)

@@ -14,14 +14,9 @@ public class ControlPanelLights : MonoBehaviour
   public Texture[] emissions;
   public Material targetMat;
 
-  public ControlPanelLights()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    Timing.RunCoroutine(this._Animate(), (Segment) 1);
+    Timing.RunCoroutine(this._Animate(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]

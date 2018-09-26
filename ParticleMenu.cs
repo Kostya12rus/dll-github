@@ -18,11 +18,6 @@ public class ParticleMenu : MonoBehaviour
   public Text description;
   public Text navigationDetails;
 
-  public ParticleMenu()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.Navigate(0);
@@ -32,12 +27,12 @@ public class ParticleMenu : MonoBehaviour
   public void Navigate(int i)
   {
     this.currentIndex = (this.particleSystems.Length + this.currentIndex + i) % this.particleSystems.Length;
-    if (Object.op_Inequality((Object) this.currentGO, (Object) null))
+    if ((Object) this.currentGO != (Object) null)
       Object.Destroy((Object) this.currentGO);
-    this.currentGO = (GameObject) Object.Instantiate<GameObject>((M0) this.particleSystems[this.currentIndex].particleSystemGO, Vector3.op_Addition(this.spawnLocation.get_position(), this.particleSystems[this.currentIndex].particlePosition), Quaternion.Euler(this.particleSystems[this.currentIndex].particleRotation));
+    this.currentGO = Object.Instantiate<GameObject>(this.particleSystems[this.currentIndex].particleSystemGO, this.spawnLocation.position + this.particleSystems[this.currentIndex].particlePosition, Quaternion.Euler(this.particleSystems[this.currentIndex].particleRotation));
     this.gunGameObject.SetActive(this.particleSystems[this.currentIndex].isWeaponEffect);
-    this.title.set_text(this.particleSystems[this.currentIndex].title);
-    this.description.set_text(this.particleSystems[this.currentIndex].description);
-    this.navigationDetails.set_text(string.Empty + (object) (this.currentIndex + 1) + " out of " + this.particleSystems.Length.ToString());
+    this.title.text = this.particleSystems[this.currentIndex].title;
+    this.description.text = this.particleSystems[this.currentIndex].description;
+    this.navigationDetails.text = string.Empty + (object) (this.currentIndex + 1) + " out of " + this.particleSystems.Length.ToString();
   }
 }

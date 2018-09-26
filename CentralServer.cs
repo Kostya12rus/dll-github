@@ -20,11 +20,6 @@ public class CentralServer : MonoBehaviour
   private static List<string> _workingServers;
   private static DateTime _lastReset;
 
-  public CentralServer()
-  {
-    base.\u002Ector();
-  }
-
   public static string MasterUrl { get; private set; }
 
   public static string StandardUrl { get; private set; }
@@ -62,7 +57,7 @@ public class CentralServer : MonoBehaviour
         CentralServer._servers = FileManager.ReadAllLines(CentralServer._serversPath);
         CentralServer._workingServers = ((IEnumerable<string>) CentralServer._servers).ToList<string>();
         if (!ServerStatic.IsDedicated)
-          GameConsole.Console.singleton.AddLog("Cached central servers count: " + (object) CentralServer._servers.Length, Color32.op_Implicit(Color.get_grey()), false);
+          GameConsole.Console.singleton.AddLog("Cached central servers count: " + (object) CentralServer._servers.Length, (Color32) Color.grey, false);
         if (CentralServer._servers.Length != 0)
         {
           Random random = new Random();
@@ -71,10 +66,10 @@ public class CentralServer : MonoBehaviour
           if (ServerStatic.IsDedicated)
             ServerConsole.AddLog("Selected central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")");
           else
-            GameConsole.Console.singleton.AddLog("Selected central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", Color32.op_Implicit(Color.get_grey()), false);
+            GameConsole.Console.singleton.AddLog("Selected central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", (Color32) Color.grey, false);
         }
       }
-      Timing.RunCoroutine(CentralServer._RefreshServerList(true), (Segment) 1);
+      Timing.RunCoroutine(CentralServer._RefreshServerList(true), Segment.FixedUpdate);
     }
   }
 
@@ -82,10 +77,7 @@ public class CentralServer : MonoBehaviour
   public static IEnumerator<float> _RefreshServerList(bool planned = false)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new CentralServer.\u003C_RefreshServerList\u003Ec__Iterator0()
-    {
-      planned = planned
-    };
+    return (IEnumerator<float>) new CentralServer.\u003C_RefreshServerList\u003Ec__Iterator0() { planned = planned };
   }
 
   public static bool ChangeCentralServer(bool remove)
@@ -100,11 +92,11 @@ public class CentralServer : MonoBehaviour
     }
     if (CentralServer._workingServers.Count == 0)
     {
-      GameConsole.Console.singleton.AddLog("All known central servers aren't working.", Color32.op_Implicit(Color.get_yellow()), false);
+      GameConsole.Console.singleton.AddLog("All known central servers aren't working.", (Color32) Color.yellow, false);
       CentralServer._workingServers.Add("API");
       CentralServer.SelectedServer = "Primary API";
       CentralServer.StandardUrl = "https://api.scpslgame.com/";
-      GameConsole.Console.singleton.AddLog("Changed central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", Color32.op_Implicit(Color.get_yellow()), false);
+      GameConsole.Console.singleton.AddLog("Changed central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", (Color32) Color.yellow, false);
       return true;
     }
     if (remove && CentralServer._workingServers.Contains(CentralServer.SelectedServer))
@@ -114,13 +106,13 @@ public class CentralServer : MonoBehaviour
       CentralServer._workingServers.Add("API");
       CentralServer.SelectedServer = "Primary API";
       CentralServer.StandardUrl = "https://api.scpslgame.com/";
-      GameConsole.Console.singleton.AddLog("Changed central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", Color32.op_Implicit(Color.get_yellow()), false);
+      GameConsole.Console.singleton.AddLog("Changed central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", (Color32) Color.yellow, false);
       return true;
     }
     Random random = new Random();
     CentralServer.SelectedServer = CentralServer._workingServers[random.Next(0, CentralServer._workingServers.Count)];
     CentralServer.StandardUrl = "https://" + CentralServer.SelectedServer.ToLower() + ".scpslgame.com/";
-    GameConsole.Console.singleton.AddLog("Changed central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", Color32.op_Implicit(Color.get_yellow()), false);
+    GameConsole.Console.singleton.AddLog("Changed central server: " + CentralServer.SelectedServer + " (" + CentralServer.StandardUrl + ")", (Color32) Color.yellow, false);
     return true;
   }
 }

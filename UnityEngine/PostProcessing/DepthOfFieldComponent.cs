@@ -26,7 +26,7 @@ namespace UnityEngine.PostProcessing
 
     public override DepthTextureMode GetCameraFlags()
     {
-      return (DepthTextureMode) 1;
+      return DepthTextureMode.Depth;
     }
 
     private float CalculateFocalLength()
@@ -34,7 +34,7 @@ namespace UnityEngine.PostProcessing
       DepthOfFieldModel.Settings settings = this.model.settings;
       if (!settings.useCameraFov)
         return settings.focalLength / 1000f;
-      return 0.012f / Mathf.Tan(0.5f * (this.context.camera.get_fieldOfView() * ((float) Math.PI / 180f)));
+      return 0.012f / Mathf.Tan(0.5f * (this.context.camera.fieldOfView * ((float) Math.PI / 180f)));
     }
 
     private float CalculateMaxCoCRadius(int screenHeight)
@@ -44,8 +44,8 @@ namespace UnityEngine.PostProcessing
 
     private bool CheckHistory(int width, int height)
     {
-      if (Object.op_Inequality((Object) this.m_CoCHistory, (Object) null) && this.m_CoCHistory.IsCreated() && ((Texture) this.m_CoCHistory).get_width() == width)
-        return ((Texture) this.m_CoCHistory).get_height() == height;
+      if ((Object) this.m_CoCHistory != (Object) null && this.m_CoCHistory.IsCreated() && this.m_CoCHistory.width == width)
+        return this.m_CoCHistory.height == height;
       return false;
     }
 
@@ -55,46 +55,46 @@ namespace UnityEngine.PostProcessing
         return primary;
       if (SystemInfo.SupportsRenderTextureFormat(secondary))
         return secondary;
-      return (RenderTextureFormat) 7;
+      return RenderTextureFormat.Default;
     }
 
     public void Prepare(RenderTexture source, Material uberMaterial, bool antialiasCoC, Vector2 taaJitter, float taaBlending)
     {
       DepthOfFieldModel.Settings settings = this.model.settings;
-      RenderTextureFormat format1 = (RenderTextureFormat) 9;
-      RenderTextureFormat format2 = this.SelectFormat((RenderTextureFormat) 16, (RenderTextureFormat) 15);
+      RenderTextureFormat format1 = RenderTextureFormat.DefaultHDR;
+      RenderTextureFormat format2 = this.SelectFormat(RenderTextureFormat.R8, RenderTextureFormat.RHalf);
       float focalLength = this.CalculateFocalLength();
-      float num1 = Mathf.Max(settings.focusDistance, focalLength);
-      float num2 = (float) ((Texture) source).get_width() / (float) ((Texture) source).get_height();
-      float num3 = (float) ((double) focalLength * (double) focalLength / ((double) settings.aperture * ((double) num1 - (double) focalLength) * 0.0240000002086163 * 2.0));
-      float maxCoCradius = this.CalculateMaxCoCRadius(((Texture) source).get_height());
-      Material material = this.context.materialFactory.Get("Hidden/Post FX/Depth Of Field");
-      material.SetFloat(DepthOfFieldComponent.Uniforms._Distance, num1);
-      material.SetFloat(DepthOfFieldComponent.Uniforms._LensCoeff, num3);
-      material.SetFloat(DepthOfFieldComponent.Uniforms._MaxCoC, maxCoCradius);
-      material.SetFloat(DepthOfFieldComponent.Uniforms._RcpMaxCoC, 1f / maxCoCradius);
-      material.SetFloat(DepthOfFieldComponent.Uniforms._RcpAspect, 1f / num2);
-      RenderTexture rt1 = this.context.renderTextureFactory.Get(this.context.width, this.context.height, 0, format2, (RenderTextureReadWrite) 1, (FilterMode) 1, (TextureWrapMode) 1, "FactoryTempTexture");
-      Graphics.Blit((Texture) null, rt1, material, 0);
+      float x = Mathf.Max(settings.focusDistance, focalLength);
+      float num = (float) source.width / (float) source.height;
+      float y = (float) ((double) focalLength * (double) focalLength / ((double) settings.aperture * ((double) x - (double) focalLength) * 0.0240000002086163 * 2.0));
+      float maxCoCradius = this.CalculateMaxCoCRadius(source.height);
+      Material mat = this.context.materialFactory.Get("Hidden/Post FX/Depth Of Field");
+      mat.SetFloat(DepthOfFieldComponent.Uniforms._Distance, x);
+      mat.SetFloat(DepthOfFieldComponent.Uniforms._LensCoeff, y);
+      mat.SetFloat(DepthOfFieldComponent.Uniforms._MaxCoC, maxCoCradius);
+      mat.SetFloat(DepthOfFieldComponent.Uniforms._RcpMaxCoC, 1f / maxCoCradius);
+      mat.SetFloat(DepthOfFieldComponent.Uniforms._RcpAspect, 1f / num);
+      RenderTexture renderTexture1 = this.context.renderTextureFactory.Get(this.context.width, this.context.height, 0, format2, RenderTextureReadWrite.Linear, FilterMode.Bilinear, TextureWrapMode.Clamp, "FactoryTempTexture");
+      Graphics.Blit((Texture) null, renderTexture1, mat, 0);
       if (antialiasCoC)
       {
-        material.SetTexture(DepthOfFieldComponent.Uniforms._CoCTex, (Texture) rt1);
-        float num4 = !this.CheckHistory(this.context.width, this.context.height) ? 0.0f : taaBlending;
-        material.SetVector(DepthOfFieldComponent.Uniforms._TaaParams, Vector4.op_Implicit(new Vector3((float) taaJitter.x, (float) taaJitter.y, num4)));
+        mat.SetTexture(DepthOfFieldComponent.Uniforms._CoCTex, (Texture) renderTexture1);
+        float z = !this.CheckHistory(this.context.width, this.context.height) ? 0.0f : taaBlending;
+        mat.SetVector(DepthOfFieldComponent.Uniforms._TaaParams, (Vector4) new Vector3(taaJitter.x, taaJitter.y, z));
         RenderTexture temporary = RenderTexture.GetTemporary(this.context.width, this.context.height, 0, format2);
-        Graphics.Blit((Texture) this.m_CoCHistory, temporary, material, 1);
-        this.context.renderTextureFactory.Release(rt1);
-        if (Object.op_Inequality((Object) this.m_CoCHistory, (Object) null))
+        Graphics.Blit((Texture) this.m_CoCHistory, temporary, mat, 1);
+        this.context.renderTextureFactory.Release(renderTexture1);
+        if ((Object) this.m_CoCHistory != (Object) null)
           RenderTexture.ReleaseTemporary(this.m_CoCHistory);
-        this.m_CoCHistory = rt1 = temporary;
+        this.m_CoCHistory = renderTexture1 = temporary;
       }
-      RenderTexture renderTexture = this.context.renderTextureFactory.Get(this.context.width / 2, this.context.height / 2, 0, format1, (RenderTextureReadWrite) 0, (FilterMode) 1, (TextureWrapMode) 1, "FactoryTempTexture");
-      material.SetTexture(DepthOfFieldComponent.Uniforms._CoCTex, (Texture) rt1);
-      Graphics.Blit((Texture) source, renderTexture, material, 2);
-      RenderTexture rt2 = this.context.renderTextureFactory.Get(this.context.width / 2, this.context.height / 2, 0, format1, (RenderTextureReadWrite) 0, (FilterMode) 1, (TextureWrapMode) 1, "FactoryTempTexture");
-      Graphics.Blit((Texture) renderTexture, rt2, material, (int) (3 + settings.kernelSize));
-      Graphics.Blit((Texture) rt2, renderTexture, material, 7);
-      uberMaterial.SetVector(DepthOfFieldComponent.Uniforms._DepthOfFieldParams, Vector4.op_Implicit(new Vector3(num1, num3, maxCoCradius)));
+      RenderTexture dest = this.context.renderTextureFactory.Get(this.context.width / 2, this.context.height / 2, 0, format1, RenderTextureReadWrite.Default, FilterMode.Bilinear, TextureWrapMode.Clamp, "FactoryTempTexture");
+      mat.SetTexture(DepthOfFieldComponent.Uniforms._CoCTex, (Texture) renderTexture1);
+      Graphics.Blit((Texture) source, dest, mat, 2);
+      RenderTexture renderTexture2 = this.context.renderTextureFactory.Get(this.context.width / 2, this.context.height / 2, 0, format1, RenderTextureReadWrite.Default, FilterMode.Bilinear, TextureWrapMode.Clamp, "FactoryTempTexture");
+      Graphics.Blit((Texture) dest, renderTexture2, mat, (int) (3 + settings.kernelSize));
+      Graphics.Blit((Texture) renderTexture2, dest, mat, 7);
+      uberMaterial.SetVector(DepthOfFieldComponent.Uniforms._DepthOfFieldParams, (Vector4) new Vector3(x, y, maxCoCradius));
       if (this.context.profile.debugViews.IsModeActive(BuiltinDebugViewsModel.Mode.FocusPlane))
       {
         uberMaterial.EnableKeyword("DEPTH_OF_FIELD_COC_VIEW");
@@ -102,16 +102,16 @@ namespace UnityEngine.PostProcessing
       }
       else
       {
-        uberMaterial.SetTexture(DepthOfFieldComponent.Uniforms._DepthOfFieldTex, (Texture) renderTexture);
-        uberMaterial.SetTexture(DepthOfFieldComponent.Uniforms._DepthOfFieldCoCTex, (Texture) rt1);
+        uberMaterial.SetTexture(DepthOfFieldComponent.Uniforms._DepthOfFieldTex, (Texture) dest);
+        uberMaterial.SetTexture(DepthOfFieldComponent.Uniforms._DepthOfFieldCoCTex, (Texture) renderTexture1);
         uberMaterial.EnableKeyword("DEPTH_OF_FIELD");
       }
-      this.context.renderTextureFactory.Release(rt2);
+      this.context.renderTextureFactory.Release(renderTexture2);
     }
 
     public override void OnDisable()
     {
-      if (Object.op_Inequality((Object) this.m_CoCHistory, (Object) null))
+      if ((Object) this.m_CoCHistory != (Object) null)
         RenderTexture.ReleaseTemporary(this.m_CoCHistory);
       this.m_CoCHistory = (RenderTexture) null;
     }

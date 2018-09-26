@@ -66,16 +66,14 @@ namespace AmplifyBloom
     private Vector4[] CalculateBokehSamples(int sampleCount, float angle)
     {
       Vector4[] vector4Array = new Vector4[sampleCount];
-      float num1 = (float) Math.PI / 180f * angle;
-      float num2 = (float) Screen.get_width() / (float) Screen.get_height();
-      Vector4 vector4;
-      ((Vector4) ref vector4).\u002Ector(this.m_bokehSampleRadius * Mathf.Cos(num1), this.m_bokehSampleRadius * Mathf.Sin(num1));
-      ref Vector4 local = ref vector4;
-      local.x = (__Null) (local.x / (double) num2);
+      float f = (float) Math.PI / 180f * angle;
+      float num = (float) Screen.width / (float) Screen.height;
+      Vector4 b = new Vector4(this.m_bokehSampleRadius * Mathf.Cos(f), this.m_bokehSampleRadius * Mathf.Sin(f));
+      b.x /= num;
       for (int index = 0; index < sampleCount; ++index)
       {
-        float num3 = (float) index / ((float) sampleCount - 1f);
-        vector4Array[index] = Vector4.Lerp(Vector4.op_UnaryNegation(vector4), vector4, num3);
+        float t = (float) index / ((float) sampleCount - 1f);
+        vector4Array[index] = Vector4.Lerp(-b, b, t);
       }
       return vector4Array;
     }
@@ -83,7 +81,7 @@ namespace AmplifyBloom
     public void ApplyBokehFilter(RenderTexture source, Material material)
     {
       for (int index = 0; index < this.m_bokehOffsets.Count; ++index)
-        this.m_bokehOffsets[index].BokehRenderTexture = AmplifyUtils.GetTempRenderTarget(((Texture) source).get_width(), ((Texture) source).get_height());
+        this.m_bokehOffsets[index].BokehRenderTexture = AmplifyUtils.GetTempRenderTarget(source.width, source.height);
       material.SetVector(AmplifyUtils.BokehParamsId, this.m_bokehCameraProperties);
       for (int index1 = 0; index1 < this.m_bokehOffsets.Count; ++index1)
       {
@@ -190,11 +188,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bokehCameraProperties.x;
+        return this.m_bokehCameraProperties.x;
       }
       set
       {
-        this.m_bokehCameraProperties.x = (__Null) (double) value;
+        this.m_bokehCameraProperties.x = value;
       }
     }
 
@@ -202,11 +200,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bokehCameraProperties.y;
+        return this.m_bokehCameraProperties.y;
       }
       set
       {
-        this.m_bokehCameraProperties.y = (__Null) (double) value;
+        this.m_bokehCameraProperties.y = value;
       }
     }
 
@@ -214,11 +212,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bokehCameraProperties.z;
+        return this.m_bokehCameraProperties.z;
       }
       set
       {
-        this.m_bokehCameraProperties.z = (__Null) (double) value;
+        this.m_bokehCameraProperties.z = value;
       }
     }
 
@@ -226,11 +224,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bokehCameraProperties.w;
+        return this.m_bokehCameraProperties.w;
       }
       set
       {
-        this.m_bokehCameraProperties.w = (__Null) (double) value;
+        this.m_bokehCameraProperties.w = value;
       }
     }
   }

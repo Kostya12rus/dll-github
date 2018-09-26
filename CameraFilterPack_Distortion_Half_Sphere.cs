@@ -10,31 +10,26 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Distortion_Half_Sphere : MonoBehaviour
 {
+  private float TimeX = 1f;
+  public float SphereSize = 2.5f;
+  [Range(1f, 10f)]
+  public float Strength = 5f;
   public Shader SCShader;
-  private float TimeX;
   [Range(1f, 6f)]
   private Material SCMaterial;
-  public float SphereSize;
   [Range(-1f, 1f)]
   public float SpherePositionX;
   [Range(-1f, 1f)]
   public float SpherePositionY;
-  [Range(1f, 10f)]
-  public float Strength;
-
-  public CameraFilterPack_Distortion_Half_Sphere()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -43,16 +38,16 @@ public class CameraFilterPack_Distortion_Half_Sphere : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Distortion_Half_Sphere");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -60,7 +55,7 @@ public class CameraFilterPack_Distortion_Half_Sphere : MonoBehaviour
       this.material.SetFloat("_SpherePositionX", this.SpherePositionX);
       this.material.SetFloat("_SpherePositionY", this.SpherePositionY);
       this.material.SetFloat("_Strength", this.Strength);
-      this.material.SetVector("_ScreenResolution", Vector4.op_Implicit(new Vector2((float) Screen.get_width(), (float) Screen.get_height())));
+      this.material.SetVector("_ScreenResolution", (Vector4) new Vector2((float) Screen.width, (float) Screen.height));
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -73,7 +68,7 @@ public class CameraFilterPack_Distortion_Half_Sphere : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

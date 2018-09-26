@@ -17,11 +17,6 @@ public class ServerTime : NetworkBehaviour
   public static int time;
   private const int allowedDeviation = 2;
 
-  public ServerTime()
-  {
-    base.\u002Ector();
-  }
-
   public static bool CheckSynchronization(int myTime)
   {
     int num = Mathf.Abs(myTime - ServerTime.time);
@@ -32,16 +27,16 @@ public class ServerTime : NetworkBehaviour
 
   private void Update()
   {
-    if (!(((Object) this).get_name() == "Host"))
+    if (!(this.name == "Host"))
       return;
     ServerTime.time = this.timeFromStartup;
   }
 
   private void Start()
   {
-    if (!this.get_isLocalPlayer() || !this.get_isServer())
+    if (!this.isLocalPlayer || !this.isServer)
       return;
-    ((MonoBehaviour) this).InvokeRepeating("IncreaseTime", 1f, 1f);
+    this.InvokeRepeating("IncreaseTime", 1f, 1f);
   }
 
   private void IncreaseTime()
@@ -52,7 +47,7 @@ public class ServerTime : NetworkBehaviour
   [ClientCallback]
   private void TransmitData(int timeFromStartup)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       return;
     this.CallCmdSetTime(timeFromStartup);
   }
@@ -75,13 +70,13 @@ public class ServerTime : NetworkBehaviour
     }
     [param: In] set
     {
-      this.SetSyncVar<int>((M0) value, (M0&) ref this.timeFromStartup, 1U);
+      this.SetSyncVar<int>(value, ref this.timeFromStartup, 1U);
     }
   }
 
   protected static void InvokeCmdCmdSetTime(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdSetTime called on client.");
     else
       ((ServerTime) obj).CmdSetTime((int) reader.ReadPackedUInt32());
@@ -89,32 +84,31 @@ public class ServerTime : NetworkBehaviour
 
   public void CallCmdSetTime(int t)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdSetTime called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdSetTime(t);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) ServerTime.kCmdCmdSetTime);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) t);
-      this.SendCommandInternal(networkWriter, 12, "CmdSetTime");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) ServerTime.kCmdCmdSetTime);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) t);
+      this.SendCommandInternal(writer, 12, "CmdSetTime");
     }
   }
 
   static ServerTime()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (ServerTime), ServerTime.kCmdCmdSetTime, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdSetTime)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (ServerTime), ServerTime.kCmdCmdSetTime, new NetworkBehaviour.CmdDelegate(ServerTime.InvokeCmdCmdSetTime));
     NetworkCRC.RegisterBehaviour(nameof (ServerTime), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -122,21 +116,21 @@ public class ServerTime : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.WritePackedUInt32((uint) this.timeFromStartup);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

@@ -12,7 +12,6 @@ namespace UnityEngine.PostProcessing
 
     public TrackballAttribute(string method)
     {
-      this.\u002Ector();
       this.method = method;
     }
   }

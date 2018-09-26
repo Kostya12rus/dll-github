@@ -13,33 +13,28 @@ using UnityEngine;
 
 public class ServerListManager : MonoBehaviour
 {
+  private List<GameObject> spawns = new List<GameObject>();
   public RectTransform contentParent;
   public RectTransform element;
   public UnityEngine.UI.Text loadingText;
   public static ServerListManager singleton;
   private ServerFilters filters;
-  private List<GameObject> spawns;
-
-  public ServerListManager()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
-    this.filters = (ServerFilters) ((Component) this).GetComponent<ServerFilters>();
+    this.filters = this.GetComponent<ServerFilters>();
     ServerListManager.singleton = this;
   }
 
   public GameObject AddRecord()
   {
-    RectTransform rectTransform = (RectTransform) Object.Instantiate<RectTransform>((M0) this.element);
-    ((Transform) rectTransform).SetParent((Transform) this.contentParent);
-    ((Transform) rectTransform).set_localScale(Vector3.get_one());
-    ((Transform) rectTransform).set_localPosition(Vector3.get_zero());
-    this.spawns.Add(((Component) rectTransform).get_gameObject());
-    this.contentParent.set_sizeDelta(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.get_up(), 150f), (float) this.spawns.Count));
-    return ((Component) rectTransform).get_gameObject();
+    RectTransform rectTransform = Object.Instantiate<RectTransform>(this.element);
+    rectTransform.SetParent((Transform) this.contentParent);
+    rectTransform.localScale = Vector3.one;
+    rectTransform.localPosition = Vector3.zero;
+    this.spawns.Add(rectTransform.gameObject);
+    this.contentParent.sizeDelta = Vector2.up * 150f * (float) this.spawns.Count;
+    return rectTransform.gameObject;
   }
 
   private void OnEnable()
@@ -55,17 +50,14 @@ public class ServerListManager : MonoBehaviour
 
   public void Refresh()
   {
-    Timing.RunCoroutine(this._DownloadList(), (Segment) 1);
+    Timing.RunCoroutine(this._DownloadList(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   public IEnumerator<float> _DownloadList()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ServerListManager.\u003C_DownloadList\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ServerListManager.\u003C_DownloadList\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private string Base64Decode(string t)

@@ -11,9 +11,4 @@ public class UBER_MaterialPresetCollectionReference : MonoBehaviour
 {
   [HideInInspector]
   public UBER_MaterialPresetCollection collectionReference;
-
-  public UBER_MaterialPresetCollectionReference()
-  {
-    base.\u002Ector();
-  }
 }

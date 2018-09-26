@@ -11,22 +11,17 @@ public class WarningAwawke : MonoBehaviour
 {
   public Toggle toggle;
 
-  public WarningAwawke()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     if (!(PlayerPrefs.GetString("warningToggle", "false") == "true"))
       return;
-    ((Component) this).get_gameObject().SetActive(false);
+    this.gameObject.SetActive(false);
   }
 
   public void Close()
   {
-    if (this.toggle.get_isOn())
+    if (this.toggle.isOn)
       PlayerPrefs.SetString("warningToggle", "true");
-    ((Component) this).get_gameObject().SetActive(false);
+    this.gameObject.SetActive(false);
   }
 }

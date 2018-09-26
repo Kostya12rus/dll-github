@@ -8,8 +8,4 @@ using UnityEngine;
 
 public class AntiTPose : MonoBehaviour
 {
-  public AntiTPose()
-  {
-    base.\u002Ector();
-  }
 }

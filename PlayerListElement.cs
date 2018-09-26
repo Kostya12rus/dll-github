@@ -12,13 +12,8 @@ public class PlayerListElement : MonoBehaviour
 {
   public GameObject instance;
 
-  public PlayerListElement()
-  {
-    base.\u002Ector();
-  }
-
   public void Use(bool b)
   {
-    ((DissonanceComms) Object.FindObjectOfType<DissonanceComms>()).FindPlayer(((HlapiPlayer) this.instance.GetComponent<HlapiPlayer>()).PlayerId).set_IsLocallyMuted(b);
+    Object.FindObjectOfType<DissonanceComms>().FindPlayer(this.instance.GetComponent<HlapiPlayer>().PlayerId).IsLocallyMuted = b;
   }
 }

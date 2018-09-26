@@ -14,11 +14,6 @@ public class WhiteList : MonoBehaviour
 {
   public static List<string> SteamIDs;
 
-  public WhiteList()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     WhiteList.ReloadWhitelist();

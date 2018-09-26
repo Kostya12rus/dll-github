@@ -12,7 +12,7 @@ using UnityEngine.PostProcessing;
 public class Class
 {
   public string fullName = "Chaos Insurgency";
-  public Color classColor = Color.get_white();
+  public Color classColor = Color.white;
   [Space]
   public int[] ammoTypes = new int[3]{ 100, 100, 100 };
   public int maxHP = 100;

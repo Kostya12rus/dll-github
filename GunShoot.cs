@@ -9,8 +9,8 @@ using UnityEngine;
 
 public class GunShoot : MonoBehaviour
 {
-  public float fireRate;
-  public float weaponRange;
+  public float fireRate = 0.25f;
+  public float weaponRange = 20f;
   public Transform gunEnd;
   public ParticleSystem muzzleFlash;
   public ParticleSystem cartridgeEjection;
@@ -25,36 +25,31 @@ public class GunShoot : MonoBehaviour
   private Animator anim;
   private GunAim gunAim;
 
-  public GunShoot()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.anim = (Animator) ((Component) this).GetComponent<Animator>();
-    this.gunAim = (GunAim) ((Component) this).GetComponentInParent<GunAim>();
+    this.anim = this.GetComponent<Animator>();
+    this.gunAim = this.GetComponentInParent<GunAim>();
   }
 
   private void Update()
   {
-    if (!Input.GetKeyDown(NewInput.GetKey("Fire1")) || (double) Time.get_time() <= (double) this.nextFire || this.gunAim.GetIsOutOfBounds())
+    if (!Input.GetKeyDown(NewInput.GetKey("Fire1")) || (double) Time.time <= (double) this.nextFire || this.gunAim.GetIsOutOfBounds())
       return;
-    this.nextFire = Time.get_time() + this.fireRate;
+    this.nextFire = Time.time + this.fireRate;
     this.muzzleFlash.Play();
     this.cartridgeEjection.Play();
     this.anim.SetTrigger("Fire");
-    RaycastHit hit;
-    if (!Physics.Raycast(this.gunEnd.get_position(), this.gunEnd.get_forward(), ref hit, this.weaponRange))
+    RaycastHit hitInfo;
+    if (!Physics.Raycast(this.gunEnd.position, this.gunEnd.forward, out hitInfo, this.weaponRange))
       return;
-    this.HandleHit(hit);
+    this.HandleHit(hitInfo);
   }
 
   private void HandleHit(RaycastHit hit)
   {
-    if (!Object.op_Inequality((Object) ((RaycastHit) ref hit).get_collider().get_sharedMaterial(), (Object) null))
+    if (!((Object) hit.collider.sharedMaterial != (Object) null))
       return;
-    string name = ((Object) ((RaycastHit) ref hit).get_collider().get_sharedMaterial()).get_name();
+    string name = hit.collider.sharedMaterial.name;
     if (name == null)
       return;
     // ISSUE: reference to a compiler-generated field
@@ -134,6 +129,6 @@ public class GunShoot : MonoBehaviour
 
   private void SpawnDecal(RaycastHit hit, GameObject prefab)
   {
-    ((GameObject) Object.Instantiate<GameObject>((M0) prefab, ((RaycastHit) ref hit).get_point(), Quaternion.LookRotation(((RaycastHit) ref hit).get_normal()))).get_transform().SetParent(((Component) ((RaycastHit) ref hit).get_collider()).get_transform());
+    Object.Instantiate<GameObject>(prefab, hit.point, Quaternion.LookRotation(hit.normal)).transform.SetParent(hit.collider.transform);
   }
 }

@@ -13,14 +13,9 @@ using UnityEngine.SceneManagement;
 
 public class TranslationReader : MonoBehaviour
 {
+  public List<TranslationReader.TranslatedElement> elements = new List<TranslationReader.TranslatedElement>();
   public static TranslationReader singleton;
-  public List<TranslationReader.TranslatedElement> elements;
   public static string path;
-
-  public TranslationReader()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -31,13 +26,12 @@ public class TranslationReader : MonoBehaviour
   {
     NewInput.Load();
     this.Refresh();
-    // ISSUE: method pointer
-    SceneManager.add_sceneLoaded(new UnityAction<Scene, LoadSceneMode>((object) this, __methodptr(OnSceneWasLoaded)));
+    SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(this.OnSceneWasLoaded);
   }
 
   private void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
   {
-    if (((Scene) ref scene).get_buildIndex() != 0)
+    if (scene.buildIndex != 0)
       return;
     this.Refresh();
   }
@@ -82,14 +76,7 @@ public class TranslationReader : MonoBehaviour
         string end = streamReader.ReadToEnd();
         streamReader.Close();
         string str = path.Remove(0, path.LastIndexOf("/") + 1);
-        TranslationReader.TranslatedElement translatedElement = new TranslationReader.TranslatedElement()
-        {
-          fileName = str.Remove(str.IndexOf('.')),
-          values = end.Split(new string[1]
-          {
-            Environment.NewLine
-          }, StringSplitOptions.None)
-        };
+        TranslationReader.TranslatedElement translatedElement = new TranslationReader.TranslatedElement() { fileName = str.Remove(str.IndexOf('.')), values = end.Split(new string[1]{ Environment.NewLine }, StringSplitOptions.None) };
         TranslationReader.singleton.elements.Add(translatedElement);
       }
       catch

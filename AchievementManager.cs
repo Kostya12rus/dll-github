@@ -9,11 +9,6 @@ using UnityEngine;
 
 public class AchievementManager : MonoBehaviour
 {
-  public AchievementManager()
-  {
-    base.\u002Ector();
-  }
-
   public static void Achieve(string key)
   {
     if (!SteamManager.Initialized || ServerStatic.IsDedicated)
@@ -27,12 +22,12 @@ public class AchievementManager : MonoBehaviour
   {
     if (!SteamManager.Initialized || ServerStatic.IsDedicated)
       return;
-    int num;
-    SteamUserStats.GetStat(key, ref num);
-    ++num;
-    num = Mathf.Clamp(num, 0, maxValue);
-    SteamUserStats.SetStat(key, num);
-    SteamUserStats.IndicateAchievementProgress(completeAchievement, (uint) num, (uint) maxValue);
-    Debug.Log((object) ("Stats Progress! " + key + " " + (object) num + "/" + (object) maxValue));
+    int pData;
+    SteamUserStats.GetStat(key, out pData);
+    ++pData;
+    pData = Mathf.Clamp(pData, 0, maxValue);
+    SteamUserStats.SetStat(key, pData);
+    SteamUserStats.IndicateAchievementProgress(completeAchievement, (uint) pData, (uint) maxValue);
+    Debug.Log((object) ("Stats Progress! " + key + " " + (object) pData + "/" + (object) maxValue));
   }
 }

@@ -16,14 +16,9 @@ namespace TMPro.Examples
     private TMP_Text m_TextComponent;
     private bool hasTextChanged;
 
-    public TextConsoleSimulator()
-    {
-      base.\u002Ector();
-    }
-
     private void Awake()
     {
-      this.m_TextComponent = (TMP_Text) ((Component) this).get_gameObject().GetComponent<TMP_Text>();
+      this.m_TextComponent = this.gameObject.GetComponent<TMP_Text>();
     }
 
     private void Start()
@@ -33,12 +28,12 @@ namespace TMPro.Examples
 
     private void OnEnable()
     {
-      ((FastAction<Object>) TMPro_EventManager.TEXT_CHANGED_EVENT).Add(new Action<Object>(this.ON_TEXT_CHANGED));
+      TMPro_EventManager.TEXT_CHANGED_EVENT.Add(new Action<Object>(this.ON_TEXT_CHANGED));
     }
 
     private void OnDisable()
     {
-      ((FastAction<Object>) TMPro_EventManager.TEXT_CHANGED_EVENT).Remove(new Action<Object>(this.ON_TEXT_CHANGED));
+      TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(new Action<Object>(this.ON_TEXT_CHANGED));
     }
 
     private void ON_TEXT_CHANGED(Object obj)

@@ -18,11 +18,6 @@ public class ServerStatic : MonoBehaviour
   internal static string RolesConfigPath;
   internal static PermissionsHandler PermissionsHandler;
 
-  public ServerStatic()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     foreach (string commandLineArg in Environment.GetCommandLineArgs())
@@ -43,18 +38,17 @@ public class ServerStatic : MonoBehaviour
     if (this.Simulate)
     {
       ServerStatic.IsDedicated = true;
-      AudioListener.set_volume(0.0f);
+      AudioListener.volume = 0.0f;
       ServerConsole.AddLog("SCP Secret Laboratory process started. Creating match... LOGTYPE02");
     }
-    // ISSUE: method pointer
-    SceneManager.add_sceneLoaded(new UnityAction<Scene, LoadSceneMode>((object) this, __methodptr(OnSceneWasLoaded)));
+    SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(this.OnSceneWasLoaded);
   }
 
   private void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
   {
-    if (!ServerStatic.IsDedicated || ((Scene) ref scene).get_buildIndex() != 1 && ((Scene) ref scene).get_buildIndex() != 3)
+    if (!ServerStatic.IsDedicated || scene.buildIndex != 1 && scene.buildIndex != 3)
       return;
-    ((CustomNetworkManager) ((Component) this).GetComponent<CustomNetworkManager>()).CreateMatch();
+    this.GetComponent<CustomNetworkManager>().CreateMatch();
   }
 
   public static PermissionsHandler GetPermissionsHandler()

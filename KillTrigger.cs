@@ -8,29 +8,24 @@ using UnityEngine;
 
 public class KillTrigger : MonoBehaviour
 {
+  public bool disableOnEnd = true;
   public int killsToTrigger;
   public int triggerID;
   public string alias;
-  public bool disableOnEnd;
   public int prioirty;
-
-  public KillTrigger()
-  {
-    base.\u002Ector();
-  }
 
   public void Trigger(int amount)
   {
     if (amount != this.killsToTrigger)
       return;
     if (this.triggerID == -1)
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Tutorial2_Result();
+      Object.FindObjectOfType<TutorialManager>().Tutorial2_Result();
     else if (this.alias != string.Empty)
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Trigger(this.alias);
+      Object.FindObjectOfType<TutorialManager>().Trigger(this.alias);
     else
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Trigger(this.triggerID);
+      Object.FindObjectOfType<TutorialManager>().Trigger(this.triggerID);
     if (!this.disableOnEnd)
       return;
-    Object.Destroy((Object) ((Component) this).get_gameObject());
+    Object.Destroy((Object) this.gameObject);
   }
 }

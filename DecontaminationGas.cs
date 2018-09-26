@@ -11,25 +11,20 @@ public class DecontaminationGas : MonoBehaviour
 {
   public static List<DecontaminationGas> gases = new List<DecontaminationGas>();
 
-  public DecontaminationGas()
-  {
-    base.\u002Ector();
-  }
-
   public static void TurnOn()
   {
     if (ServerStatic.IsDedicated)
       return;
     foreach (DecontaminationGas gase in DecontaminationGas.gases)
     {
-      if (Object.op_Inequality((Object) gase, (Object) null))
-        ((Component) gase).get_gameObject().SetActive(true);
+      if ((Object) gase != (Object) null)
+        gase.gameObject.SetActive(true);
     }
   }
 
   private void Start()
   {
     DecontaminationGas.gases.Add(this);
-    ((Component) this).get_gameObject().SetActive(false);
+    this.gameObject.SetActive(false);
   }
 }

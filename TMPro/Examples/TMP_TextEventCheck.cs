@@ -13,41 +13,26 @@ namespace TMPro.Examples
   {
     public TMP_TextEventHandler TextEventHandler;
 
-    public TMP_TextEventCheck()
-    {
-      base.\u002Ector();
-    }
-
     private void OnEnable()
     {
-      if (!Object.op_Inequality((Object) this.TextEventHandler, (Object) null))
+      if (!((Object) this.TextEventHandler != (Object) null))
         return;
-      // ISSUE: method pointer
-      this.TextEventHandler.onCharacterSelection.AddListener(new UnityAction<char, int>((object) this, __methodptr(OnCharacterSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onSpriteSelection.AddListener(new UnityAction<char, int>((object) this, __methodptr(OnSpriteSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onWordSelection.AddListener(new UnityAction<string, int, int>((object) this, __methodptr(OnWordSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onLineSelection.AddListener(new UnityAction<string, int, int>((object) this, __methodptr(OnLineSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onLinkSelection.AddListener(new UnityAction<string, string, int>((object) this, __methodptr(OnLinkSelection)));
+      this.TextEventHandler.onCharacterSelection.AddListener(new UnityAction<char, int>(this.OnCharacterSelection));
+      this.TextEventHandler.onSpriteSelection.AddListener(new UnityAction<char, int>(this.OnSpriteSelection));
+      this.TextEventHandler.onWordSelection.AddListener(new UnityAction<string, int, int>(this.OnWordSelection));
+      this.TextEventHandler.onLineSelection.AddListener(new UnityAction<string, int, int>(this.OnLineSelection));
+      this.TextEventHandler.onLinkSelection.AddListener(new UnityAction<string, string, int>(this.OnLinkSelection));
     }
 
     private void OnDisable()
     {
-      if (!Object.op_Inequality((Object) this.TextEventHandler, (Object) null))
+      if (!((Object) this.TextEventHandler != (Object) null))
         return;
-      // ISSUE: method pointer
-      this.TextEventHandler.onCharacterSelection.RemoveListener(new UnityAction<char, int>((object) this, __methodptr(OnCharacterSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onSpriteSelection.RemoveListener(new UnityAction<char, int>((object) this, __methodptr(OnSpriteSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onWordSelection.RemoveListener(new UnityAction<string, int, int>((object) this, __methodptr(OnWordSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onLineSelection.RemoveListener(new UnityAction<string, int, int>((object) this, __methodptr(OnLineSelection)));
-      // ISSUE: method pointer
-      this.TextEventHandler.onLinkSelection.RemoveListener(new UnityAction<string, string, int>((object) this, __methodptr(OnLinkSelection)));
+      this.TextEventHandler.onCharacterSelection.RemoveListener(new UnityAction<char, int>(this.OnCharacterSelection));
+      this.TextEventHandler.onSpriteSelection.RemoveListener(new UnityAction<char, int>(this.OnSpriteSelection));
+      this.TextEventHandler.onWordSelection.RemoveListener(new UnityAction<string, int, int>(this.OnWordSelection));
+      this.TextEventHandler.onLineSelection.RemoveListener(new UnityAction<string, int, int>(this.OnLineSelection));
+      this.TextEventHandler.onLinkSelection.RemoveListener(new UnityAction<string, string, int>(this.OnLinkSelection));
     }
 
     private void OnCharacterSelection(char c, int index)

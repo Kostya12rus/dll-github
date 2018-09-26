@@ -21,14 +21,9 @@ public class PlayerPrefsSL : MonoBehaviour
   private static bool isRegistryAllowed;
   private static string[] registry;
 
-  public PlayerPrefsSL()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
-    PlayerPrefsSL.isRegistryAllowed = SystemInfo.get_operatingSystemFamily() == 2 && (!File.Exists("useregistry.txt") ? 0 : (File.ReadAllText("useregistry.txt").Trim().ToLower() == "useregistry: false".Trim().ToLower() ? 1 : 0)) == 0;
+    PlayerPrefsSL.isRegistryAllowed = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows && (!File.Exists("useregistry.txt") ? 0 : (File.ReadAllText("useregistry.txt").Trim().ToLower() == "useregistry: false".Trim().ToLower() ? 1 : 0)) == 0;
     PlayerPrefsSL.Refresh();
   }
 
@@ -149,32 +144,32 @@ public class PlayerPrefsSL : MonoBehaviour
 
   public static void DeleteKey(string key, PlayerPrefsSL.DataTypes type)
   {
-    string element = key;
+    string str = key;
     switch (type)
     {
       case PlayerPrefsSL.DataTypes.Float:
-        element = PlayerPrefsSL.floatheader + key;
+        str = PlayerPrefsSL.floatheader + key;
         break;
       case PlayerPrefsSL.DataTypes.Int:
-        element = PlayerPrefsSL.intheader + key;
+        str = PlayerPrefsSL.intheader + key;
         break;
       case PlayerPrefsSL.DataTypes.String:
-        element = PlayerPrefsSL.stringheader + key;
+        str = PlayerPrefsSL.stringheader + key;
         break;
       case PlayerPrefsSL.DataTypes.Bool:
-        element = PlayerPrefsSL.boolheader + key;
+        str = PlayerPrefsSL.boolheader + key;
         break;
     }
     if (PlayerPrefsSL.Refresh())
     {
       string[] myArray = PlayerPrefsSL.RemoveElement(key, PlayerPrefsSL.registry);
-      string[] contents = PlayerPrefsSL.RemoveElement(element, myArray);
+      string[] contents = PlayerPrefsSL.RemoveElement(str, myArray);
       File.WriteAllLines(PlayerPrefsSL.path, contents);
     }
     else
     {
       PlayerPrefs.DeleteKey(key);
-      PlayerPrefs.DeleteKey(element);
+      PlayerPrefs.DeleteKey(str);
     }
   }
 
@@ -317,32 +312,32 @@ public class PlayerPrefsSL : MonoBehaviour
 
   public static bool HasKey(string key, PlayerPrefsSL.DataTypes type)
   {
-    string str1 = key;
+    string key1 = key;
     switch (type)
     {
       case PlayerPrefsSL.DataTypes.Float:
-        str1 = PlayerPrefsSL.floatheader + key;
+        key1 = PlayerPrefsSL.floatheader + key;
         break;
       case PlayerPrefsSL.DataTypes.Int:
-        str1 = PlayerPrefsSL.intheader + key;
+        key1 = PlayerPrefsSL.intheader + key;
         break;
       case PlayerPrefsSL.DataTypes.String:
-        str1 = PlayerPrefsSL.stringheader + key;
+        key1 = PlayerPrefsSL.stringheader + key;
         break;
       case PlayerPrefsSL.DataTypes.Bool:
-        str1 = PlayerPrefsSL.boolheader + key;
+        key1 = PlayerPrefsSL.boolheader + key;
         break;
     }
     if (PlayerPrefsSL.Refresh())
     {
-      foreach (string str2 in PlayerPrefsSL.registry)
+      foreach (string str in PlayerPrefsSL.registry)
       {
-        if (str2.StartsWith(str1 + ":") || str2.StartsWith(key + ":"))
+        if (str.StartsWith(key1 + ":") || str.StartsWith(key + ":"))
           return true;
       }
       return false;
     }
-    if (!PlayerPrefs.HasKey(str1))
+    if (!PlayerPrefs.HasKey(key1))
       return PlayerPrefs.HasKey(key);
     return true;
   }

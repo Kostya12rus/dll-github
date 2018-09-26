@@ -16,7 +16,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        if (this.model.enabled && this.context.isGBufferAvailable && RenderSettings.get_fog())
+        if (this.model.enabled && this.context.isGBufferAvailable && RenderSettings.fog)
           return !this.context.interrupted;
         return false;
       }
@@ -29,49 +29,40 @@ namespace UnityEngine.PostProcessing
 
     public override DepthTextureMode GetCameraFlags()
     {
-      return (DepthTextureMode) 1;
+      return DepthTextureMode.Depth;
     }
 
     public override CameraEvent GetCameraEvent()
     {
-      return (CameraEvent) 13;
+      return CameraEvent.AfterImageEffectsOpaque;
     }
 
     public override void PopulateCommandBuffer(CommandBuffer cb)
     {
       FogModel.Settings settings = this.model.settings;
-      Material material = this.context.materialFactory.Get("Hidden/Post FX/Fog");
-      material.set_shaderKeywords((string[]) null);
-      Color color1;
-      if (GraphicsUtils.isLinearColorSpace)
+      Material mat = this.context.materialFactory.Get("Hidden/Post FX/Fog");
+      mat.shaderKeywords = (string[]) null;
+      Color color = !GraphicsUtils.isLinearColorSpace ? RenderSettings.fogColor : RenderSettings.fogColor.linear;
+      mat.SetColor(FogComponent.Uniforms._FogColor, color);
+      mat.SetFloat(FogComponent.Uniforms._Density, RenderSettings.fogDensity);
+      mat.SetFloat(FogComponent.Uniforms._Start, RenderSettings.fogStartDistance);
+      mat.SetFloat(FogComponent.Uniforms._End, RenderSettings.fogEndDistance);
+      switch (RenderSettings.fogMode)
       {
-        Color fogColor = RenderSettings.get_fogColor();
-        color1 = ((Color) ref fogColor).get_linear();
+        case FogMode.Linear:
+          mat.EnableKeyword("FOG_LINEAR");
+          break;
+        case FogMode.Exponential:
+          mat.EnableKeyword("FOG_EXP");
+          break;
+        case FogMode.ExponentialSquared:
+          mat.EnableKeyword("FOG_EXP2");
+          break;
       }
-      else
-        color1 = RenderSettings.get_fogColor();
-      Color color2 = color1;
-      material.SetColor(FogComponent.Uniforms._FogColor, color2);
-      material.SetFloat(FogComponent.Uniforms._Density, RenderSettings.get_fogDensity());
-      material.SetFloat(FogComponent.Uniforms._Start, RenderSettings.get_fogStartDistance());
-      material.SetFloat(FogComponent.Uniforms._End, RenderSettings.get_fogEndDistance());
-      FogMode fogMode = RenderSettings.get_fogMode();
-      if (fogMode != 1)
-      {
-        if (fogMode != 2)
-        {
-          if (fogMode == 3)
-            material.EnableKeyword("FOG_EXP2");
-        }
-        else
-          material.EnableKeyword("FOG_EXP");
-      }
-      else
-        material.EnableKeyword("FOG_LINEAR");
-      RenderTextureFormat renderTextureFormat = !this.context.isHdr ? (RenderTextureFormat) 7 : (RenderTextureFormat) 9;
-      cb.GetTemporaryRT(FogComponent.Uniforms._TempRT, this.context.width, this.context.height, 24, (FilterMode) 1, renderTextureFormat);
-      cb.Blit(RenderTargetIdentifier.op_Implicit((BuiltinRenderTextureType) 2), RenderTargetIdentifier.op_Implicit(FogComponent.Uniforms._TempRT));
-      cb.Blit(RenderTargetIdentifier.op_Implicit(FogComponent.Uniforms._TempRT), RenderTargetIdentifier.op_Implicit((BuiltinRenderTextureType) 2), material, !settings.excludeSkybox ? 0 : 1);
+      RenderTextureFormat format = !this.context.isHdr ? RenderTextureFormat.Default : RenderTextureFormat.DefaultHDR;
+      cb.GetTemporaryRT(FogComponent.Uniforms._TempRT, this.context.width, this.context.height, 24, FilterMode.Bilinear, format);
+      cb.Blit((RenderTargetIdentifier) BuiltinRenderTextureType.CameraTarget, (RenderTargetIdentifier) FogComponent.Uniforms._TempRT);
+      cb.Blit((RenderTargetIdentifier) FogComponent.Uniforms._TempRT, (RenderTargetIdentifier) BuiltinRenderTextureType.CameraTarget, mat, !settings.excludeSkybox ? 0 : 1);
       cb.ReleaseTemporaryRT(FogComponent.Uniforms._TempRT);
     }
 

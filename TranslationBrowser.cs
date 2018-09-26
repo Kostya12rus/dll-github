@@ -11,29 +11,21 @@ using UnityEngine.UI;
 
 public class TranslationBrowser : MonoBehaviour
 {
+  private List<GameObject> spawns = new List<GameObject>();
   public Text instancePrefab;
   public Transform parent;
-  private List<GameObject> spawns;
-
-  public TranslationBrowser()
-  {
-    base.\u002Ector();
-  }
 
   private void OnEnable()
   {
     string[] directories = Directory.GetDirectories("Translations");
-    using (List<GameObject>.Enumerator enumerator = this.spawns.GetEnumerator())
-    {
-      while (enumerator.MoveNext())
-        Object.Destroy((Object) enumerator.Current);
-    }
+    foreach (Object spawn in this.spawns)
+      Object.Destroy(spawn);
     foreach (string str in directories)
     {
-      Text text = (Text) Object.Instantiate<Text>((M0) this.instancePrefab, this.parent);
-      ((Component) text).get_transform().set_localScale(Vector3.get_one());
-      text.set_text(str.Remove(0, str.IndexOf("\\") + 1));
-      this.spawns.Add(((Component) text).get_gameObject());
+      Text text = Object.Instantiate<Text>(this.instancePrefab, this.parent);
+      text.transform.localScale = Vector3.one;
+      text.text = str.Remove(0, str.IndexOf("\\") + 1);
+      this.spawns.Add(text.gameObject);
     }
   }
 }

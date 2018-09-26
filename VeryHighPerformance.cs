@@ -8,19 +8,14 @@ using UnityEngine;
 
 public class VeryHighPerformance : MonoBehaviour
 {
-  public VeryHighPerformance()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     if (PlayerPrefs.GetInt("gfxsets_hp", 0) == 0)
       return;
-    foreach (Component component in (Light[]) Object.FindObjectsOfType<Light>())
-      Object.Destroy((Object) ((Component) component.get_transform()).get_gameObject());
-    RenderSettings.set_ambientEquatorColor(new Color(0.5f, 0.5f, 0.5f));
-    RenderSettings.set_ambientGroundColor(new Color(0.5f, 0.5f, 0.5f));
-    RenderSettings.set_ambientSkyColor(new Color(0.5f, 0.5f, 0.5f));
+    foreach (Component component in Object.FindObjectsOfType<Light>())
+      Object.Destroy((Object) component.transform.gameObject);
+    RenderSettings.ambientEquatorColor = new Color(0.5f, 0.5f, 0.5f);
+    RenderSettings.ambientGroundColor = new Color(0.5f, 0.5f, 0.5f);
+    RenderSettings.ambientSkyColor = new Color(0.5f, 0.5f, 0.5f);
   }
 }

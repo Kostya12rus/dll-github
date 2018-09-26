@@ -10,39 +10,34 @@ using UnityEngine.Networking;
 
 public class DisableUselessComponents : NetworkBehaviour
 {
+  [SyncVar(hook = "SetName")]
+  private string label = "Player";
+  [SyncVar(hook = "SetServer")]
+  public bool isDedicated = true;
   private CharacterClassManager _ccm;
   private NicknameSync _ns;
   private bool _added;
   [SerializeField]
   private Behaviour[] uselessComponents;
-  [SyncVar(hook = "SetName")]
-  private string label;
-  [SyncVar(hook = "SetServer")]
-  public bool isDedicated;
-
-  public DisableUselessComponents()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this._ns = (NicknameSync) ((Component) this).GetComponent<NicknameSync>();
-    if (NetworkServer.get_active())
-      this.CmdSetName(!this.get_isLocalPlayer() ? "Player" : "Host", this.get_isLocalPlayer() && ServerStatic.IsDedicated);
-    this._ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    if (!this.get_isLocalPlayer())
+    this._ns = this.GetComponent<NicknameSync>();
+    if (NetworkServer.active)
+      this.CmdSetName(!this.isLocalPlayer ? "Player" : "Host", this.isLocalPlayer && ServerStatic.IsDedicated);
+    this._ccm = this.GetComponent<CharacterClassManager>();
+    if (!this.isLocalPlayer)
     {
-      Object.DestroyImmediate((Object) ((Component) this).GetComponent<FirstPersonController>());
+      Object.DestroyImmediate((Object) this.GetComponent<FirstPersonController>());
       foreach (Behaviour uselessComponent in this.uselessComponents)
-        uselessComponent.set_enabled(false);
-      Object.Destroy((Object) ((Component) this).GetComponent<CharacterController>());
+        uselessComponent.enabled = false;
+      Object.Destroy((Object) this.GetComponent<CharacterController>());
     }
     else
     {
-      PlayerManager.localPlayer = ((Component) this).get_gameObject();
-      PlayerManager.spect = (SpectatorManager) ((Component) this).GetComponent<SpectatorManager>();
-      ((Behaviour) ((Component) this).GetComponent<FirstPersonController>()).set_enabled(false);
+      PlayerManager.localPlayer = this.gameObject;
+      PlayerManager.spect = this.GetComponent<SpectatorManager>();
+      this.GetComponent<FirstPersonController>().enabled = false;
     }
   }
 
@@ -52,24 +47,24 @@ public class DisableUselessComponents : NetworkBehaviour
     {
       this._added = true;
       if (!this.isDedicated)
-        PlayerManager.singleton.AddPlayer(((Component) this).get_gameObject());
-      if (NetworkServer.get_active())
-        ServerLogs.AddLog(ServerLogs.Modules.Networking, "Player connected and authenticated from IP" + (string) this.get_connectionToClient().address + " with SteamID " + (!string.IsNullOrEmpty(((CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>()).SteamId) ? ((CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>()).SteamId : "(unavailable)") + " and nickname " + ((NicknameSync) ((Component) this).GetComponent<NicknameSync>()).myNick, ServerLogs.ServerLogType.ConnectionUpdate);
+        PlayerManager.singleton.AddPlayer(this.gameObject);
+      if (NetworkServer.active)
+        ServerLogs.AddLog(ServerLogs.Modules.Networking, "Player connected and authenticated from IP" + this.connectionToClient.address + " with SteamID " + (!string.IsNullOrEmpty(this.GetComponent<CharacterClassManager>().SteamId) ? this.GetComponent<CharacterClassManager>().SteamId : "(unavailable)") + " and nickname " + this.GetComponent<NicknameSync>().myNick, ServerLogs.ServerLogType.ConnectionUpdate);
     }
-    ((Object) this).set_name(this.label);
+    this.name = this.label;
   }
 
   private void OnDestroy()
   {
-    if (this.get_isLocalPlayer() || !Object.op_Inequality((Object) PlayerManager.singleton, (Object) null))
+    if (this.isLocalPlayer || !((Object) PlayerManager.singleton != (Object) null))
       return;
-    PlayerManager.singleton.RemovePlayer(((Component) this).get_gameObject());
+    PlayerManager.singleton.RemovePlayer(this.gameObject);
   }
 
   [ServerCallback]
   private void CmdSetName(string n, bool b)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     this.SetName(n);
     this.SetServer(b);
@@ -100,13 +95,13 @@ public class DisableUselessComponents : NetworkBehaviour
       string str = value;
       ref string local = ref this.label;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetName(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<string>((M0) str, (M0&) ref local, (uint) num);
+      this.SetSyncVar<string>(str, ref local, (uint) num);
     }
   }
 
@@ -121,17 +116,17 @@ public class DisableUselessComponents : NetworkBehaviour
       int num1 = value ? 1 : 0;
       ref bool local = ref this.isDedicated;
       int num2 = 2;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetServer(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -140,30 +135,30 @@ public class DisableUselessComponents : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.label);
     }
-    if (((int) this.get_syncVarDirtyBits() & 2) != 0)
+    if (((int) this.syncVarDirtyBits & 2) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.isDedicated);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

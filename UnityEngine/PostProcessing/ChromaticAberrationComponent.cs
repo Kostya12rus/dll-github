@@ -30,16 +30,16 @@ namespace UnityEngine.PostProcessing
     {
       ChromaticAberrationModel.Settings settings = this.model.settings;
       Texture2D texture2D1 = settings.spectralTexture;
-      if (Object.op_Equality((Object) texture2D1, (Object) null))
+      if ((Object) texture2D1 == (Object) null)
       {
-        if (Object.op_Equality((Object) this.m_SpectrumLut, (Object) null))
+        if ((Object) this.m_SpectrumLut == (Object) null)
         {
-          Texture2D texture2D2 = new Texture2D(3, 1, (TextureFormat) 3, false);
-          ((Object) texture2D2).set_name("Chromatic Aberration Spectrum Lookup");
-          ((Texture) texture2D2).set_filterMode((FilterMode) 1);
-          ((Texture) texture2D2).set_wrapMode((TextureWrapMode) 1);
-          ((Texture) texture2D2).set_anisoLevel(0);
-          ((Object) texture2D2).set_hideFlags((HideFlags) 52);
+          Texture2D texture2D2 = new Texture2D(3, 1, TextureFormat.RGB24, false);
+          texture2D2.name = "Chromatic Aberration Spectrum Lookup";
+          texture2D2.filterMode = FilterMode.Bilinear;
+          texture2D2.wrapMode = TextureWrapMode.Clamp;
+          texture2D2.anisoLevel = 0;
+          texture2D2.hideFlags = HideFlags.DontSave;
           this.m_SpectrumLut = texture2D2;
           this.m_SpectrumLut.SetPixels(new Color[3]
           {

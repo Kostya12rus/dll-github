@@ -9,9 +9,4 @@ using UnityEngine;
 public class MovingStatus : MonoBehaviour
 {
   public bool moving;
-
-  public MovingStatus()
-  {
-    base.\u002Ector();
-  }
 }

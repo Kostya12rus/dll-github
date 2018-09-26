@@ -21,11 +21,6 @@ public class RadioDisplay : MonoBehaviour
   public Texture batt2;
   public RawImage img;
 
-  public RadioDisplay()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.InvokeRepeating("ChangeImg", 1f, 0.5f);
@@ -35,13 +30,13 @@ public class RadioDisplay : MonoBehaviour
   {
     this.normal.SetActive(RadioDisplay.battery != "0");
     this.nobattery.SetActive(RadioDisplay.battery == "0");
-    this.label_t.set_text(RadioDisplay.label);
-    this.power_t.set_text(RadioDisplay.power);
-    this.battery_t.set_text("BAT. " + RadioDisplay.battery + "%");
+    this.label_t.text = RadioDisplay.label;
+    this.power_t.text = RadioDisplay.power;
+    this.battery_t.text = "BAT. " + RadioDisplay.battery + "%";
   }
 
   private void ChangeImg()
   {
-    this.img.set_texture(!Object.op_Equality((Object) this.img.get_texture(), (Object) this.batt1) ? this.batt1 : this.batt2);
+    this.img.texture = !((Object) this.img.texture == (Object) this.batt1) ? this.batt1 : this.batt2;
   }
 }

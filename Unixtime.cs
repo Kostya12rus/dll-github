@@ -11,11 +11,6 @@ public class Unixtime : MonoBehaviour
 {
   private DiscordController controller;
 
-  public Unixtime()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.ResetTime();
@@ -23,7 +18,7 @@ public class Unixtime : MonoBehaviour
 
   public void ResetTime()
   {
-    this.controller = (DiscordController) ((Component) this).GetComponent<DiscordController>();
+    this.controller = this.GetComponent<DiscordController>();
     this.controller.presence.startTimestamp = (long) (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
   }
 }

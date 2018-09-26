@@ -11,11 +11,6 @@ public class ServerFilters : MonoBehaviour
   private ServerListManager list;
   public string nameFilter;
 
-  public ServerFilters()
-  {
-    base.\u002Ector();
-  }
-
   public bool AllowToSpawn(string server_name)
   {
     if (this.nameFilter.Length == 0)
@@ -40,6 +35,6 @@ public class ServerFilters : MonoBehaviour
 
   private void Start()
   {
-    this.list = (ServerListManager) ((Component) this).GetComponent<ServerListManager>();
+    this.list = this.GetComponent<ServerListManager>();
   }
 }

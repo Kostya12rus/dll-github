@@ -16,16 +16,11 @@ public class ResolutionManager : MonoBehaviour
   public static int preset;
   public static bool fullscreen;
 
-  public ResolutionManager()
-  {
-    base.\u002Ector();
-  }
-
   private bool FindResolution(Resolution res)
   {
     foreach (ResolutionManager.ResolutionPreset preset in ResolutionManager.presets)
     {
-      if (preset.height == ((Resolution) ref res).get_height() && preset.width == ((Resolution) ref res).get_width())
+      if (preset.height == res.height && preset.width == res.width)
         return true;
     }
     return false;
@@ -34,7 +29,7 @@ public class ResolutionManager : MonoBehaviour
   private void Start()
   {
     ResolutionManager.presets.Clear();
-    foreach (Resolution resolution in Screen.get_resolutions())
+    foreach (Resolution resolution in Screen.resolutions)
     {
       if (!this.FindResolution(resolution))
         ResolutionManager.presets.Add(new ResolutionManager.ResolutionPreset(resolution));
@@ -42,13 +37,9 @@ public class ResolutionManager : MonoBehaviour
     ResolutionManager.preset = Mathf.Clamp(PlayerPrefs.GetInt("SavedResolutionSet", ResolutionManager.presets.Count - 1), 0, ResolutionManager.presets.Count - 1);
     ResolutionManager.fullscreen = PlayerPrefs.GetInt("SavedFullscreen", 1) != 0;
     int num = PlayerPrefs.GetInt("MaxFramerate", 969);
-    if (num == 969)
-      Application.set_targetFrameRate(-1);
-    else
-      Application.set_targetFrameRate(num);
+    Application.targetFrameRate = num != 969 ? num : -1;
     ResolutionManager.RefreshScreen();
-    // ISSUE: method pointer
-    SceneManager.add_sceneLoaded(new UnityAction<Scene, LoadSceneMode>((object) this, __methodptr(OnSceneWasLoaded)));
+    SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(this.OnSceneWasLoaded);
   }
 
   private void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
@@ -61,7 +52,7 @@ public class ResolutionManager : MonoBehaviour
     ResolutionManager.presets[Mathf.Clamp(ResolutionManager.preset, 0, ResolutionManager.presets.Count - 1)].SetResolution();
     try
     {
-      ((ResolutionText) Object.FindObjectOfType<ResolutionText>()).txt.set_text(ResolutionManager.presets[Mathf.Clamp(ResolutionManager.preset, 0, ResolutionManager.presets.Count - 1)].width.ToString() + " × " + (object) ResolutionManager.presets[Mathf.Clamp(ResolutionManager.preset, 0, ResolutionManager.presets.Count - 1)].height);
+      Object.FindObjectOfType<ResolutionText>().txt.text = ResolutionManager.presets[Mathf.Clamp(ResolutionManager.preset, 0, ResolutionManager.presets.Count - 1)].width.ToString() + " × " + (object) ResolutionManager.presets[Mathf.Clamp(ResolutionManager.preset, 0, ResolutionManager.presets.Count - 1)].height;
     }
     catch
     {
@@ -90,8 +81,8 @@ public class ResolutionManager : MonoBehaviour
 
     public ResolutionPreset(Resolution template)
     {
-      this.width = ((Resolution) ref template).get_width();
-      this.height = ((Resolution) ref template).get_height();
+      this.width = template.width;
+      this.height = template.height;
     }
 
     public void SetResolution()

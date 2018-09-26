@@ -13,14 +13,9 @@ public class GameMenu : MonoBehaviour
   public GameObject main;
   public GameObject[] minors;
 
-  public GameMenu()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    if (!Input.GetKeyDown((KeyCode) 27) || CursorManager.eqOpen || CursorManager.consoleOpen)
+    if (!Input.GetKeyDown(KeyCode.Escape) || CursorManager.eqOpen || CursorManager.consoleOpen)
       return;
     this.ToggleMenu();
   }
@@ -29,15 +24,15 @@ public class GameMenu : MonoBehaviour
   {
     foreach (GameObject minor in this.minors)
     {
-      if (minor.get_activeSelf())
+      if (minor.activeSelf)
         minor.SetActive(false);
     }
-    this.background.SetActive(!this.background.get_activeSelf());
-    CursorManager.pauseOpen = this.background.get_activeSelf();
+    this.background.SetActive(!this.background.activeSelf);
+    CursorManager.pauseOpen = this.background.activeSelf;
     foreach (GameObject player in PlayerManager.singleton.players)
     {
-      if (((NetworkIdentity) player.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
-        ((FirstPersonController) player.GetComponent<FirstPersonController>()).isPaused = (__Null) (this.background.get_activeSelf() ? 1 : 0);
+      if (player.GetComponent<NetworkIdentity>().isLocalPlayer)
+        player.GetComponent<FirstPersonController>().isPaused = this.background.activeSelf;
     }
     this.main.SetActive(true);
   }
@@ -46,12 +41,12 @@ public class GameMenu : MonoBehaviour
   {
     foreach (GameObject player in PlayerManager.singleton.players)
     {
-      if (((NetworkIdentity) player.GetComponent<NetworkIdentity>()).get_isLocalPlayer())
+      if (player.GetComponent<NetworkIdentity>().isLocalPlayer)
       {
-        if (((NetworkIdentity) player.GetComponent<NetworkIdentity>()).get_isServer())
-          ((NetworkManager) Object.FindObjectOfType<NetworkManager>()).StopHost();
+        if (player.GetComponent<NetworkIdentity>().isServer)
+          Object.FindObjectOfType<NetworkManager>().StopHost();
         else
-          ((NetworkManager) Object.FindObjectOfType<NetworkManager>()).StopClient();
+          Object.FindObjectOfType<NetworkManager>().StopClient();
       }
     }
   }

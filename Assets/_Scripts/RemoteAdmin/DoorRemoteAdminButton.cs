@@ -18,11 +18,6 @@ namespace Assets._Scripts.RemoteAdmin
     public static Color Color;
     public static DoorRemoteAdminButton[] Buttons;
 
-    public DoorRemoteAdminButton()
-    {
-      base.\u002Ector();
-    }
-
     public void Click()
     {
       foreach (DoorRemoteAdminButton button in DoorRemoteAdminButton.Buttons)
@@ -37,12 +32,12 @@ namespace Assets._Scripts.RemoteAdmin
 
     public void SetStatus(bool b)
     {
-      if (Object.op_Equality((Object) this._outline, (Object) null))
-        this._outline = (Outline) ((Component) this).GetComponent<Outline>();
-      ((Shadow) this._outline).set_effectColor(!b ? Color.get_white() : DoorRemoteAdminButton.Color);
+      if ((Object) this._outline == (Object) null)
+        this._outline = this.GetComponent<Outline>();
+      this._outline.effectColor = !b ? Color.white : DoorRemoteAdminButton.Color;
       if (!b)
         return;
-      DoorPrinter.SelectedDoors = !Object.op_Inequality((Object) this.Door, (Object) null) ? this.OvrValue : this.Door.DoorName;
+      DoorPrinter.SelectedDoors = !((Object) this.Door != (Object) null) ? this.OvrValue : this.Door.DoorName;
     }
   }
 }

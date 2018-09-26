@@ -8,37 +8,32 @@ using UnityEngine;
 
 public class SkinColorChanger : MonoBehaviour
 {
+  private int lastClass = -1;
   public Material ci;
   public Material mtf;
   public Material classd;
   public Material scientist;
   public Material guard;
-  private int lastClass;
-
-  public SkinColorChanger()
-  {
-    base.\u002Ector();
-  }
 
   private void OnEnable()
   {
-    Renderer component = (Renderer) ((Component) this).GetComponent<SkinnedMeshRenderer>();
-    CharacterClassManager componentInParent = (CharacterClassManager) ((Component) this).GetComponentInParent<CharacterClassManager>();
+    Renderer component = (Renderer) this.GetComponent<SkinnedMeshRenderer>();
+    CharacterClassManager componentInParent = this.GetComponentInParent<CharacterClassManager>();
     if (this.lastClass == componentInParent.curClass)
       return;
     this.lastClass = componentInParent.curClass;
     if (componentInParent.klasy[componentInParent.curClass].team == Team.MTF)
     {
       if (componentInParent.curClass == 15)
-        component.set_sharedMaterial(this.guard);
+        component.sharedMaterial = this.guard;
       else
-        component.set_sharedMaterial(this.mtf);
+        component.sharedMaterial = this.mtf;
     }
     else if (componentInParent.klasy[componentInParent.curClass].team == Team.CHI)
-      component.set_sharedMaterial(this.ci);
+      component.sharedMaterial = this.ci;
     else if (componentInParent.klasy[componentInParent.curClass].team == Team.RSC)
-      component.set_sharedMaterial(this.scientist);
+      component.sharedMaterial = this.scientist;
     else
-      component.set_sharedMaterial(this.classd);
+      component.sharedMaterial = this.classd;
   }
 }

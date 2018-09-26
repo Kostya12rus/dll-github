@@ -21,17 +21,12 @@ namespace RemoteAdmin
     private int currentMenu;
     public static SubmenuSelector singleton;
 
-    public SubmenuSelector()
-    {
-      base.\u002Ector();
-    }
-
     private void Start()
     {
       this.menus[0].panel.SetActive(true);
       this.SelectMenu(0);
       foreach (SubmenuSelector.SubMenu menu in this.menus)
-        ((Selectable) menu.button).set_interactable(true);
+        menu.button.interactable = true;
     }
 
     private void Awake()
@@ -42,20 +37,20 @@ namespace RemoteAdmin
     public void SetProperty(int field, string value)
     {
       this.arguments[field - 1] = value;
-      if (Object.op_Equality((Object) this.menus[this.currentMenu].submitButton, (Object) null))
+      if ((Object) this.menus[this.currentMenu].submitButton == (Object) null)
         return;
-      ((Selectable) this.menus[this.currentMenu].submitButton).set_interactable(true);
+      this.menus[this.currentMenu].submitButton.interactable = true;
       foreach (string str in this.arguments)
       {
         if (string.IsNullOrEmpty(str) && this.arguments.Length > 0)
-          ((Selectable) this.menus[this.currentMenu].submitButton).set_interactable(false);
+          this.menus[this.currentMenu].submitButton.interactable = false;
       }
     }
 
     public void Confirm()
     {
-      if (Object.op_Inequality((Object) this.menus[this.currentMenu].optionalDisplay, (Object) null))
-        ((TMP_Text) this.menus[this.currentMenu].optionalDisplay).set_text(string.Empty);
+      if ((Object) this.menus[this.currentMenu].optionalDisplay != (Object) null)
+        this.menus[this.currentMenu].optionalDisplay.text = string.Empty;
       string str1 = this.menus[this.currentMenu].commandTemplate;
       List<string> stringList = new List<string>();
       string str2 = string.Empty;
@@ -77,7 +72,7 @@ namespace RemoteAdmin
           Debug.Log((object) (str1 + ":" + (object) stringList.Count));
         }
       }
-      ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery(str1);
+      PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery(str1);
     }
 
     public void AdminToolsConfirm(string operation)
@@ -157,58 +152,58 @@ namespace RemoteAdmin
       switch (num)
       {
         case 0:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("overwatch " + str + " 1");
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("overwatch " + str + " 1");
           break;
         case 1:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("overwatch " + str + " 0");
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("overwatch " + str + " 0");
           break;
         case 2:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("bypass " + str + " 1");
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("bypass " + str + " 1");
           break;
         case 3:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("bypass " + str + " 0");
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("bypass " + str + " 0");
           break;
         case 4:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("god " + str + " 1");
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("god " + str + " 1");
           break;
         case 5:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("god " + str + " 0");
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("god " + str + " 0");
           break;
         case 6:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("heal " + str);
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("heal " + str);
           break;
         case 7:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("lockdown");
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("lockdown");
           break;
         case 8:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("open " + DoorPrinter.SelectedDoors);
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("open " + DoorPrinter.SelectedDoors);
           break;
         case 9:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("close " + DoorPrinter.SelectedDoors);
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("close " + DoorPrinter.SelectedDoors);
           break;
         case 10:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("lock " + DoorPrinter.SelectedDoors);
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("lock " + DoorPrinter.SelectedDoors);
           break;
         case 11:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("unlock " + DoorPrinter.SelectedDoors);
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("unlock " + DoorPrinter.SelectedDoors);
           break;
         case 12:
-          ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery("destroy " + DoorPrinter.SelectedDoors);
+          PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery("destroy " + DoorPrinter.SelectedDoors);
           break;
       }
     }
 
     public void RunCommand(string command)
     {
-      ((QueryProcessor) PlayerManager.localPlayer.GetComponent<QueryProcessor>()).CmdSendQuery(command);
+      PlayerManager.localPlayer.GetComponent<QueryProcessor>().CmdSendQuery(command);
     }
 
     public void SelectMenu(Button b)
     {
       for (int i = 0; i < this.menus.Length; ++i)
       {
-        bool flag = Object.op_Equality((Object) this.menus[i].button, (Object) b);
-        ((Graphic) ((Component) this.menus[i].button).GetComponent<Text>()).set_color(!flag ? this.c_deselected : this.c_selected);
+        bool flag = (Object) this.menus[i].button == (Object) b;
+        this.menus[i].button.GetComponent<Text>().color = !flag ? this.c_deselected : this.c_selected;
         this.menus[i].panel.SetActive(flag);
         if (flag)
           this.SelectMenu(i);

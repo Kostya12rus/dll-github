@@ -8,11 +8,6 @@ using UnityEngine;
 
 public class ResolutionButton : MonoBehaviour
 {
-  public ResolutionButton()
-  {
-    base.\u002Ector();
-  }
-
   public void Click(int id)
   {
     ResolutionManager.ChangeResolution(id);

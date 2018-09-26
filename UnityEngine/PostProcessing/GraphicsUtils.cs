@@ -15,7 +15,7 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        return QualitySettings.get_activeColorSpace() == 1;
+        return QualitySettings.activeColorSpace == ColorSpace.Linear;
       }
     }
 
@@ -23,8 +23,8 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        if (SystemInfo.get_graphicsShaderLevel() >= 50)
-          return SystemInfo.get_supportsComputeShaders();
+        if (SystemInfo.graphicsShaderLevel >= 50)
+          return SystemInfo.supportsComputeShaders;
         return false;
       }
     }
@@ -33,9 +33,9 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        if (Object.op_Inequality((Object) GraphicsUtils.s_WhiteTexture, (Object) null))
+        if ((Object) GraphicsUtils.s_WhiteTexture != (Object) null)
           return GraphicsUtils.s_WhiteTexture;
-        GraphicsUtils.s_WhiteTexture = new Texture2D(1, 1, (TextureFormat) 5, false);
+        GraphicsUtils.s_WhiteTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
         GraphicsUtils.s_WhiteTexture.SetPixel(0, 0, new Color(1f, 1f, 1f, 1f));
         GraphicsUtils.s_WhiteTexture.Apply();
         return GraphicsUtils.s_WhiteTexture;
@@ -46,16 +46,17 @@ namespace UnityEngine.PostProcessing
     {
       get
       {
-        if (Object.op_Inequality((Object) GraphicsUtils.s_Quad, (Object) null))
+        if ((Object) GraphicsUtils.s_Quad != (Object) null)
           return GraphicsUtils.s_Quad;
         Vector3[] vector3Array = new Vector3[4]{ new Vector3(-1f, -1f, 0.0f), new Vector3(1f, 1f, 0.0f), new Vector3(1f, -1f, 0.0f), new Vector3(-1f, 1f, 0.0f) };
         Vector2[] vector2Array = new Vector2[4]{ new Vector2(0.0f, 0.0f), new Vector2(1f, 1f), new Vector2(1f, 0.0f), new Vector2(0.0f, 1f) };
         int[] numArray = new int[6]{ 0, 1, 2, 1, 0, 3 };
-        Mesh mesh = new Mesh();
-        mesh.set_vertices(vector3Array);
-        mesh.set_uv(vector2Array);
-        mesh.set_triangles(numArray);
-        GraphicsUtils.s_Quad = mesh;
+        GraphicsUtils.s_Quad = new Mesh()
+        {
+          vertices = vector3Array,
+          uv = vector2Array,
+          triangles = numArray
+        };
         GraphicsUtils.s_Quad.RecalculateNormals();
         GraphicsUtils.s_Quad.RecalculateBounds();
         return GraphicsUtils.s_Quad;
@@ -82,9 +83,9 @@ namespace UnityEngine.PostProcessing
 
     public static void ClearAndBlit(Texture source, RenderTexture destination, Material material, int pass, bool clearColor = true, bool clearDepth = false)
     {
-      RenderTexture active = RenderTexture.get_active();
-      RenderTexture.set_active(destination);
-      GL.Clear(false, clearColor, Color.get_clear());
+      RenderTexture active = RenderTexture.active;
+      RenderTexture.active = destination;
+      GL.Clear(false, clearColor, Color.clear);
       GL.PushMatrix();
       GL.LoadOrtho();
       material.SetTexture("_MainTex", source);
@@ -100,12 +101,12 @@ namespace UnityEngine.PostProcessing
       GL.Vertex3(1f, 1f, 0.1f);
       GL.End();
       GL.PopMatrix();
-      RenderTexture.set_active(active);
+      RenderTexture.active = active;
     }
 
     public static void Destroy(Object obj)
     {
-      if (!Object.op_Inequality(obj, (Object) null))
+      if (!(obj != (Object) null))
         return;
       Object.Destroy(obj);
     }

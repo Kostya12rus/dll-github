@@ -11,97 +11,72 @@ namespace TMPro.Examples
 {
   public class TMP_TextSelector_A : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IEventSystemHandler
   {
+    private int m_selectedLink = -1;
+    private int m_lastCharIndex = -1;
+    private int m_lastWordIndex = -1;
     private TextMeshPro m_TextMeshPro;
     private Camera m_Camera;
     private bool m_isHoveringObject;
-    private int m_selectedLink;
-    private int m_lastCharIndex;
-    private int m_lastWordIndex;
-
-    public TMP_TextSelector_A()
-    {
-      base.\u002Ector();
-    }
 
     private void Awake()
     {
-      this.m_TextMeshPro = (TextMeshPro) ((Component) this).get_gameObject().GetComponent<TextMeshPro>();
-      this.m_Camera = Camera.get_main();
-      ((TMP_Text) this.m_TextMeshPro).ForceMeshUpdate();
+      this.m_TextMeshPro = this.gameObject.GetComponent<TextMeshPro>();
+      this.m_Camera = Camera.main;
+      this.m_TextMeshPro.ForceMeshUpdate();
     }
 
     private void LateUpdate()
     {
       this.m_isHoveringObject = false;
-      if (TMP_TextUtilities.IsIntersectingRectTransform(((TMP_Text) this.m_TextMeshPro).get_rectTransform(), Input.get_mousePosition(), Camera.get_main()))
+      if (TMP_TextUtilities.IsIntersectingRectTransform(this.m_TextMeshPro.rectTransform, Input.mousePosition, Camera.main))
         this.m_isHoveringObject = true;
       if (!this.m_isHoveringObject)
         return;
-      int intersectingCharacter = TMP_TextUtilities.FindIntersectingCharacter((TMP_Text) this.m_TextMeshPro, Input.get_mousePosition(), Camera.get_main(), true);
-      if (intersectingCharacter != -1 && intersectingCharacter != this.m_lastCharIndex && (Input.GetKey((KeyCode) 304) || Input.GetKey((KeyCode) 303)))
+      int intersectingCharacter = TMP_TextUtilities.FindIntersectingCharacter((TMP_Text) this.m_TextMeshPro, Input.mousePosition, Camera.main, true);
+      if (intersectingCharacter != -1 && intersectingCharacter != this.m_lastCharIndex && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
       {
         this.m_lastCharIndex = intersectingCharacter;
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        int materialReferenceIndex = (int) (^(TMP_CharacterInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().characterInfo[intersectingCharacter]).materialReferenceIndex;
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        int vertexIndex = (int) (^(TMP_CharacterInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().characterInfo[intersectingCharacter]).vertexIndex;
-        Color32 color32;
-        ((Color32) ref color32).\u002Ector((byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), byte.MaxValue);
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        Color32[] colors32 = (Color32[]) (^(TMP_MeshInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().meshInfo[materialReferenceIndex]).colors32;
+        int materialReferenceIndex = this.m_TextMeshPro.textInfo.characterInfo[intersectingCharacter].materialReferenceIndex;
+        int vertexIndex = this.m_TextMeshPro.textInfo.characterInfo[intersectingCharacter].vertexIndex;
+        Color32 color32 = new Color32((byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), byte.MaxValue);
+        Color32[] colors32 = this.m_TextMeshPro.textInfo.meshInfo[materialReferenceIndex].colors32;
         colors32[vertexIndex] = color32;
         colors32[vertexIndex + 1] = color32;
         colors32[vertexIndex + 2] = color32;
         colors32[vertexIndex + 3] = color32;
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        ((Mesh) (^(TMP_MeshInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().meshInfo[materialReferenceIndex]).mesh).set_colors32(colors32);
+        this.m_TextMeshPro.textInfo.meshInfo[materialReferenceIndex].mesh.colors32 = colors32;
       }
-      int intersectingLink = TMP_TextUtilities.FindIntersectingLink((TMP_Text) this.m_TextMeshPro, Input.get_mousePosition(), this.m_Camera);
+      int intersectingLink = TMP_TextUtilities.FindIntersectingLink((TMP_Text) this.m_TextMeshPro, Input.mousePosition, this.m_Camera);
       if (intersectingLink == -1 && this.m_selectedLink != -1 || intersectingLink != this.m_selectedLink)
         this.m_selectedLink = -1;
       if (intersectingLink != -1 && intersectingLink != this.m_selectedLink)
       {
         this.m_selectedLink = intersectingLink;
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        TMP_LinkInfo tmpLinkInfo = ^(TMP_LinkInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().linkInfo[intersectingLink];
-        Debug.Log((object) ("Link ID: \"" + ((TMP_LinkInfo) ref tmpLinkInfo).GetLinkID() + "\"   Link Text: \"" + ((TMP_LinkInfo) ref tmpLinkInfo).GetLinkText() + "\""));
-        Vector3 zero = Vector3.get_zero();
-        RectTransformUtility.ScreenPointToWorldPointInRectangle(((TMP_Text) this.m_TextMeshPro).get_rectTransform(), Vector2.op_Implicit(Input.get_mousePosition()), this.m_Camera, ref zero);
-        switch (((TMP_LinkInfo) ref tmpLinkInfo).GetLinkID())
+        TMP_LinkInfo tmpLinkInfo = this.m_TextMeshPro.textInfo.linkInfo[intersectingLink];
+        Debug.Log((object) ("Link ID: \"" + tmpLinkInfo.GetLinkID() + "\"   Link Text: \"" + tmpLinkInfo.GetLinkText() + "\""));
+        Vector3 worldPoint = Vector3.zero;
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(this.m_TextMeshPro.rectTransform, (Vector2) Input.mousePosition, this.m_Camera, out worldPoint);
+        switch (tmpLinkInfo.GetLinkID())
         {
         }
       }
-      int intersectingWord = TMP_TextUtilities.FindIntersectingWord((TMP_Text) this.m_TextMeshPro, Input.get_mousePosition(), Camera.get_main());
+      int intersectingWord = TMP_TextUtilities.FindIntersectingWord((TMP_Text) this.m_TextMeshPro, Input.mousePosition, Camera.main);
       if (intersectingWord == -1 || intersectingWord == this.m_lastWordIndex)
         return;
       this.m_lastWordIndex = intersectingWord;
-      // ISSUE: cast to a reference type
-      // ISSUE: explicit reference operation
-      TMP_WordInfo tmpWordInfo = ^(TMP_WordInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().wordInfo[intersectingWord];
-      // ISSUE: cast to a reference type
-      // ISSUE: explicit reference operation
-      Camera.get_main().WorldToScreenPoint(this.m_TextMeshPro.get_transform().TransformPoint((Vector3) (^(TMP_CharacterInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().characterInfo[tmpWordInfo.firstCharacterIndex]).bottomLeft));
-      // ISSUE: cast to a reference type
-      // ISSUE: explicit reference operation
-      Color32[] colors32_1 = (Color32[]) (^(TMP_MeshInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().meshInfo[0]).colors32;
-      Color32 color32_1;
-      ((Color32) ref color32_1).\u002Ector((byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), byte.MaxValue);
+      TMP_WordInfo tmpWordInfo = this.m_TextMeshPro.textInfo.wordInfo[intersectingWord];
+      Camera.main.WorldToScreenPoint(this.m_TextMeshPro.transform.TransformPoint(this.m_TextMeshPro.textInfo.characterInfo[tmpWordInfo.firstCharacterIndex].bottomLeft));
+      Color32[] colors32_1 = this.m_TextMeshPro.textInfo.meshInfo[0].colors32;
+      Color32 color32_1 = new Color32((byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), (byte) Random.Range(0, (int) byte.MaxValue), byte.MaxValue);
       for (int index = 0; index < tmpWordInfo.characterCount; ++index)
       {
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        int vertexIndex = (int) (^(TMP_CharacterInfo&) ref ((TMP_Text) this.m_TextMeshPro).get_textInfo().characterInfo[tmpWordInfo.firstCharacterIndex + index]).vertexIndex;
+        int vertexIndex = this.m_TextMeshPro.textInfo.characterInfo[tmpWordInfo.firstCharacterIndex + index].vertexIndex;
         colors32_1[vertexIndex] = color32_1;
         colors32_1[vertexIndex + 1] = color32_1;
         colors32_1[vertexIndex + 2] = color32_1;
         colors32_1[vertexIndex + 3] = color32_1;
       }
-      ((TMP_Text) this.m_TextMeshPro).get_mesh().set_colors32(colors32_1);
+      this.m_TextMeshPro.mesh.colors32 = colors32_1;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

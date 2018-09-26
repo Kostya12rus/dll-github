@@ -13,16 +13,11 @@ public class SignBlink : MonoBehaviour
   private string startText;
   private const string alphabet = "QWERTYUIOPASDFGHJKLZXCVBNM01234567890!@#$%^&*()-_=+[]{}/<>";
 
-  public SignBlink()
-  {
-    base.\u002Ector();
-  }
-
   public void Play(int duration)
   {
     if (this.startText == string.Empty)
-      this.startText = ((TMP_Text) ((Component) this).GetComponent<TextMeshProUGUI>()).get_text();
+      this.startText = this.GetComponent<TextMeshProUGUI>().text;
     else
-      ((TMP_Text) ((Component) this).GetComponent<TextMeshProUGUI>()).set_text(this.startText);
+      this.GetComponent<TextMeshProUGUI>().text = this.startText;
   }
 }

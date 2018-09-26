@@ -38,10 +38,7 @@ public class AuthenticatedMessage
   {
     if (!message.Contains(":[:BR:]:"))
       throw new MessageAuthenticationFailureException("Malformed message.");
-    string[] strArray = message.Split(new string[1]
-    {
-      ":[:BR:]:"
-    }, StringSplitOptions.None);
+    string[] strArray = message.Split(new string[1]{ ":[:BR:]:" }, StringSplitOptions.None);
     if (strArray.Length < 2 || strArray.Length > 3)
       throw new MessageAuthenticationFailureException("Malformed message.");
     if (strArray[1] == "Guest")
@@ -82,13 +79,7 @@ public class AuthenticatedMessage
     byte[] numArray1;
     for (; data.Length > 0; data = numArray1)
     {
-      byte[] numArray2 = new byte[4]
-      {
-        data[0],
-        data[1],
-        data[2],
-        data[3]
-      };
+      byte[] numArray2 = new byte[4]{ data[0], data[1], data[2], data[3] };
       Array.Reverse((Array) numArray2);
       short int16 = BitConverter.ToInt16(numArray2, 0);
       if (int16 != (short) 0)

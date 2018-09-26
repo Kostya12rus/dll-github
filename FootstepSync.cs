@@ -15,21 +15,16 @@ public class FootstepSync : NetworkBehaviour
   private Scp939_VisionController visionController;
   private static int kRpcRpcSyncFoot;
 
-  public FootstepSync()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.visionController = (Scp939_VisionController) ((Component) this).GetComponent<Scp939_VisionController>();
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    this.controller = (AnimationController) ((Component) this).GetComponent<AnimationController>();
+    this.visionController = this.GetComponent<Scp939_VisionController>();
+    this.ccm = this.GetComponent<CharacterClassManager>();
+    this.controller = this.GetComponent<AnimationController>();
   }
 
   public void SyncFoot(bool run)
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     this.CallCmdSyncFoot(run);
     AudioClip[] stepClips = this.ccm.klasy[this.ccm.curClass].stepClips;
@@ -50,32 +45,32 @@ public class FootstepSync : NetworkBehaviour
   {
     if (t == Team.SCP && !is939 || t == Team.CHI)
     {
-      this.controller.runSource.set_maxDistance(50f);
-      this.controller.walkSource.set_maxDistance(50f);
+      this.controller.runSource.maxDistance = 50f;
+      this.controller.walkSource.maxDistance = 50f;
     }
     else if (t == Team.CDP || t == Team.RSC)
     {
-      this.controller.runSource.set_maxDistance(20f);
-      this.controller.walkSource.set_maxDistance(10f);
+      this.controller.runSource.maxDistance = 20f;
+      this.controller.walkSource.maxDistance = 10f;
     }
     else
     {
-      this.controller.runSource.set_maxDistance(30f);
-      this.controller.walkSource.set_maxDistance(15f);
+      this.controller.runSource.maxDistance = 30f;
+      this.controller.walkSource.maxDistance = 15f;
     }
   }
 
   [Command(channel = 1)]
   private void CmdSyncFoot(bool run)
   {
-    this.visionController.MakeNoise(this.controller.runSource.get_maxDistance() * (!run ? 0.4f : 0.7f));
+    this.visionController.MakeNoise(this.controller.runSource.maxDistance * (!run ? 0.4f : 0.7f));
     this.CallRpcSyncFoot(run);
   }
 
   [ClientRpc(channel = 1)]
   private void RpcSyncFoot(bool run)
   {
-    if (this.get_isLocalPlayer() || !Object.op_Inequality((Object) this.ccm, (Object) null))
+    if (this.isLocalPlayer || !((Object) this.ccm != (Object) null))
       return;
     AudioClip[] stepClips = this.ccm.klasy[this.ccm.curClass].stepClips;
     if (run)
@@ -90,7 +85,7 @@ public class FootstepSync : NetworkBehaviour
 
   protected static void InvokeCmdCmdSyncFoot(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdSyncFoot called on client.");
     else
       ((FootstepSync) obj).CmdSyncFoot(reader.ReadBoolean());
@@ -98,27 +93,27 @@ public class FootstepSync : NetworkBehaviour
 
   public void CallCmdSyncFoot(bool run)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdSyncFoot called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdSyncFoot(run);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) FootstepSync.kCmdCmdSyncFoot);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(run);
-      this.SendCommandInternal(networkWriter, 1, "CmdSyncFoot");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) FootstepSync.kCmdCmdSyncFoot);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(run);
+      this.SendCommandInternal(writer, 1, "CmdSyncFoot");
     }
   }
 
   protected static void InvokeRpcRpcSyncFoot(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcSyncFoot called on server.");
     else
       ((FootstepSync) obj).RpcSyncFoot(reader.ReadBoolean());
@@ -126,39 +121,37 @@ public class FootstepSync : NetworkBehaviour
 
   public void CallRpcSyncFoot(bool run)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcSyncFoot called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) FootstepSync.kRpcRpcSyncFoot);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(run);
-      this.SendRPCInternal(networkWriter, 1, "RpcSyncFoot");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) FootstepSync.kRpcRpcSyncFoot);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(run);
+      this.SendRPCInternal(writer, 1, "RpcSyncFoot");
     }
   }
 
   static FootstepSync()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (FootstepSync), FootstepSync.kCmdCmdSyncFoot, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdSyncFoot)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (FootstepSync), FootstepSync.kCmdCmdSyncFoot, new NetworkBehaviour.CmdDelegate(FootstepSync.InvokeCmdCmdSyncFoot));
     FootstepSync.kRpcRpcSyncFoot = -840565516;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (FootstepSync), FootstepSync.kRpcRpcSyncFoot, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcSyncFoot)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (FootstepSync), FootstepSync.kRpcRpcSyncFoot, new NetworkBehaviour.CmdDelegate(FootstepSync.InvokeRpcRpcSyncFoot));
     NetworkCRC.RegisterBehaviour(nameof (FootstepSync), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

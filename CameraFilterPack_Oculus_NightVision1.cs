@@ -10,28 +10,23 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Night Vision/Night Vision 1")]
 public class CameraFilterPack_Oculus_NightVision1 : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
-  private float Distortion;
-  private Material SCMaterial;
+  private float TimeX = 1f;
+  private float Distortion = 1f;
   [Range(0.0f, 100f)]
-  public float Vignette;
+  public float Vignette = 1.3f;
   [Range(1f, 150f)]
-  public float Linecount;
-
-  public CameraFilterPack_Oculus_NightVision1()
-  {
-    base.\u002Ector();
-  }
+  public float Linecount = 90f;
+  public Shader SCShader;
+  private Material SCMaterial;
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -40,21 +35,21 @@ public class CameraFilterPack_Oculus_NightVision1 : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Oculus_NightVision1");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
       this.material.SetFloat("_Distortion", this.Distortion);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
       this.material.SetFloat("_Vignette", this.Vignette);
       this.material.SetFloat("_Linecount", this.Linecount);
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
@@ -69,7 +64,7 @@ public class CameraFilterPack_Oculus_NightVision1 : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

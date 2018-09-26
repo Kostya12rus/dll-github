@@ -25,11 +25,6 @@ public class CentralAuth : MonoBehaviour
   private Callback<GetAuthSessionTicketResponse_t> m_GetAuthSessionTicketResponse;
   public static CentralAuth singleton;
 
-  public CentralAuth()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     CentralAuth.singleton = this;
@@ -39,20 +34,17 @@ public class CentralAuth : MonoBehaviour
   {
     if (!SteamManager.Initialized)
       return;
-    GameConsole.Console.singleton.AddLog("Obtaining ticket from Steam...", Color32.op_Implicit(Color.get_blue()), false);
+    GameConsole.Console.singleton.AddLog("Obtaining ticket from Steam...", (Color32) Color.blue, false);
     this._ica = icaa;
     if (this.m_GetAuthSessionTicketResponse == null)
-    {
-      // ISSUE: method pointer
-      this.m_GetAuthSessionTicketResponse = Callback<GetAuthSessionTicketResponse_t>.Create(new Callback<GetAuthSessionTicketResponse_t>.DispatchDelegate((object) this, __methodptr(OnGetAuthSessionTicketResponse)));
-    }
+      this.m_GetAuthSessionTicketResponse = Callback<GetAuthSessionTicketResponse_t>.Create(new Callback<GetAuthSessionTicketResponse_t>.DispatchDelegate(this.OnGetAuthSessionTicketResponse));
     this.m_Ticket = new byte[1024];
-    this.m_HAuthTicket = SteamUser.GetAuthSessionTicket(this.m_Ticket, 1024, ref this.m_pcbTicket);
+    this.m_HAuthTicket = SteamUser.GetAuthSessionTicket(this.m_Ticket, 1024, out this.m_pcbTicket);
   }
 
   public void OnGetAuthSessionTicketResponse(GetAuthSessionTicketResponse_t pCallback)
   {
-    GameConsole.Console.singleton.AddLog("Ticked obtained from steam.", Color32.op_Implicit(Color.get_blue()), false);
+    GameConsole.Console.singleton.AddLog("Ticked obtained from steam.", (Color32) Color.blue, false);
     Array.Resize<byte>(ref this.m_Ticket, (int) this.m_pcbTicket);
     this.hexticket = BitConverter.ToString(this.m_Ticket).Replace("-", string.Empty);
     this._responded = true;
@@ -63,11 +55,11 @@ public class CentralAuth : MonoBehaviour
     if (this._responded)
     {
       this._responded = false;
-      Timing.RunCoroutine(this._RequestToken(), (Segment) 1);
+      Timing.RunCoroutine(this._RequestToken(), Segment.FixedUpdate);
     }
-    if (string.IsNullOrEmpty(this._roleToRequest) || !Object.op_Inequality((Object) PlayerManager.localPlayer, (Object) null) || string.IsNullOrEmpty(((NicknameSync) PlayerManager.localPlayer.GetComponent<NicknameSync>()).myNick))
+    if (string.IsNullOrEmpty(this._roleToRequest) || !((Object) PlayerManager.localPlayer != (Object) null) || string.IsNullOrEmpty(PlayerManager.localPlayer.GetComponent<NicknameSync>().myNick))
       return;
-    GameConsole.Console.singleton.AddLog("Requesting your global badge...", Color32.op_Implicit(Color.get_yellow()), false);
+    GameConsole.Console.singleton.AddLog("Requesting your global badge...", (Color32) Color.yellow, false);
     this._ica.RequestBadge(this._roleToRequest);
     this._roleToRequest = string.Empty;
   }
@@ -76,27 +68,19 @@ public class CentralAuth : MonoBehaviour
   private IEnumerator<float> _RequestToken()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new CentralAuth.\u003C_RequestToken\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new CentralAuth.\u003C_RequestToken\u003Ec__Iterator0() { \u0024this = this };
   }
 
   public void StartValidateToken(ICentralAuth icaa, string token)
   {
-    Timing.RunCoroutine(this._ValidateToken(icaa, token), (Segment) 1);
+    Timing.RunCoroutine(this._ValidateToken(icaa, token), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _ValidateToken(ICentralAuth icaa, string token)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new CentralAuth.\u003C_ValidateToken\u003Ec__Iterator1()
-    {
-      token = token,
-      icaa = icaa,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new CentralAuth.\u003C_ValidateToken\u003Ec__Iterator1() { token = token, icaa = icaa, \u0024this = this };
   }
 
   internal static string ValidateForGlobalBanning(string token, string nickname)
@@ -107,49 +91,43 @@ public class CentralAuth : MonoBehaviour
       string signature = token.Substring(token.IndexOf("<br>Signature: ", StringComparison.Ordinal) + 15).Replace("<br>", string.Empty);
       if (!ECDSA.Verify(data, signature, ServerConsole.Publickey))
       {
-        GameConsole.Console.singleton.AddLog("Authentication token rejected due to signature mismatch.", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("Authentication token rejected due to signature mismatch.", (Color32) Color.red, false);
         return "-1";
       }
-      Dictionary<string, string> dictionary = ((IEnumerable<string>) data.Split(new string[1]
-      {
-        "<br>"
-      }, StringSplitOptions.None)).Select<string, string[]>((Func<string, string[]>) (rwr => rwr.Split(new string[1]
-      {
-        ": "
-      }, StringSplitOptions.None))).ToDictionary<string[], string, string>((Func<string[], string>) (split => split[0]), (Func<string[], string>) (split => split[1]));
+      Dictionary<string, string> dictionary = ((IEnumerable<string>) data.Split(new string[1]{ "<br>" }, StringSplitOptions.None)).Select<string, string[]>((Func<string, string[]>) (rwr => rwr.Split(new string[1]{ ": " }, StringSplitOptions.None))).ToDictionary<string[], string, string>((Func<string[], string>) (split => split[0]), (Func<string[], string>) (split => split[1]));
       if (dictionary["Usage"] != "Authentication")
       {
-        GameConsole.Console.singleton.AddLog("Authentication token rejected due to usage mismatch.", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("Authentication token rejected due to usage mismatch.", (Color32) Color.red, false);
         return "-1";
       }
       if (dictionary["Test signature"] != "NO")
       {
-        GameConsole.Console.singleton.AddLog("Authentication token rejected due to test flag.", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("Authentication token rejected due to test flag.", (Color32) Color.red, false);
         return "-1";
       }
       if (ServerRoles.Base64Decode(dictionary["Nickname"]) != nickname)
       {
-        GameConsole.Console.singleton.AddLog("Authentication token rejected due to nickname mismatch (token issued for " + ServerRoles.Base64Decode(dictionary["Nickname"]) + ").", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("Authentication token rejected due to nickname mismatch (token issued for " + ServerRoles.Base64Decode(dictionary["Nickname"]) + ").", (Color32) Color.red, false);
         return "-1";
       }
       DateTime exact1 = DateTime.ParseExact(dictionary["Expiration time"], "yyyy-MM-dd HH:mm:ss", (IFormatProvider) null);
       DateTime exact2 = DateTime.ParseExact(dictionary["Issuence time"], "yyyy-MM-dd HH:mm:ss", (IFormatProvider) null);
       if (exact1 < DateTime.UtcNow.AddMinutes(-45.0))
       {
-        GameConsole.Console.singleton.AddLog("Authentication token rejected due to expiration date.", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("Authentication token rejected due to expiration date.", (Color32) Color.red, false);
         return "-1";
       }
       if (exact2 > DateTime.UtcNow.AddMinutes(45.0))
       {
-        GameConsole.Console.singleton.AddLog("Authentication token rejected due to issuance date.", Color32.op_Implicit(Color.get_red()), false);
+        GameConsole.Console.singleton.AddLog("Authentication token rejected due to issuance date.", (Color32) Color.red, false);
         return "-1";
       }
-      GameConsole.Console.singleton.AddLog("Accepted verification token of user " + dictionary["Steam ID"] + " - " + ServerRoles.Base64Decode(dictionary["Nickname"]) + " signed by " + dictionary["Issued by"] + ".", Color32.op_Implicit(Color.get_green()), false);
+      GameConsole.Console.singleton.AddLog("Accepted verification token of user " + dictionary["Steam ID"] + " - " + ServerRoles.Base64Decode(dictionary["Nickname"]) + " signed by " + dictionary["Issued by"] + ".", (Color32) Color.green, false);
       return dictionary["Steam ID"];
     }
     catch (Exception ex)
     {
-      GameConsole.Console.singleton.AddLog("Error during authentication token verification: " + ex.Message, Color32.op_Implicit(Color.get_red()), false);
+      GameConsole.Console.singleton.AddLog("Error during authentication token verification: " + ex.Message, (Color32) Color.red, false);
       return "-1";
     }
   }
@@ -165,13 +143,7 @@ public class CentralAuth : MonoBehaviour
         ServerConsole.AddLog("Badge request signature mismatch.");
         return (Dictionary<string, string>) null;
       }
-      Dictionary<string, string> dictionary = ((IEnumerable<string>) data.Split(new string[1]
-      {
-        "<br>"
-      }, StringSplitOptions.None)).Select<string, string[]>((Func<string, string[]>) (rwr => rwr.Split(new string[1]
-      {
-        ": "
-      }, StringSplitOptions.None))).ToDictionary<string[], string, string>((Func<string[], string>) (split => split[0]), (Func<string[], string>) (split => split[1]));
+      Dictionary<string, string> dictionary = ((IEnumerable<string>) data.Split(new string[1]{ "<br>" }, StringSplitOptions.None)).Select<string, string[]>((Func<string, string[]>) (rwr => rwr.Split(new string[1]{ ": " }, StringSplitOptions.None))).ToDictionary<string[], string, string>((Func<string[], string>) (split => split[0]), (Func<string[], string>) (split => split[1]));
       if (dictionary["Usage"] != "Badge request")
       {
         ServerConsole.AddLog("Player tried to use token not issued to request a badge.");

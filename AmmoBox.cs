@@ -18,11 +18,6 @@ public class AmmoBox : NetworkBehaviour
   [SyncVar(hook = "SetAmount")]
   public string amount;
 
-  public AmmoBox()
-  {
-    base.\u002Ector();
-  }
-
   public void SetAmount(string am)
   {
     this.Networkamount = am;
@@ -37,8 +32,8 @@ public class AmmoBox : NetworkBehaviour
 
   private void Start()
   {
-    this.inv = (Inventory) ((Component) this).GetComponent<Inventory>();
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
+    this.inv = this.GetComponent<Inventory>();
+    this.ccm = this.GetComponent<CharacterClassManager>();
   }
 
   public void SetAmmoAmount()
@@ -70,7 +65,7 @@ public class AmmoBox : NetworkBehaviour
         {
           string[] strArray = this.amount.Split(':');
           strArray[type1] = (this.GetAmmo(type1) - _toDrop).ToString();
-          this.inv.SetPickup(this.types[type1].inventoryID, (float) _toDrop, ((Component) this).get_transform().get_position(), this.inv.camera.get_transform().get_rotation());
+          this.inv.SetPickup(this.types[type1].inventoryID, (float) _toDrop, this.transform.position, this.inv.camera.transform.rotation);
           this.Networkamount = strArray[0] + ":" + strArray[1] + ":" + strArray[2];
         }
       }
@@ -92,19 +87,19 @@ public class AmmoBox : NetworkBehaviour
       string str = value;
       ref string local = ref this.amount;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetAmount(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<string>((M0) str, (M0&) ref local, (uint) num);
+      this.SetSyncVar<string>(str, ref local, (uint) num);
     }
   }
 
   protected static void InvokeCmdCmdDrop(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdDrop called on client.");
     else
       ((AmmoBox) obj).CmdDrop((int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32());
@@ -112,33 +107,32 @@ public class AmmoBox : NetworkBehaviour
 
   public void CallCmdDrop(int _toDrop, int type)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdDrop called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdDrop(_toDrop, type);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) AmmoBox.kCmdCmdDrop);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) _toDrop);
-      networkWriter.WritePackedUInt32((uint) type);
-      this.SendCommandInternal(networkWriter, 2, "CmdDrop");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) AmmoBox.kCmdCmdDrop);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) _toDrop);
+      writer.WritePackedUInt32((uint) type);
+      this.SendCommandInternal(writer, 2, "CmdDrop");
     }
   }
 
   static AmmoBox()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (AmmoBox), AmmoBox.kCmdCmdDrop, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdDrop)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (AmmoBox), AmmoBox.kCmdCmdDrop, new NetworkBehaviour.CmdDelegate(AmmoBox.InvokeCmdCmdDrop));
     NetworkCRC.RegisterBehaviour(nameof (AmmoBox), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -146,21 +140,21 @@ public class AmmoBox : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.amount);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

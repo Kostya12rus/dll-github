@@ -11,11 +11,6 @@ public class BottomPickerItem : MonoBehaviour
   private string key;
   private int id;
 
-  public BottomPickerItem()
-  {
-    base.\u002Ector();
-  }
-
   public void SetupButton(string k, int i)
   {
     this.key = k;

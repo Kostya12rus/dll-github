@@ -27,26 +27,21 @@ public class GrenadeManager : NetworkBehaviour
   private static int kRpcRpcExplode;
   private static int kRpcRpcUpdate;
 
-  public GrenadeManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (NetworkServer.get_active())
+    if (NetworkServer.active)
       this.Network_syncFlashfire = ConfigFile.ServerConfig.GetBool("friendly_flash", false);
-    this.inv = (Inventory) ((Component) this).GetComponent<Inventory>();
-    if (!this.get_isLocalPlayer())
+    this.inv = this.GetComponent<Inventory>();
+    if (!this.isLocalPlayer)
       return;
     GrenadeManager.grenadesOnScene = new List<Grenade>();
   }
 
   private void Update()
   {
-    if (this.get_isLocalPlayer())
+    if (this.isLocalPlayer)
       this.CheckForInput();
-    if (!(((Object) this).get_name() == "Host"))
+    if (!(this.name == "Host"))
       return;
     GrenadeManager.flashfire = this._syncFlashfire;
   }
@@ -55,14 +50,14 @@ public class GrenadeManager : NetworkBehaviour
   {
     bool keyDown1 = Input.GetKeyDown(NewInput.GetKey("Shoot"));
     bool keyDown2 = Input.GetKeyDown(NewInput.GetKey("Zoom"));
-    if (this.isThrowing || !keyDown1 && !keyDown2 || ((double) Inventory.inventoryCooldown > 0.0 || Cursor.get_visible()))
+    if (this.isThrowing || !keyDown1 && !keyDown2 || ((double) Inventory.inventoryCooldown > 0.0 || Cursor.visible))
       return;
     for (int gId = 0; gId < this.availableGrenades.Length; ++gId)
     {
       if (this.availableGrenades[gId].inventoryID == this.inv.curItem)
       {
         this.isThrowing = true;
-        Timing.RunCoroutine(this._ThrowGrenade(gId, keyDown2), (Segment) 1);
+        Timing.RunCoroutine(this._ThrowGrenade(gId, keyDown2), Segment.FixedUpdate);
         break;
       }
     }
@@ -71,7 +66,7 @@ public class GrenadeManager : NetworkBehaviour
   [Server]
   public void ChangeIntoGrenade(Pickup pickup, int id, int ti_pid, int ti_int, Vector3 dir, Vector3 pos)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogWarning((object) "[Server] function 'System.Void GrenadeManager::ChangeIntoGrenade(Pickup,System.Int32,System.Int32,System.Int32,UnityEngine.Vector3,UnityEngine.Vector3)' called on client");
     }
@@ -86,23 +81,18 @@ public class GrenadeManager : NetworkBehaviour
   private IEnumerator<float> _ThrowGrenade(int gId, bool slow)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new GrenadeManager.\u003C_ThrowGrenade\u003Ec__Iterator0()
-    {
-      gId = gId,
-      slow = slow,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new GrenadeManager.\u003C_ThrowGrenade\u003Ec__Iterator0() { gId = gId, slow = slow, \u0024this = this };
   }
 
   [Command]
   private void CmdThrowGrenade(int id, int ti, Vector3 direction, bool slowThrow)
   {
-    for (int index = 0; index < (int) this.inv.items.get_Count(); ++index)
+    for (int index = 0; index < (int) this.inv.items.Count; ++index)
     {
-      if (((SyncList<Inventory.SyncItemInfo>) this.inv.items).get_Item(index).id == this.availableGrenades[id].inventoryID)
+      if (this.inv.items[index].id == this.availableGrenades[id].inventoryID)
       {
-        this.CallRpcThrowGrenade(id, ((QueryProcessor) ((Component) this).GetComponent<QueryProcessor>()).PlayerId, ti, ((Vector3) ref direction).get_normalized(), false, Vector3.get_zero(), slowThrow);
-        ((SyncList<Inventory.SyncItemInfo>) this.inv.items).RemoveAt(index);
+        this.CallRpcThrowGrenade(id, this.GetComponent<QueryProcessor>().PlayerId, ti, direction.normalized, false, Vector3.zero, slowThrow);
+        this.inv.items.RemoveAt(index);
         break;
       }
     }
@@ -111,24 +101,14 @@ public class GrenadeManager : NetworkBehaviour
   [ClientRpc]
   private void RpcThrowGrenade(int id, int ti_pid, int ti_int, Vector3 dir, bool isEnvironmentallyTriggered, Vector3 optionalParam, bool slowThrow)
   {
-    Timing.RunCoroutine(this._RpcThrowGrenade(id, ti_pid, ti_int, dir, isEnvironmentallyTriggered, optionalParam, slowThrow), (Segment) 1);
+    Timing.RunCoroutine(this._RpcThrowGrenade(id, ti_pid, ti_int, dir, isEnvironmentallyTriggered, optionalParam, slowThrow), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _RpcThrowGrenade(int id, int ti_pid, int ti_int, Vector3 dir, bool isEnvironmentallyTriggered, Vector3 optionalParamenter, bool slowThrow)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new GrenadeManager.\u003C_RpcThrowGrenade\u003Ec__Iterator1()
-    {
-      isEnvironmentallyTriggered = isEnvironmentallyTriggered,
-      id = id,
-      ti_pid = ti_pid,
-      ti_int = ti_int,
-      slowThrow = slowThrow,
-      optionalParamenter = optionalParamenter,
-      dir = dir,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new GrenadeManager.\u003C_RpcThrowGrenade\u003Ec__Iterator1() { isEnvironmentallyTriggered = isEnvironmentallyTriggered, id = id, ti_pid = ti_pid, ti_int = ti_int, slowThrow = slowThrow, optionalParamenter = optionalParamenter, dir = dir, \u0024this = this };
   }
 
   [ClientRpc]
@@ -147,7 +127,7 @@ public class GrenadeManager : NetworkBehaviour
   [ClientRpc]
   private void RpcUpdate(string id, Vector3 pos, Quaternion rot, Vector3 vel, Vector3 angVel)
   {
-    if (NetworkServer.get_active())
+    if (NetworkServer.active)
       return;
     foreach (Grenade grenade in GrenadeManager.grenadesOnScene)
     {
@@ -168,52 +148,52 @@ public class GrenadeManager : NetworkBehaviour
     }
     [param: In] set
     {
-      this.SetSyncVar<bool>((M0) (value ? 1 : 0), (M0&) ref this._syncFlashfire, 1U);
+      this.SetSyncVar<bool>(value, ref this._syncFlashfire, 1U);
     }
   }
 
   protected static void InvokeCmdCmdThrowGrenade(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdThrowGrenade called on client.");
     else
-      ((GrenadeManager) obj).CmdThrowGrenade((int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), (Vector3) reader.ReadVector3(), reader.ReadBoolean());
+      ((GrenadeManager) obj).CmdThrowGrenade((int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), reader.ReadVector3(), reader.ReadBoolean());
   }
 
   public void CallCmdThrowGrenade(int id, int ti, Vector3 direction, bool slowThrow)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdThrowGrenade called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdThrowGrenade(id, ti, direction, slowThrow);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) GrenadeManager.kCmdCmdThrowGrenade);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) id);
-      networkWriter.WritePackedUInt32((uint) ti);
-      networkWriter.Write((Vector3) direction);
-      networkWriter.Write(slowThrow);
-      this.SendCommandInternal(networkWriter, 0, "CmdThrowGrenade");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) GrenadeManager.kCmdCmdThrowGrenade);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) id);
+      writer.WritePackedUInt32((uint) ti);
+      writer.Write(direction);
+      writer.Write(slowThrow);
+      this.SendCommandInternal(writer, 0, "CmdThrowGrenade");
     }
   }
 
   protected static void InvokeRpcRpcThrowGrenade(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcThrowGrenade called on server.");
     else
-      ((GrenadeManager) obj).RpcThrowGrenade((int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), (Vector3) reader.ReadVector3(), reader.ReadBoolean(), (Vector3) reader.ReadVector3(), reader.ReadBoolean());
+      ((GrenadeManager) obj).RpcThrowGrenade((int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), reader.ReadVector3(), reader.ReadBoolean(), reader.ReadVector3(), reader.ReadBoolean());
   }
 
   protected static void InvokeRpcRpcExplode(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcExplode called on server.");
     else
       ((GrenadeManager) obj).RpcExplode(reader.ReadString(), (int) reader.ReadPackedUInt32());
@@ -221,94 +201,90 @@ public class GrenadeManager : NetworkBehaviour
 
   protected static void InvokeRpcRpcUpdate(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcUpdate called on server.");
     else
-      ((GrenadeManager) obj).RpcUpdate(reader.ReadString(), (Vector3) reader.ReadVector3(), (Quaternion) reader.ReadQuaternion(), (Vector3) reader.ReadVector3(), (Vector3) reader.ReadVector3());
+      ((GrenadeManager) obj).RpcUpdate(reader.ReadString(), reader.ReadVector3(), reader.ReadQuaternion(), reader.ReadVector3(), reader.ReadVector3());
   }
 
   public void CallRpcThrowGrenade(int id, int ti_pid, int ti_int, Vector3 dir, bool isEnvironmentallyTriggered, Vector3 optionalParam, bool slowThrow)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcThrowGrenade called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) GrenadeManager.kRpcRpcThrowGrenade);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.WritePackedUInt32((uint) id);
-      networkWriter.WritePackedUInt32((uint) ti_pid);
-      networkWriter.WritePackedUInt32((uint) ti_int);
-      networkWriter.Write((Vector3) dir);
-      networkWriter.Write(isEnvironmentallyTriggered);
-      networkWriter.Write((Vector3) optionalParam);
-      networkWriter.Write(slowThrow);
-      this.SendRPCInternal(networkWriter, 0, "RpcThrowGrenade");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) GrenadeManager.kRpcRpcThrowGrenade);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.WritePackedUInt32((uint) id);
+      writer.WritePackedUInt32((uint) ti_pid);
+      writer.WritePackedUInt32((uint) ti_int);
+      writer.Write(dir);
+      writer.Write(isEnvironmentallyTriggered);
+      writer.Write(optionalParam);
+      writer.Write(slowThrow);
+      this.SendRPCInternal(writer, 0, "RpcThrowGrenade");
     }
   }
 
   public void CallRpcExplode(string id, int playerID)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcExplode called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) GrenadeManager.kRpcRpcExplode);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(id);
-      networkWriter.WritePackedUInt32((uint) playerID);
-      this.SendRPCInternal(networkWriter, 0, "RpcExplode");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) GrenadeManager.kRpcRpcExplode);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(id);
+      writer.WritePackedUInt32((uint) playerID);
+      this.SendRPCInternal(writer, 0, "RpcExplode");
     }
   }
 
   public void CallRpcUpdate(string id, Vector3 pos, Quaternion rot, Vector3 vel, Vector3 angVel)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcUpdate called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) GrenadeManager.kRpcRpcUpdate);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(id);
-      networkWriter.Write((Vector3) pos);
-      networkWriter.Write((Quaternion) rot);
-      networkWriter.Write((Vector3) vel);
-      networkWriter.Write((Vector3) angVel);
-      this.SendRPCInternal(networkWriter, 0, "RpcUpdate");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) GrenadeManager.kRpcRpcUpdate);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(id);
+      writer.Write(pos);
+      writer.Write(rot);
+      writer.Write(vel);
+      writer.Write(angVel);
+      this.SendRPCInternal(writer, 0, "RpcUpdate");
     }
   }
 
   static GrenadeManager()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (GrenadeManager), GrenadeManager.kCmdCmdThrowGrenade, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdThrowGrenade)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (GrenadeManager), GrenadeManager.kCmdCmdThrowGrenade, new NetworkBehaviour.CmdDelegate(GrenadeManager.InvokeCmdCmdThrowGrenade));
     GrenadeManager.kRpcRpcThrowGrenade = 807436509;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (GrenadeManager), GrenadeManager.kRpcRpcThrowGrenade, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcThrowGrenade)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (GrenadeManager), GrenadeManager.kRpcRpcThrowGrenade, new NetworkBehaviour.CmdDelegate(GrenadeManager.InvokeRpcRpcThrowGrenade));
     GrenadeManager.kRpcRpcExplode = 391825004;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (GrenadeManager), GrenadeManager.kRpcRpcExplode, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcExplode)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (GrenadeManager), GrenadeManager.kRpcRpcExplode, new NetworkBehaviour.CmdDelegate(GrenadeManager.InvokeRpcRpcExplode));
     GrenadeManager.kRpcRpcUpdate = 462949854;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (GrenadeManager), GrenadeManager.kRpcRpcUpdate, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcUpdate)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (GrenadeManager), GrenadeManager.kRpcRpcUpdate, new NetworkBehaviour.CmdDelegate(GrenadeManager.InvokeRpcRpcUpdate));
     NetworkCRC.RegisterBehaviour(nameof (GrenadeManager), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -316,21 +292,21 @@ public class GrenadeManager : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this._syncFlashfire);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

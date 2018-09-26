@@ -16,10 +16,10 @@ namespace AmplifyBloom
     public static string ShaderModeValue = "Full";
     public static string DebugStr = "[AmplifyBloom] ";
     public static int BokehParamsId = -1;
-    public static RenderTextureFormat CurrentRTFormat = (RenderTextureFormat) 9;
-    public static FilterMode CurrentFilterMode = (FilterMode) 1;
-    public static TextureWrapMode CurrentWrapMode = (TextureWrapMode) 1;
-    public static RenderTextureReadWrite CurrentReadWriteMode = (RenderTextureReadWrite) 2;
+    public static RenderTextureFormat CurrentRTFormat = RenderTextureFormat.DefaultHDR;
+    public static FilterMode CurrentFilterMode = FilterMode.Bilinear;
+    public static TextureWrapMode CurrentWrapMode = TextureWrapMode.Clamp;
+    public static RenderTextureReadWrite CurrentReadWriteMode = RenderTextureReadWrite.sRGB;
     public static bool IsInitialized = false;
     private static List<RenderTexture> _allocatedRT = new List<RenderTexture>();
     public static int MaskTextureId;
@@ -180,15 +180,15 @@ namespace AmplifyBloom
     public static RenderTexture GetTempRenderTarget(int width, int height)
     {
       RenderTexture temporary = RenderTexture.GetTemporary(width, height, 0, AmplifyUtils.CurrentRTFormat, AmplifyUtils.CurrentReadWriteMode);
-      ((Texture) temporary).set_filterMode(AmplifyUtils.CurrentFilterMode);
-      ((Texture) temporary).set_wrapMode(AmplifyUtils.CurrentWrapMode);
+      temporary.filterMode = AmplifyUtils.CurrentFilterMode;
+      temporary.wrapMode = AmplifyUtils.CurrentWrapMode;
       AmplifyUtils._allocatedRT.Add(temporary);
       return temporary;
     }
 
     public static void ReleaseTempRenderTarget(RenderTexture renderTarget)
     {
-      if (!Object.op_Inequality((Object) renderTarget, (Object) null) || !AmplifyUtils._allocatedRT.Remove(renderTarget))
+      if (!((Object) renderTarget != (Object) null) || !AmplifyUtils._allocatedRT.Remove(renderTarget))
         return;
       renderTarget.DiscardContents();
       RenderTexture.ReleaseTemporary(renderTarget);
@@ -206,7 +206,7 @@ namespace AmplifyBloom
 
     public static void EnsureKeywordEnabled(Material mat, string keyword, bool state)
     {
-      if (!Object.op_Inequality((Object) mat, (Object) null))
+      if (!((Object) mat != (Object) null))
         return;
       if (state && !mat.IsKeywordEnabled(keyword))
       {

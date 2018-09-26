@@ -20,22 +20,22 @@ namespace UnityEngine.PostProcessing
 
     public RenderTexture Get(RenderTexture baseRenderTexture)
     {
-      return this.Get(((Texture) baseRenderTexture).get_width(), ((Texture) baseRenderTexture).get_height(), baseRenderTexture.get_depth(), baseRenderTexture.get_format(), !baseRenderTexture.get_sRGB() ? (RenderTextureReadWrite) 1 : (RenderTextureReadWrite) 2, ((Texture) baseRenderTexture).get_filterMode(), ((Texture) baseRenderTexture).get_wrapMode(), "FactoryTempTexture");
+      return this.Get(baseRenderTexture.width, baseRenderTexture.height, baseRenderTexture.depth, baseRenderTexture.format, !baseRenderTexture.sRGB ? RenderTextureReadWrite.Linear : RenderTextureReadWrite.sRGB, baseRenderTexture.filterMode, baseRenderTexture.wrapMode, "FactoryTempTexture");
     }
 
-    public RenderTexture Get(int width, int height, int depthBuffer = 0, RenderTextureFormat format = 2, RenderTextureReadWrite rw = 0, FilterMode filterMode = 1, TextureWrapMode wrapMode = 1, string name = "FactoryTempTexture")
+    public RenderTexture Get(int width, int height, int depthBuffer = 0, RenderTextureFormat format = RenderTextureFormat.ARGBHalf, RenderTextureReadWrite rw = RenderTextureReadWrite.Default, FilterMode filterMode = FilterMode.Bilinear, TextureWrapMode wrapMode = TextureWrapMode.Clamp, string name = "FactoryTempTexture")
     {
       RenderTexture temporary = RenderTexture.GetTemporary(width, height, depthBuffer, format, rw);
-      ((Texture) temporary).set_filterMode(filterMode);
-      ((Texture) temporary).set_wrapMode(wrapMode);
-      ((Object) temporary).set_name(name);
+      temporary.filterMode = filterMode;
+      temporary.wrapMode = wrapMode;
+      temporary.name = name;
       this.m_TemporaryRTs.Add(temporary);
       return temporary;
     }
 
     public void Release(RenderTexture rt)
     {
-      if (Object.op_Equality((Object) rt, (Object) null))
+      if ((Object) rt == (Object) null)
         return;
       if (!this.m_TemporaryRTs.Contains(rt))
         throw new ArgumentException(string.Format("Attempting to remove a RenderTexture that was not allocated: {0}", (object) rt));
@@ -45,8 +45,9 @@ namespace UnityEngine.PostProcessing
 
     public void ReleaseAll()
     {
-      foreach (RenderTexture temporaryRt in this.m_TemporaryRTs)
-        RenderTexture.ReleaseTemporary(temporaryRt);
+      HashSet<RenderTexture>.Enumerator enumerator = this.m_TemporaryRTs.GetEnumerator();
+      while (enumerator.MoveNext())
+        RenderTexture.ReleaseTemporary(enumerator.Current);
       this.m_TemporaryRTs.Clear();
     }
 

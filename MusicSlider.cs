@@ -10,15 +10,10 @@ using UnityEngine.UI;
 
 public class MusicSlider : MonoBehaviour
 {
+  public string keyName = "Volume";
   public AudioMixer master;
   public Slider slider;
   public Text optionalValueText;
-  public string keyName;
-
-  public MusicSlider()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -27,14 +22,14 @@ public class MusicSlider : MonoBehaviour
 
   private void Start()
   {
-    this.slider.set_value(PlayerPrefs.GetFloat(this.keyName, 1f));
-    this.OnValueChanged(this.slider.get_value());
+    this.slider.value = PlayerPrefs.GetFloat(this.keyName, 1f);
+    this.OnValueChanged(this.slider.value);
   }
 
   public void OnValueChanged(float vol)
   {
-    if (Object.op_Inequality((Object) this.optionalValueText, (Object) null))
-      this.optionalValueText.set_text(Mathf.RoundToInt(vol * 100f).ToString() + " %");
+    if ((Object) this.optionalValueText != (Object) null)
+      this.optionalValueText.text = Mathf.RoundToInt(vol * 100f).ToString() + " %";
     PlayerPrefs.SetFloat(this.keyName, vol);
     this.master.SetFloat(this.keyName.Remove(this.keyName.Length - 4), (double) vol == 0.0 ? -144f : 20f * Mathf.Log10(vol));
   }

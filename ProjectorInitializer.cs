@@ -25,29 +25,18 @@ public class ProjectorInitializer : MonoBehaviour
   private bool prevStarted;
   private bool dir;
 
-  public ProjectorInitializer()
-  {
-    base.\u002Ector();
-  }
-
   [DebuggerHidden]
   private IEnumerator<float> _StartProjector()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ProjectorInitializer.\u003C_StartProjector\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ProjectorInitializer.\u003C_StartProjector\u003Ec__Iterator0() { \u0024this = this };
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _StopProjector()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ProjectorInitializer.\u003C_StopProjector\u003Ec__Iterator1()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ProjectorInitializer.\u003C_StopProjector\u003Ec__Iterator1() { \u0024this = this };
   }
 
   private void InitLoop()
@@ -71,10 +60,10 @@ public class ProjectorInitializer : MonoBehaviour
         this.prevStarted = false;
       }
     }
-    this.time += Time.get_deltaTime() * (!this.dir ? -2f : 2f);
+    this.time += Time.deltaTime * (!this.dir ? -2f : 2f);
     this.time = Mathf.Clamp01(this.time / 4f) * 4f;
     foreach (Transform spool in this.spools)
-      spool.Rotate(Vector3.op_Division(Vector3.op_Multiply(Vector3.get_up(), this.time), 4f));
+      spool.Rotate(Vector3.up * this.time / 4f);
     foreach (ProjectorInitializer.LightStruct light in this.lights)
       light.SetLight(this.time);
   }
@@ -89,7 +78,7 @@ public class ProjectorInitializer : MonoBehaviour
 
     public void SetLight(float time)
     {
-      this.targetLight.set_color(Color.Lerp(Color.get_black(), this.normalColor, this.curve.Evaluate(time)));
+      this.targetLight.color = Color.Lerp(Color.black, this.normalColor, this.curve.Evaluate(time));
     }
   }
 }

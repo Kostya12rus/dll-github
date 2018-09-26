@@ -8,11 +8,6 @@ using UnityEngine;
 
 public class ConnInfoButton : MonoBehaviour
 {
-  public ConnInfoButton()
-  {
-    base.\u002Ector();
-  }
-
   public virtual void UseButton()
   {
   }

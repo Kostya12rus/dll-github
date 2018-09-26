@@ -10,28 +10,23 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Colors_HSV : MonoBehaviour
 {
-  public Shader SCShader;
   [Range(0.0f, 360f)]
-  public float _HueShift;
+  public float _HueShift = 180f;
   [Range(-32f, 32f)]
-  public float _Saturation;
+  public float _Saturation = 1f;
   [Range(-32f, 32f)]
-  public float _ValueBrightness;
+  public float _ValueBrightness = 1f;
+  public Shader SCShader;
   private Material SCMaterial;
-
-  public CameraFilterPack_Colors_HSV()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -39,14 +34,14 @@ public class CameraFilterPack_Colors_HSV : MonoBehaviour
 
   private void Start()
   {
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
       this.material.SetFloat("_HueShift", this._HueShift);
       this.material.SetFloat("_Sat", this._Saturation);
@@ -63,7 +58,7 @@ public class CameraFilterPack_Colors_HSV : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

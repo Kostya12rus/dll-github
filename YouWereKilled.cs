@@ -18,36 +18,27 @@ public class YouWereKilled : MonoBehaviour
   public Text _info;
   public RawImage _imageClass;
 
-  public YouWereKilled()
-  {
-    base.\u002Ector();
-  }
-
   public void Play(PlayerStats.HitInfo hitInfo)
   {
-    Timing.RunCoroutine(this._Play(hitInfo), (Segment) 1);
+    Timing.RunCoroutine(this._Play(hitInfo), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _Play(PlayerStats.HitInfo hitInfo)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new YouWereKilled.\u003C_Play\u003Ec__Iterator0()
-    {
-      hitInfo = hitInfo,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new YouWereKilled.\u003C_Play\u003Ec__Iterator0() { hitInfo = hitInfo, \u0024this = this };
   }
 
   private string GetNick(PlayerStats.HitInfo hitInfo)
   {
-    if (Object.op_Equality((Object) hitInfo.GetPlayerObject(), (Object) null))
+    if ((Object) hitInfo.GetPlayerObject() == (Object) null)
       return string.Empty;
-    return ((NicknameSync) hitInfo.GetPlayerObject().GetComponent<NicknameSync>()).myNick;
+    return hitInfo.GetPlayerObject().GetComponent<NicknameSync>().myNick;
   }
 
   private int GetClass(PlayerStats.HitInfo hitInfo)
   {
-    return ((CharacterClassManager) hitInfo.GetPlayerObject().GetComponent<CharacterClassManager>()).curClass;
+    return hitInfo.GetPlayerObject().GetComponent<CharacterClassManager>().curClass;
   }
 }

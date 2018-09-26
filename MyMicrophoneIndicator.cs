@@ -11,30 +11,25 @@ using UnityEngine.UI;
 
 public class MyMicrophoneIndicator : MonoBehaviour
 {
+  public float amplitudeFactor = 3.4f;
+  public float increaseLerp = 5f;
+  public float decreaseLerp = 2f;
   public VoiceBroadcastTrigger dissonanceSetup;
   public Image background;
   public Image volume;
-  public float amplitudeFactor;
-  public float increaseLerp;
-  public float decreaseLerp;
   private VoicePlayerState lplaystate;
-
-  public MyMicrophoneIndicator()
-  {
-    base.\u002Ector();
-  }
 
   private void Update()
   {
-    if (this.lplaystate == null && Object.op_Inequality((Object) PlayerManager.localPlayer, (Object) null))
-      this.lplaystate = ((DissonanceComms) ((Component) this.dissonanceSetup).GetComponent<DissonanceComms>()).FindPlayer(((HlapiPlayer) PlayerManager.localPlayer.GetComponent<HlapiPlayer>()).PlayerId);
-    float num1 = 0.0f;
+    if (this.lplaystate == null && (Object) PlayerManager.localPlayer != (Object) null)
+      this.lplaystate = this.dissonanceSetup.GetComponent<DissonanceComms>().FindPlayer(PlayerManager.localPlayer.GetComponent<HlapiPlayer>().PlayerId);
+    float num = 0.0f;
     if (this.lplaystate != null)
-      num1 = this.lplaystate.get_Amplitude();
-    ((Behaviour) this.volume).set_enabled(this.dissonanceSetup.get_IsTransmitting());
-    ((Behaviour) this.background).set_enabled(this.dissonanceSetup.get_IsTransmitting());
-    float num2 = num1 * this.amplitudeFactor;
-    float fillAmount = this.volume.get_fillAmount();
-    this.volume.set_fillAmount(Mathf.Lerp(fillAmount, num2, Time.get_deltaTime() * ((double) fillAmount >= (double) num2 ? this.decreaseLerp : this.increaseLerp)));
+      num = this.lplaystate.Amplitude;
+    this.volume.enabled = this.dissonanceSetup.IsTransmitting;
+    this.background.enabled = this.dissonanceSetup.IsTransmitting;
+    float b = num * this.amplitudeFactor;
+    float fillAmount = this.volume.fillAmount;
+    this.volume.fillAmount = Mathf.Lerp(fillAmount, b, Time.deltaTime * ((double) fillAmount >= (double) b ? this.decreaseLerp : this.increaseLerp));
   }
 }

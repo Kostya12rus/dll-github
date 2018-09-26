@@ -12,20 +12,15 @@ public class YAxisInventer : MonoBehaviour
 {
   public Toggle toggle;
 
-  public YAxisInventer()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.toggle.set_isOn(PlayerPrefs.GetInt("y_invert", 0) == 1);
-    this.ChangeState(this.toggle.get_isOn());
+    this.toggle.isOn = PlayerPrefs.GetInt("y_invert", 0) == 1;
+    this.ChangeState(this.toggle.isOn);
   }
 
   public void ChangeState(bool b)
   {
     PlayerPrefs.SetInt("y_invert", !b ? 0 : 1);
-    MouseLook.invert = (__Null) (b ? 1 : 0);
+    MouseLook.invert = b;
   }
 }

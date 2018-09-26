@@ -138,8 +138,8 @@ internal class QueryUser
                 {
                   foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("Player"))
                   {
-                    PlayerStats component = (PlayerStats) gameObject.GetComponent<PlayerStats>();
-                    if (component.get_isLocalPlayer() && component.get_isServer())
+                    PlayerStats component = gameObject.GetComponent<PlayerStats>();
+                    if (component.isLocalPlayer && component.isServer)
                       component.Roundrestart();
                   }
                   this.Send("Round restarted.");

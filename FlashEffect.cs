@@ -18,11 +18,6 @@ public class FlashEffect : NetworkBehaviour
   public bool sync_blind;
   public static bool isBlind;
 
-  public FlashEffect()
-  {
-    base.\u002Ector();
-  }
-
   [Command]
   private void CmdBlind(bool value)
   {
@@ -31,20 +26,20 @@ public class FlashEffect : NetworkBehaviour
 
   public void Play(float power)
   {
-    if (!((CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>()).IsHuman())
+    if (!this.GetComponent<CharacterClassManager>().IsHuman())
       return;
     this.curP = power;
   }
 
   private void Update()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     if ((double) this.curP > 0.0)
     {
-      this.curP -= Time.get_deltaTime() / 0.0f;
-      ((Behaviour) this.e1).set_enabled(false);
-      ((Behaviour) this.e2).set_enabled(false);
+      this.curP -= Time.deltaTime / 0.0f;
+      this.e1.enabled = false;
+      this.e2.enabled = false;
       this.e1._Brightness = Mathf.Clamp((float) ((double) this.curP * 1.25 + 1.0), 1f, 2.5f);
       this.e2.Vignetting = Mathf.Clamp01(this.curP);
       this.e2.VignettingFull = Mathf.Clamp01(this.curP);
@@ -53,8 +48,8 @@ public class FlashEffect : NetworkBehaviour
     else
     {
       this.curP = 0.0f;
-      ((Behaviour) this.e1).set_enabled(false);
-      ((Behaviour) this.e2).set_enabled(false);
+      this.e1.enabled = false;
+      this.e2.enabled = false;
     }
     FlashEffect.isBlind = (double) this.curP > 1.0;
     if (FlashEffect.isBlind == this.sync_blind)
@@ -74,13 +69,13 @@ public class FlashEffect : NetworkBehaviour
     }
     [param: In] set
     {
-      this.SetSyncVar<bool>((M0) (value ? 1 : 0), (M0&) ref this.sync_blind, 1U);
+      this.SetSyncVar<bool>(value, ref this.sync_blind, 1U);
     }
   }
 
   protected static void InvokeCmdCmdBlind(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdBlind called on client.");
     else
       ((FlashEffect) obj).CmdBlind(reader.ReadBoolean());
@@ -88,32 +83,31 @@ public class FlashEffect : NetworkBehaviour
 
   public void CallCmdBlind(bool value)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdBlind called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdBlind(value);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) FlashEffect.kCmdCmdBlind);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(value);
-      this.SendCommandInternal(networkWriter, 0, "CmdBlind");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) FlashEffect.kCmdCmdBlind);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(value);
+      this.SendCommandInternal(writer, 0, "CmdBlind");
     }
   }
 
   static FlashEffect()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (FlashEffect), FlashEffect.kCmdCmdBlind, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdBlind)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (FlashEffect), FlashEffect.kCmdCmdBlind, new NetworkBehaviour.CmdDelegate(FlashEffect.InvokeCmdCmdBlind));
     NetworkCRC.RegisterBehaviour(nameof (FlashEffect), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -121,21 +115,21 @@ public class FlashEffect : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.sync_blind);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

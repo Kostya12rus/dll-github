@@ -15,11 +15,6 @@ public class ExtinguishableFire : MonoBehaviour
   protected bool m_isExtinguished;
   private const float m_FireStartingTime = 2f;
 
-  public ExtinguishableFire()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.m_isExtinguished = true;
@@ -40,19 +35,13 @@ public class ExtinguishableFire : MonoBehaviour
   private IEnumerator Extinguishing()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new ExtinguishableFire.\u003CExtinguishing\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new ExtinguishableFire.\u003CExtinguishing\u003Ec__Iterator0() { \u0024this = this };
   }
 
   [DebuggerHidden]
   private IEnumerator StartingFire()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new ExtinguishableFire.\u003CStartingFire\u003Ec__Iterator1()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new ExtinguishableFire.\u003CStartingFire\u003Ec__Iterator1() { \u0024this = this };
   }
 }

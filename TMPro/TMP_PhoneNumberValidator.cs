@@ -12,12 +12,7 @@ namespace TMPro
   [Serializable]
   public class TMP_PhoneNumberValidator : TMP_InputValidator
   {
-    public TMP_PhoneNumberValidator()
-    {
-      base.\u002Ector();
-    }
-
-    public virtual char Validate(ref string text, ref int pos, char ch)
+    public override char Validate(ref string text, ref int pos, char ch)
     {
       Debug.Log((object) "Trying to validate...");
       if (ch < '0' && ch > '9')

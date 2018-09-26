@@ -19,32 +19,25 @@ public class SECTR_GhostController : SECTR_FPController
   protected override void Update()
   {
     base.Update();
-    if (Input.GetKeyDown((KeyCode) 304) || Input.GetKeyDown((KeyCode) 303))
-      this.FlySpeed *= this.AccelerationRatio * Time.get_deltaTime();
-    if (Input.GetKeyUp((KeyCode) 304) || Input.GetKeyUp((KeyCode) 303))
-      this.FlySpeed /= this.AccelerationRatio * Time.get_deltaTime();
-    if (Input.GetKeyDown((KeyCode) 306) || Input.GetKeyDown((KeyCode) 305))
-      this.FlySpeed *= this.SlowDownRatio * Time.get_deltaTime();
-    if (Input.GetKeyUp((KeyCode) 306) || Input.GetKeyUp((KeyCode) 305))
-      this.FlySpeed /= this.SlowDownRatio * Time.get_deltaTime();
-    Vector2 screenJoystick;
-    if (Input.get_multiTouchEnabled() && !Application.get_isEditor())
-      screenJoystick = this.GetScreenJoystick(false);
-    else
-      ((Vector2) ref screenJoystick).\u002Ector(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-    Transform transform1 = ((Component) this).get_transform();
-    transform1.set_position(Vector3.op_Addition(transform1.get_position(), Vector3.op_Addition(Vector3.op_Multiply(Vector3.op_Multiply(Vector3.op_Multiply(((Component) this).get_transform().get_forward(), this.FlySpeed), Time.get_deltaTime()), (float) screenJoystick.y), Vector3.op_Multiply(Vector3.op_Multiply(Vector3.op_Multiply(((Component) this).get_transform().get_right(), this.FlySpeed), Time.get_deltaTime()), (float) screenJoystick.x))));
-    if (Input.GetKey((KeyCode) 101))
+    if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+      this.FlySpeed *= this.AccelerationRatio * Time.deltaTime;
+    if (Input.GetKeyUp(KeyCode.LeftShift) || Input.GetKeyUp(KeyCode.RightShift))
+      this.FlySpeed /= this.AccelerationRatio * Time.deltaTime;
+    if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl))
+      this.FlySpeed *= this.SlowDownRatio * Time.deltaTime;
+    if (Input.GetKeyUp(KeyCode.LeftControl) || Input.GetKeyUp(KeyCode.RightControl))
+      this.FlySpeed /= this.SlowDownRatio * Time.deltaTime;
+    Vector2 vector2 = !Input.multiTouchEnabled || Application.isEditor ? new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")) : this.GetScreenJoystick(false);
+    this.transform.position += this.transform.forward * this.FlySpeed * Time.deltaTime * vector2.y + this.transform.right * this.FlySpeed * Time.deltaTime * vector2.x;
+    if (Input.GetKey(KeyCode.E))
     {
-      Transform transform2 = ((Component) this).get_transform();
-      transform2.set_position(Vector3.op_Addition(transform2.get_position(), Vector3.op_Multiply(Vector3.op_Multiply(Vector3.op_Multiply(((Component) this).get_transform().get_up(), this.FlySpeed), Time.get_deltaTime()), 0.5f)));
+      this.transform.position += this.transform.up * this.FlySpeed * Time.deltaTime * 0.5f;
     }
     else
     {
-      if (!Input.GetKey((KeyCode) 113))
+      if (!Input.GetKey(KeyCode.Q))
         return;
-      Transform transform2 = ((Component) this).get_transform();
-      transform2.set_position(Vector3.op_Subtraction(transform2.get_position(), Vector3.op_Multiply(Vector3.op_Multiply(Vector3.op_Multiply(((Component) this).get_transform().get_right(), this.FlySpeed), Time.get_deltaTime()), 0.5f)));
+      this.transform.position -= this.transform.right * this.FlySpeed * Time.deltaTime * 0.5f;
     }
   }
 }

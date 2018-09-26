@@ -19,49 +19,32 @@ public class FlashGrenade : Grenade
 
   public override void ServersideExplosion(GameObject thrower)
   {
-    ServerLogs.AddLog(ServerLogs.Modules.Logger, "Player " + (!Object.op_Inequality((Object) thrower, (Object) null) ? "(UNKNOWN)" : ((CharacterClassManager) thrower.GetComponent<CharacterClassManager>()).SteamId + " (" + ((NicknameSync) thrower.GetComponent<NicknameSync>()).myNick + ")") + " thew flash grenade.", ServerLogs.ServerLogType.GameEvent);
+    ServerLogs.AddLog(ServerLogs.Modules.Logger, "Player " + (!((Object) thrower != (Object) null) ? "(UNKNOWN)" : thrower.GetComponent<CharacterClassManager>().SteamId + " (" + thrower.GetComponent<NicknameSync>().myNick + ")") + " thew flash grenade.", ServerLogs.ServerLogType.GameEvent);
   }
 
   public override void ClientsideExplosion(int grenadeOwnerPlayerID)
   {
-    Object.Destroy((Object) Object.Instantiate<GameObject>((M0) this.explosionEffects, ((Component) this).get_transform().get_position(), this.explosionEffects.get_transform().get_rotation()), 10f);
+    Object.Destroy((Object) Object.Instantiate<GameObject>(this.explosionEffects, this.transform.position, this.explosionEffects.transform.rotation), 10f);
     GrenadeManager.grenadesOnScene.Remove((Grenade) this);
-    ExplosionCameraShake.singleton.Shake(this.shakeOverDistance.Evaluate(Vector3.Distance(((Component) this).get_transform().get_position(), PlayerManager.localPlayer.get_transform().get_position())));
-    Transform transform = ((Scp049PlayerScript) PlayerManager.localPlayer.GetComponent<Scp049PlayerScript>()).plyCam.get_transform();
+    ExplosionCameraShake.singleton.Shake(this.shakeOverDistance.Evaluate(Vector3.Distance(this.transform.position, PlayerManager.localPlayer.transform.position)));
+    Transform transform = PlayerManager.localPlayer.GetComponent<Scp049PlayerScript>().plyCam.transform;
     if (!GrenadeManager.flashfire)
     {
       GameObject gameObject = (GameObject) null;
       foreach (GameObject player in PlayerManager.singleton.players)
       {
-        if (((QueryProcessor) player.GetComponent<QueryProcessor>()).PlayerId == grenadeOwnerPlayerID)
+        if (player.GetComponent<QueryProcessor>().PlayerId == grenadeOwnerPlayerID)
           gameObject = player;
       }
-      if (Object.op_Inequality((Object) gameObject, (Object) PlayerManager.localPlayer) && (Object.op_Equality((Object) gameObject, (Object) null) || !((WeaponManager) gameObject.GetComponent<WeaponManager>()).GetShootPermission((CharacterClassManager) PlayerManager.localPlayer.GetComponent<CharacterClassManager>(), false)))
+      if ((Object) gameObject != (Object) PlayerManager.localPlayer && ((Object) gameObject == (Object) null || !gameObject.GetComponent<WeaponManager>().GetShootPermission(PlayerManager.localPlayer.GetComponent<CharacterClassManager>(), false)))
       {
-        Object.Destroy((Object) ((Component) this).get_gameObject());
+        Object.Destroy((Object) this.gameObject);
         return;
       }
     }
-    Vector3 position = transform.get_position();
-    Vector3 vector3_1 = Vector3.op_Subtraction(transform.get_position(), ((Component) this).get_transform().get_position());
-    Vector3 vector3_2 = Vector3.op_UnaryNegation(((Vector3) ref vector3_1).get_normalized());
-    RaycastHit raycastHit;
-    ref RaycastHit local = ref raycastHit;
-    double num1 = 1000.0;
-    int num2 = LayerMask.op_Implicit(this.viewLayerMask);
-    if (Physics.Raycast(position, vector3_2, ref local, (float) num1, num2) && ((Component) ((RaycastHit) ref raycastHit).get_collider()).get_gameObject().get_layer() == 20)
-    {
-      M0 component = PlayerManager.localPlayer.GetComponent<FlashEffect>();
-      double num3 = (double) this.powerOverDistance.Evaluate(Vector3.Distance(PlayerManager.localPlayer.get_transform().get_position(), ((Component) this).get_transform().get_position()) / (((Component) this).get_transform().get_position().y <= 900.0 ? this.distanceMultiplierFacility : this.distanceMultiplierSurface));
-      AnimationCurve powerOverDot = this.powerOverDot;
-      Vector3 forward = transform.get_forward();
-      Vector3 vector3_3 = Vector3.op_Subtraction(transform.get_position(), ((Component) this).get_transform().get_position());
-      Vector3 normalized = ((Vector3) ref vector3_3).get_normalized();
-      double num4 = (double) Vector3.Dot(forward, normalized);
-      double num5 = (double) powerOverDot.Evaluate((float) num4);
-      double num6 = num3 * num5;
-      ((FlashEffect) component).Play((float) num6);
-    }
-    Object.Destroy((Object) ((Component) this).get_gameObject());
+    RaycastHit hitInfo;
+    if (Physics.Raycast(transform.position, -(transform.position - this.transform.position).normalized, out hitInfo, 1000f, (int) this.viewLayerMask) && hitInfo.collider.gameObject.layer == 20)
+      PlayerManager.localPlayer.GetComponent<FlashEffect>().Play(this.powerOverDistance.Evaluate(Vector3.Distance(PlayerManager.localPlayer.transform.position, this.transform.position) / ((double) this.transform.position.y <= 900.0 ? this.distanceMultiplierFacility : this.distanceMultiplierSurface)) * this.powerOverDot.Evaluate(Vector3.Dot(transform.forward, (transform.position - this.transform.position).normalized)));
+    Object.Destroy((Object) this.gameObject);
   }
 }

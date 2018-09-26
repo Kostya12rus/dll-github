@@ -14,6 +14,7 @@ using UnityEngine.Networking;
 
 public class Scp914 : NetworkBehaviour
 {
+  private int prevStatus = -1;
   public static Scp914 singleton;
   public Texture burntIcon;
   public AudioSource soundSource;
@@ -25,14 +26,8 @@ public class Scp914 : NetworkBehaviour
   public Scp914.Recipe[] recipes;
   [SyncVar(hook = "SetStatus")]
   public int knobStatus;
-  private int prevStatus;
   private float cooldown;
   public bool working;
-
-  public Scp914()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -61,19 +56,19 @@ public class Scp914 : NetworkBehaviour
     if (this.working)
       return;
     this.working = true;
-    Timing.RunCoroutine(this._Animation(), (Segment) 0);
+    Timing.RunCoroutine(this._Animation(), Segment.Update);
   }
 
   private void Update()
   {
     if (this.knobStatus != this.prevStatus)
     {
-      ((AudioSource) ((Component) this.knob).GetComponent<AudioSource>()).Play();
+      this.knob.GetComponent<AudioSource>().Play();
       this.prevStatus = this.knobStatus;
     }
     if ((double) this.cooldown >= 0.0)
-      this.cooldown -= Time.get_deltaTime();
-    ((Component) this.knob).get_transform().set_localRotation(Quaternion.Lerp(((Component) this.knob).get_transform().get_localRotation(), Quaternion.Euler(Vector3.op_Multiply(Vector3.get_forward(), Mathf.Lerp(-89f, 89f, (float) this.knobStatus / 4f))), Time.get_deltaTime() * 4f));
+      this.cooldown -= Time.deltaTime;
+    this.knob.transform.localRotation = Quaternion.Lerp(this.knob.transform.localRotation, Quaternion.Euler(Vector3.forward * Mathf.Lerp(-89f, 89f, (float) this.knobStatus / 4f)), Time.deltaTime * 4f);
   }
 
   private IEnumerator<float> _Animation()
@@ -83,8 +78,8 @@ public class Scp914 : NetworkBehaviour
     float t = 0.0f;
     while ((double) t < 1.0)
     {
-      t += Time.get_deltaTime() * 0.85f;
-      ((Component) this.doors).get_transform().set_localPosition(Vector3.op_Multiply(Vector3.get_right(), Mathf.Lerp(1.74f, 0.0f, t)));
+      t += Time.deltaTime * 0.85f;
+      this.doors.transform.localPosition = Vector3.right * Mathf.Lerp(1.74f, 0.0f, t);
       yield return 0.0f;
     }
     yield return Timing.WaitForSeconds(0.0f);
@@ -92,7 +87,7 @@ public class Scp914 : NetworkBehaviour
     yield return Timing.WaitForSeconds(0.0f);
     while ((double) t > 0.0)
     {
-      t -= Time.get_deltaTime() * 0.85f;
+      t -= Time.deltaTime * 0.85f;
       this.SetDoorPos(t);
       yield return 0.0f;
     }
@@ -103,21 +98,21 @@ public class Scp914 : NetworkBehaviour
   [ServerCallback]
   private void UpgradeItems()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
-    foreach (Collider collider in Physics.OverlapBox(this.intake_obj.get_position(), Vector3.op_Division(Vector3.op_Multiply(Vector3.get_one(), this.colliderSize), 2f)))
+    foreach (Collider collider in Physics.OverlapBox(this.intake_obj.position, Vector3.one * this.colliderSize / 2f))
     {
-      Pickup component = (Pickup) ((Component) collider).GetComponent<Pickup>();
-      PlayerStats componentInParent = (PlayerStats) ((Component) collider).GetComponentInParent<PlayerStats>();
-      if (Object.op_Inequality((Object) component, (Object) null))
+      Pickup component = collider.GetComponent<Pickup>();
+      collider.GetComponentInParent<PlayerStats>();
+      if ((Object) component != (Object) null)
       {
         GameObject gameObject = (GameObject) null;
         foreach (GameObject player in PlayerManager.singleton.players)
         {
-          if (((QueryProcessor) player.GetComponent<QueryProcessor>()).PlayerId == component.info.ownerPlayerID)
+          if (player.GetComponent<QueryProcessor>().PlayerId == component.info.ownerPlayerID)
             gameObject = player;
         }
-        ((Component) component).get_transform().set_position(Vector3.op_Addition(Vector3.op_Addition(((Component) component).get_transform().get_position(), Vector3.op_Subtraction(this.output_obj.get_position(), this.intake_obj.get_position())), Vector3.get_up()));
+        component.transform.position = component.transform.position + (this.output_obj.position - this.intake_obj.position) + Vector3.up;
         if (component.info.itemId < this.recipes.Length)
         {
           int[] array = this.recipes[component.info.itemId].outputs[this.knobStatus].outputs.ToArray();
@@ -126,16 +121,16 @@ public class Scp914 : NetworkBehaviour
           {
             component.Delete();
             if (TutorialManager.status)
-              ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Tutorial3_KeycardBurnt();
+              Object.FindObjectOfType<TutorialManager>().Tutorial3_KeycardBurnt();
           }
           else
           {
-            if (num <= 11 && Object.op_Inequality((Object) gameObject, (Object) null) && ((CharacterClassManager) gameObject.GetComponent<CharacterClassManager>()).curClass == 6)
+            if (num <= 11 && (Object) gameObject != (Object) null && gameObject.GetComponent<CharacterClassManager>().curClass == 6)
             {
               foreach (GameObject player in PlayerManager.singleton.players)
               {
-                if (((CharacterClassManager) player.GetComponent<CharacterClassManager>()).curClass == 1 && (double) Vector3.Distance(player.get_transform().get_position(), gameObject.get_transform().get_position()) < 10.0)
-                  ((PlayerStats) PlayerManager.localPlayer.GetComponent<PlayerStats>()).CallTargetAchieve(((NetworkBehaviour) gameObject.GetComponent<CharacterClassManager>()).get_connectionToClient(), "friendship");
+                if (player.GetComponent<CharacterClassManager>().curClass == 1 && (double) Vector3.Distance(player.transform.position, gameObject.transform.position) < 10.0)
+                  PlayerManager.localPlayer.GetComponent<PlayerStats>().CallTargetAchieve(gameObject.GetComponent<CharacterClassManager>().connectionToClient, "friendship");
               }
             }
             Pickup.PickupInfo info = component.info;
@@ -150,7 +145,7 @@ public class Scp914 : NetworkBehaviour
 
   private void SetDoorPos(float t)
   {
-    ((Component) this.doors).get_transform().set_localPosition(Vector3.op_Multiply(Vector3.get_right(), Mathf.Lerp(1.74f, 0.0f, t)));
+    this.doors.transform.localPosition = Vector3.right * Mathf.Lerp(1.74f, 0.0f, t);
   }
 
   private void UNetVersion()
@@ -168,17 +163,17 @@ public class Scp914 : NetworkBehaviour
       int num1 = value;
       ref int local = ref this.knobStatus;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetStatus(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<int>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<int>(num1, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -186,21 +181,21 @@ public class Scp914 : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.WritePackedUInt32((uint) this.knobStatus);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

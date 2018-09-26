@@ -10,15 +10,10 @@ public class Rid : MonoBehaviour
 {
   public string id;
 
-  public Rid()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     if (!string.IsNullOrEmpty(this.id))
       return;
-    this.id = ((Object) ((Renderer) ((Component) this).GetComponentInChildren<MeshRenderer>()).get_material().get_mainTexture()).get_name();
+    this.id = this.GetComponentInChildren<MeshRenderer>().material.mainTexture.name;
   }
 }

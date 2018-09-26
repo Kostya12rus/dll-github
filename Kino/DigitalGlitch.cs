@@ -23,11 +23,6 @@ namespace Kino
     private RenderTexture _trashFrame1;
     private RenderTexture _trashFrame2;
 
-    public DigitalGlitch()
-    {
-      base.\u002Ector();
-    }
-
     public float intensity
     {
       get
@@ -42,36 +37,36 @@ namespace Kino
 
     private static Color RandomColor()
     {
-      return new Color(Random.get_value(), Random.get_value(), Random.get_value(), Random.get_value());
+      return new Color(Random.value, Random.value, Random.value, Random.value);
     }
 
     private void SetUpResources()
     {
-      if (Object.op_Inequality((Object) this._material, (Object) null))
+      if ((Object) this._material != (Object) null)
         return;
       this._material = new Material(this._shader);
-      ((Object) this._material).set_hideFlags((HideFlags) 52);
-      this._noiseTexture = new Texture2D(64, 32, (TextureFormat) 5, false);
-      ((Object) this._noiseTexture).set_hideFlags((HideFlags) 52);
-      ((Texture) this._noiseTexture).set_wrapMode((TextureWrapMode) 1);
-      ((Texture) this._noiseTexture).set_filterMode((FilterMode) 0);
-      this._trashFrame1 = new RenderTexture(Screen.get_width(), Screen.get_height(), 0);
-      this._trashFrame2 = new RenderTexture(Screen.get_width(), Screen.get_height(), 0);
-      ((Object) this._trashFrame1).set_hideFlags((HideFlags) 52);
-      ((Object) this._trashFrame2).set_hideFlags((HideFlags) 52);
+      this._material.hideFlags = HideFlags.DontSave;
+      this._noiseTexture = new Texture2D(64, 32, TextureFormat.ARGB32, false);
+      this._noiseTexture.hideFlags = HideFlags.DontSave;
+      this._noiseTexture.wrapMode = TextureWrapMode.Clamp;
+      this._noiseTexture.filterMode = FilterMode.Point;
+      this._trashFrame1 = new RenderTexture(Screen.width, Screen.height, 0);
+      this._trashFrame2 = new RenderTexture(Screen.width, Screen.height, 0);
+      this._trashFrame1.hideFlags = HideFlags.DontSave;
+      this._trashFrame2.hideFlags = HideFlags.DontSave;
       this.UpdateNoiseTexture();
     }
 
     private void UpdateNoiseTexture()
     {
       Color color = DigitalGlitch.RandomColor();
-      for (int index1 = 0; index1 < ((Texture) this._noiseTexture).get_height(); ++index1)
+      for (int y = 0; y < this._noiseTexture.height; ++y)
       {
-        for (int index2 = 0; index2 < ((Texture) this._noiseTexture).get_width(); ++index2)
+        for (int x = 0; x < this._noiseTexture.width; ++x)
         {
-          if ((double) Random.get_value() > 0.889999985694885)
+          if ((double) Random.value > 0.889999985694885)
             color = DigitalGlitch.RandomColor();
-          this._noiseTexture.SetPixel(index2, index1, color);
+          this._noiseTexture.SetPixel(x, y, color);
         }
       }
       this._noiseTexture.Apply();
@@ -79,7 +74,7 @@ namespace Kino
 
     private void Update()
     {
-      if ((double) Random.get_value() <= (double) Mathf.Lerp(0.9f, 0.5f, this._intensity))
+      if ((double) Random.value <= (double) Mathf.Lerp(0.9f, 0.5f, this._intensity))
         return;
       this.SetUpResources();
       this.UpdateNoiseTexture();
@@ -88,14 +83,14 @@ namespace Kino
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
       this.SetUpResources();
-      int frameCount = Time.get_frameCount();
+      int frameCount = Time.frameCount;
       if (frameCount % 13 == 0)
         Graphics.Blit((Texture) source, this._trashFrame1);
       if (frameCount % 73 == 0)
         Graphics.Blit((Texture) source, this._trashFrame2);
       this._material.SetFloat("_Intensity", this._intensity);
       this._material.SetTexture("_NoiseTex", (Texture) this._noiseTexture);
-      this._material.SetTexture("_TrashTex", (double) Random.get_value() <= 0.5 ? (Texture) this._trashFrame2 : (Texture) this._trashFrame1);
+      this._material.SetTexture("_TrashTex", (double) Random.value <= 0.5 ? (Texture) this._trashFrame2 : (Texture) this._trashFrame1);
       Graphics.Blit((Texture) source, destination, this._material);
     }
   }

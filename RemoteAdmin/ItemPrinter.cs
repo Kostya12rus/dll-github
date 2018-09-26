@@ -15,11 +15,6 @@ namespace RemoteAdmin
     public GameObject template;
     public Transform parent;
 
-    public ItemPrinter()
-    {
-      base.\u002Ector();
-    }
-
     [DebuggerHidden]
     private IEnumerator Start()
     {

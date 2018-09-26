@@ -8,24 +8,19 @@ using UnityEngine;
 
 public class MaterialBlink : MonoBehaviour
 {
+  public Color lowestColor = Color.white;
+  public Color highestColor = Color.white;
+  public float speed = 1f;
+  public float colorMultiplier = 1f;
   public Material materal;
-  public Color lowestColor;
-  public Color highestColor;
-  public float speed;
-  public float colorMultiplier;
   private float time;
-
-  public MaterialBlink()
-  {
-    base.\u002Ector();
-  }
 
   private void Update()
   {
-    this.time += Time.get_deltaTime() * this.speed;
+    this.time += Time.deltaTime * this.speed;
     if ((double) this.time > 1.0)
       --this.time;
-    this.materal.SetColor("_EmissionColor", Color.op_Multiply(Color.Lerp(this.lowestColor, this.highestColor, Mathf.Abs(Mathf.Lerp(-1f, 1f, this.time))), this.colorMultiplier));
+    this.materal.SetColor("_EmissionColor", Color.Lerp(this.lowestColor, this.highestColor, Mathf.Abs(Mathf.Lerp(-1f, 1f, this.time))) * this.colorMultiplier);
   }
 
   private void OnDisable()

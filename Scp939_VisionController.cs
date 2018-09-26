@@ -11,20 +11,15 @@ using UnityEngine.Networking;
 
 public class Scp939_VisionController : NetworkBehaviour
 {
+  public float minimumSilenceTime = 2.5f;
+  public float minimumNoiseLevel = 2f;
+  public List<Scp939_VisionController.Scp939_Vision> seeingSCPs = new List<Scp939_VisionController.Scp939_Vision>();
   public float noise;
-  public float minimumSilenceTime;
-  public float minimumNoiseLevel;
-  public List<Scp939_VisionController.Scp939_Vision> seeingSCPs;
   private CharacterClassManager ccm;
-
-  public Scp939_VisionController()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
+    this.ccm = this.GetComponent<CharacterClassManager>();
   }
 
   public bool CanSee(Scp939PlayerScript scp939)
@@ -33,7 +28,7 @@ public class Scp939_VisionController : NetworkBehaviour
       return false;
     foreach (Scp939_VisionController.Scp939_Vision seeingScP in this.seeingSCPs)
     {
-      if (Object.op_Equality((Object) seeingScP.scp, (Object) scp939))
+      if ((Object) seeingScP.scp == (Object) scp939)
         return true;
     }
     return false;
@@ -41,11 +36,11 @@ public class Scp939_VisionController : NetworkBehaviour
 
   private void FixedUpdate()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     foreach (Scp939PlayerScript instance in Scp939PlayerScript.instances)
     {
-      if ((double) Vector3.Distance(((Component) this).get_transform().get_position(), ((Component) instance).get_transform().get_position()) < (double) this.noise)
+      if ((double) Vector3.Distance(this.transform.position, instance.transform.position) < (double) this.noise)
         this.AddVision(instance);
     }
     this.noise = this.minimumNoiseLevel;
@@ -56,7 +51,7 @@ public class Scp939_VisionController : NetworkBehaviour
   {
     for (int index = 0; index < this.seeingSCPs.Count; ++index)
     {
-      if (Object.op_Equality((Object) this.seeingSCPs[index].scp, (Object) scp939))
+      if ((Object) this.seeingSCPs[index].scp == (Object) scp939)
       {
         this.seeingSCPs[index].remainingTime = this.minimumSilenceTime;
         return;
@@ -74,7 +69,7 @@ public class Scp939_VisionController : NetworkBehaviour
     for (int index = 0; index < this.seeingSCPs.Count; ++index)
     {
       this.seeingSCPs[index].remainingTime -= 0.02f;
-      if (Object.op_Equality((Object) this.seeingSCPs[index].scp, (Object) null) || !this.seeingSCPs[index].scp.iAm939 || (double) this.seeingSCPs[index].remainingTime <= 0.0)
+      if ((Object) this.seeingSCPs[index].scp == (Object) null || !this.seeingSCPs[index].scp.iAm939 || (double) this.seeingSCPs[index].remainingTime <= 0.0)
       {
         this.seeingSCPs.RemoveAt(index);
         break;
@@ -85,7 +80,7 @@ public class Scp939_VisionController : NetworkBehaviour
   [Server]
   public void MakeNoise(float distanceIntensity)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogWarning((object) "[Server] function 'System.Void Scp939_VisionController::MakeNoise(System.Single)' called on client");
     }
@@ -101,13 +96,13 @@ public class Scp939_VisionController : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 

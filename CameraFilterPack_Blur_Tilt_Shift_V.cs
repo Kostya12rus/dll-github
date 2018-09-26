@@ -10,33 +10,28 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Blur/Tilt_Shift_V")]
 public class CameraFilterPack_Blur_Tilt_Shift_V : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
-  private Material SCMaterial;
+  private float TimeX = 1f;
   [Range(0.0f, 20f)]
-  public float Amount;
+  public float Amount = 3f;
   [Range(2f, 16f)]
-  public int FastFilter;
+  public int FastFilter = 8;
   [Range(0.0f, 1f)]
-  public float Smooth;
+  public float Smooth = 0.5f;
   [Range(0.0f, 1f)]
-  public float Size;
+  public float Size = 0.5f;
   [Range(-1f, 1f)]
-  public float Position;
-
-  public CameraFilterPack_Blur_Tilt_Shift_V()
-  {
-    base.\u002Ector();
-  }
+  public float Position = 0.5f;
+  public Shader SCShader;
+  private Material SCMaterial;
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -45,17 +40,17 @@ public class CameraFilterPack_Blur_Tilt_Shift_V : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/BlurTiltShift_V");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
       int fastFilter = this.FastFilter;
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -63,13 +58,13 @@ public class CameraFilterPack_Blur_Tilt_Shift_V : MonoBehaviour
       this.material.SetFloat("_Value1", this.Smooth);
       this.material.SetFloat("_Value2", this.Size);
       this.material.SetFloat("_Value3", this.Position);
-      int num1 = ((Texture) sourceTexture).get_width() / fastFilter;
-      int num2 = ((Texture) sourceTexture).get_height() / fastFilter;
+      int width = sourceTexture.width / fastFilter;
+      int height = sourceTexture.height / fastFilter;
       if (this.FastFilter > 1)
       {
-        RenderTexture temporary1 = RenderTexture.GetTemporary(num1, num2, 0);
-        RenderTexture temporary2 = RenderTexture.GetTemporary(num1, num2, 0);
-        ((Texture) temporary1).set_filterMode((FilterMode) 2);
+        RenderTexture temporary1 = RenderTexture.GetTemporary(width, height, 0);
+        RenderTexture temporary2 = RenderTexture.GetTemporary(width, height, 0);
+        temporary1.filterMode = FilterMode.Trilinear;
         Graphics.Blit((Texture) sourceTexture, temporary1, this.material, 2);
         Graphics.Blit((Texture) temporary1, temporary2, this.material, 0);
         this.material.SetFloat("_Amount", this.Amount * 2f);
@@ -93,7 +88,7 @@ public class CameraFilterPack_Blur_Tilt_Shift_V : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

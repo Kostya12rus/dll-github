@@ -14,15 +14,10 @@ public class ExplosionCameraShake : MonoBehaviour
   public AnalogGlitch glitch;
   public static ExplosionCameraShake singleton;
 
-  public ExplosionCameraShake()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    ((Behaviour) this.glitch).set_enabled((double) this.glitch.horizontalShake > 0.0);
-    this.force -= Time.get_deltaTime() / this.deductSpeed;
+    this.glitch.enabled = (double) this.glitch.horizontalShake > 0.0;
+    this.force -= Time.deltaTime / this.deductSpeed;
     this.force = Mathf.Clamp01(this.force);
     this.glitch.scanLineJitter = this.force;
     this.glitch.horizontalShake = this.force;

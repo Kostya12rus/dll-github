@@ -16,26 +16,26 @@ public class CPPS_NV : CustomPostProcessingSight
 
   private void Start()
   {
-    this.wm = (WeaponManager) ((Component) this).GetComponentInParent<WeaponManager>();
-    if (!this.wm.get_isLocalPlayer())
+    this.wm = this.GetComponentInParent<WeaponManager>();
+    if (!this.wm.isLocalPlayer)
     {
       Object.Destroy((Object) this);
     }
     else
     {
-      this.ppb = (PostProcessingBehaviour) ((Component) this.wm.weaponModelCamera).GetComponent<PostProcessingBehaviour>();
+      this.ppb = this.wm.weaponModelCamera.GetComponent<PostProcessingBehaviour>();
       CustomPostProcessingSight.singleton = (CustomPostProcessingSight) this;
     }
   }
 
   private void Update()
   {
-    if (((Object) this.ppb.profile).get_name().Equals(((Object) this.targetProfile).get_name()))
+    if (this.ppb.profile.name.Equals(this.targetProfile.name))
     {
       this.canvas.SetActive(true);
-      CustomPostProcessingSight.raycast_bool = Physics.Raycast(new Ray(((Component) this.ppb).get_transform().get_position(), ((Component) this.ppb).get_transform().get_forward()), ref CustomPostProcessingSight.raycast_hit, 100f, LayerMask.op_Implicit(this.wm.raycastMask));
-      this.distanceSlider.set_value(this.sliderValueOverDistance.Evaluate(!CustomPostProcessingSight.raycast_bool ? 100f : ((RaycastHit) ref CustomPostProcessingSight.raycast_hit).get_distance()));
-      this.infoText.set_text(this.GetAmmoLeft().ToString("00"));
+      CustomPostProcessingSight.raycast_bool = Physics.Raycast(new Ray(this.ppb.transform.position, this.ppb.transform.forward), out CustomPostProcessingSight.raycast_hit, 100f, (int) this.wm.raycastMask);
+      this.distanceSlider.value = this.sliderValueOverDistance.Evaluate(!CustomPostProcessingSight.raycast_bool ? 100f : CustomPostProcessingSight.raycast_hit.distance);
+      this.infoText.text = this.GetAmmoLeft().ToString("00");
     }
     else
       this.canvas.SetActive(false);

@@ -13,18 +13,13 @@ public class HandPart : MonoBehaviour
   public Animator anim;
   private Inventory inv;
 
-  public HandPart()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (Object.op_Equality((Object) this.anim, (Object) null))
-      this.anim = (Animator) ((Component) this).GetComponentsInParent<Animator>()[0];
-    if (!Object.op_Equality((Object) this.inv, (Object) null))
+    if ((Object) this.anim == (Object) null)
+      this.anim = this.GetComponentsInParent<Animator>()[0];
+    if (!((Object) this.inv == (Object) null))
       return;
-    this.inv = (Inventory) ((Component) this).GetComponentInParent<Inventory>();
+    this.inv = this.GetComponentInParent<Inventory>();
   }
 
   public void UpdateItem()

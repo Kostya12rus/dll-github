@@ -25,34 +25,32 @@ namespace UnityEngine.PostProcessing
       this.curve = curve;
       this.m_ZeroValue = zeroValue;
       this.m_Loop = loop;
-      this.m_Range = ((Vector2) ref bounds).get_magnitude();
+      this.m_Range = bounds.magnitude;
     }
 
     public void Cache()
     {
       if (!this.m_Loop)
         return;
-      int length = this.curve.get_length();
+      int length = this.curve.length;
       if (length < 2)
         return;
       if (this.m_InternalLoopingCurve == null)
         this.m_InternalLoopingCurve = new AnimationCurve();
-      Keyframe keyframe1 = this.curve.get_Item(length - 1);
-      ref Keyframe local1 = ref keyframe1;
-      ((Keyframe) ref local1).set_time(((Keyframe) ref local1).get_time() - this.m_Range);
-      Keyframe keyframe2 = this.curve.get_Item(0);
-      ref Keyframe local2 = ref keyframe2;
-      ((Keyframe) ref local2).set_time(((Keyframe) ref local2).get_time() + this.m_Range);
-      this.m_InternalLoopingCurve.set_keys(this.curve.get_keys());
-      this.m_InternalLoopingCurve.AddKey(keyframe1);
-      this.m_InternalLoopingCurve.AddKey(keyframe2);
+      Keyframe key1 = this.curve[length - 1];
+      key1.time -= this.m_Range;
+      Keyframe key2 = this.curve[0];
+      key2.time += this.m_Range;
+      this.m_InternalLoopingCurve.keys = this.curve.keys;
+      this.m_InternalLoopingCurve.AddKey(key1);
+      this.m_InternalLoopingCurve.AddKey(key2);
     }
 
     public float Evaluate(float t)
     {
-      if (this.curve.get_length() == 0)
+      if (this.curve.length == 0)
         return this.m_ZeroValue;
-      if (!this.m_Loop || this.curve.get_length() == 1)
+      if (!this.m_Loop || this.curve.length == 1)
         return this.curve.Evaluate(t);
       return this.m_InternalLoopingCurve.Evaluate(t);
     }

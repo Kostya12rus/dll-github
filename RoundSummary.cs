@@ -31,18 +31,13 @@ public class RoundSummary : NetworkBehaviour
   public static int changed_into_zombies;
   private static int kRpcRpcDimScreen;
 
-  public RoundSummary()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     RoundSummary.roundTime = 0;
     RoundSummary.singleton = this;
-    Timing.RunCoroutine(this._ProcessServerSideCode(), (Segment) 0);
+    Timing.RunCoroutine(this._ProcessServerSideCode(), Segment.Update);
     RoundSummary.kills_by_scp = 0;
     RoundSummary.escaped_ds = 0;
     RoundSummary.escaped_scientists = 0;
@@ -58,56 +53,39 @@ public class RoundSummary : NetworkBehaviour
   private IEnumerator<float> _ProcessServerSideCode()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new RoundSummary.\u003C_ProcessServerSideCode\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new RoundSummary.\u003C_ProcessServerSideCode\u003Ec__Iterator0() { \u0024this = this };
   }
 
   [ClientRpc]
   private void RpcShowRoundSummary(RoundSummary.SumInfo_ClassList list_start, RoundSummary.SumInfo_ClassList list_finish, RoundSummary.LeadingTeam leadingTeam, int e_ds, int e_sc, int scp_kills, int round_cd)
   {
-    Timing.RunCoroutine(this._ShowRoundSummary(list_start, list_finish, leadingTeam, e_ds, e_sc, scp_kills, round_cd, RoundSummary.changed_into_zombies), (Segment) 1);
+    Timing.RunCoroutine(this._ShowRoundSummary(list_start, list_finish, leadingTeam, e_ds, e_sc, scp_kills, round_cd, RoundSummary.changed_into_zombies), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _ShowRoundSummary(RoundSummary.SumInfo_ClassList list_start, RoundSummary.SumInfo_ClassList list_finish, RoundSummary.LeadingTeam leadingTeam, int e_ds, int e_sc, int scp_kills, int round_cd, int changedIntoZombies)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new RoundSummary.\u003C_ShowRoundSummary\u003Ec__Iterator1()
-    {
-      leadingTeam = leadingTeam,
-      scp_kills = scp_kills,
-      list_finish = list_finish,
-      list_start = list_start,
-      changedIntoZombies = changedIntoZombies,
-      e_ds = e_ds,
-      e_sc = e_sc,
-      round_cd = round_cd,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new RoundSummary.\u003C_ShowRoundSummary\u003Ec__Iterator1() { leadingTeam = leadingTeam, scp_kills = scp_kills, list_finish = list_finish, list_start = list_start, changedIntoZombies = changedIntoZombies, e_ds = e_ds, e_sc = e_sc, round_cd = round_cd, \u0024this = this };
   }
 
   [ClientRpc]
   private void RpcDimScreen()
   {
-    Timing.RunCoroutine(this._FadeScreenOut(), (Segment) 1);
+    Timing.RunCoroutine(this._FadeScreenOut(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _FadeScreenOut()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new RoundSummary.\u003C_FadeScreenOut\u003Ec__Iterator2()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new RoundSummary.\u003C_FadeScreenOut\u003Ec__Iterator2() { \u0024this = this };
   }
 
   public static bool RoundInProgress()
   {
-    if (Object.op_Inequality((Object) PlayerManager.localPlayer, (Object) null) && ((CharacterClassManager) PlayerManager.localPlayer.GetComponent<CharacterClassManager>()).roundStarted && !RoundSummary.singleton.roundEnded)
-      return Object.op_Inequality((Object) AlphaWarheadController.host, (Object) null);
+    if ((Object) PlayerManager.localPlayer != (Object) null && PlayerManager.localPlayer.GetComponent<CharacterClassManager>().roundStarted && !RoundSummary.singleton.roundEnded)
+      return (Object) AlphaWarheadController.host != (Object) null;
     return false;
   }
 
@@ -117,7 +95,7 @@ public class RoundSummary : NetworkBehaviour
 
   protected static void InvokeRpcRpcShowRoundSummary(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcShowRoundSummary called on server.");
     else
       ((RoundSummary) obj).RpcShowRoundSummary(GeneratedNetworkCode._ReadSumInfo_ClassList_RoundSummary(reader), GeneratedNetworkCode._ReadSumInfo_ClassList_RoundSummary(reader), (RoundSummary.LeadingTeam) reader.ReadInt32(), (int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32(), (int) reader.ReadPackedUInt32());
@@ -125,7 +103,7 @@ public class RoundSummary : NetworkBehaviour
 
   protected static void InvokeRpcRpcDimScreen(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcDimScreen called on server.");
     else
       ((RoundSummary) obj).RpcDimScreen();
@@ -133,7 +111,7 @@ public class RoundSummary : NetworkBehaviour
 
   public void CallRpcShowRoundSummary(RoundSummary.SumInfo_ClassList list_start, RoundSummary.SumInfo_ClassList list_finish, RoundSummary.LeadingTeam leadingTeam, int e_ds, int e_sc, int scp_kills, int round_cd)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcShowRoundSummary called on client.");
     }
@@ -143,7 +121,7 @@ public class RoundSummary : NetworkBehaviour
       writer.Write((short) 0);
       writer.Write((short) 2);
       writer.WritePackedUInt32((uint) RoundSummary.kRpcRpcShowRoundSummary);
-      writer.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
       GeneratedNetworkCode._WriteSumInfo_ClassList_RoundSummary(writer, list_start);
       GeneratedNetworkCode._WriteSumInfo_ClassList_RoundSummary(writer, list_finish);
       writer.Write((int) leadingTeam);
@@ -157,38 +135,36 @@ public class RoundSummary : NetworkBehaviour
 
   public void CallRpcDimScreen()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcDimScreen called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) RoundSummary.kRpcRpcDimScreen);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      this.SendRPCInternal(networkWriter, 0, "RpcDimScreen");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) RoundSummary.kRpcRpcDimScreen);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      this.SendRPCInternal(writer, 0, "RpcDimScreen");
     }
   }
 
   static RoundSummary()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (RoundSummary), RoundSummary.kRpcRpcShowRoundSummary, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcShowRoundSummary)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (RoundSummary), RoundSummary.kRpcRpcShowRoundSummary, new NetworkBehaviour.CmdDelegate(RoundSummary.InvokeRpcRpcShowRoundSummary));
     RoundSummary.kRpcRpcDimScreen = 784848710;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (RoundSummary), RoundSummary.kRpcRpcDimScreen, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcDimScreen)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (RoundSummary), RoundSummary.kRpcRpcDimScreen, new NetworkBehaviour.CmdDelegate(RoundSummary.InvokeRpcRpcDimScreen));
     NetworkCRC.RegisterBehaviour(nameof (RoundSummary), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 

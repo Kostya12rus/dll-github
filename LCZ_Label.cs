@@ -11,16 +11,11 @@ public class LCZ_Label : MonoBehaviour
   public MeshRenderer chRend;
   public MeshRenderer numRend;
 
-  public LCZ_Label()
-  {
-    base.\u002Ector();
-  }
-
   public void Refresh(Material ch, Material num, string err)
   {
-    ((Renderer) this.chRend).set_sharedMaterial(ch);
-    if (Object.op_Equality((Object) ((Renderer) this.chRend).get_sharedMaterial(), (Object) null))
+    this.chRend.sharedMaterial = ch;
+    if ((Object) this.chRend.sharedMaterial == (Object) null)
       Debug.Log((object) err);
-    ((Renderer) this.numRend).set_sharedMaterial(num);
+    this.numRend.sharedMaterial = num;
   }
 }

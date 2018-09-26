@@ -12,19 +12,14 @@ public class SECTR_FogDisable : MonoBehaviour
 {
   private bool previousFogState;
 
-  public SECTR_FogDisable()
-  {
-    base.\u002Ector();
-  }
-
   private void OnPreRender()
   {
-    this.previousFogState = RenderSettings.get_fog();
-    RenderSettings.set_fog(false);
+    this.previousFogState = RenderSettings.fog;
+    RenderSettings.fog = false;
   }
 
   private void OnPostRender()
   {
-    RenderSettings.set_fog(this.previousFogState);
+    RenderSettings.fog = this.previousFogState;
   }
 }

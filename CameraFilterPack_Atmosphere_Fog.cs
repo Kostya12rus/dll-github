@@ -10,32 +10,27 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Weather/Fog")]
 public class CameraFilterPack_Atmosphere_Fog : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 1f)]
+  public float _Far = 0.05f;
+  public Color FogColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+  [Range(0.0f, 1f)]
+  public float Fade = 1f;
   public Shader SCShader;
-  private float TimeX;
   private Material SCMaterial;
   [Range(0.0f, 1f)]
   public float _Near;
-  [Range(0.0f, 1f)]
-  public float _Far;
-  public Color FogColor;
-  [Range(0.0f, 1f)]
-  public float Fade;
   public static Color ChangeColorRGB;
   private Texture2D Texture2;
-
-  public CameraFilterPack_Atmosphere_Fog()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -45,16 +40,16 @@ public class CameraFilterPack_Atmosphere_Fog : MonoBehaviour
   {
     this.Texture2 = Resources.Load("CameraFilterPack_Atmosphere_Rain_FX") as Texture2D;
     this.SCShader = Shader.Find("CameraFilterPack/Atmosphere_Fog");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -62,8 +57,8 @@ public class CameraFilterPack_Atmosphere_Fog : MonoBehaviour
       this.material.SetFloat("_Near", this._Near);
       this.material.SetFloat("_Far", this._Far);
       this.material.SetColor("_ColorRGB", this.FogColor);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
-      ((Camera) ((Component) this).GetComponent<Camera>()).set_depthTextureMode((DepthTextureMode) 1);
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
+      this.GetComponent<Camera>().depthTextureMode = DepthTextureMode.Depth;
       this.material.SetTexture("Texture2", (Texture) this.Texture2);
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
@@ -77,7 +72,7 @@ public class CameraFilterPack_Atmosphere_Fog : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

@@ -18,6 +18,8 @@ namespace UnityEngine.PostProcessing
   [RequireComponent(typeof (Camera))]
   public class PostProcessingBehaviour : MonoBehaviour
   {
+    private List<PostProcessingComponentBase> m_ComponentsToEnable = new List<PostProcessingComponentBase>();
+    private List<PostProcessingComponentBase> m_ComponentsToDisable = new List<PostProcessingComponentBase>();
     public PostProcessingProfile profile;
     public Func<Vector2, Matrix4x4> jitteredMatrixFunc;
     private Dictionary<Type, KeyValuePair<CameraEvent, CommandBuffer>> m_CommandBuffers;
@@ -45,13 +47,6 @@ namespace UnityEngine.PostProcessing
     private VignetteComponent m_Vignette;
     private DitheringComponent m_Dithering;
     private FxaaComponent m_Fxaa;
-    private List<PostProcessingComponentBase> m_ComponentsToEnable;
-    private List<PostProcessingComponentBase> m_ComponentsToDisable;
-
-    public PostProcessingBehaviour()
-    {
-      base.\u002Ector();
-    }
 
     private void OnEnable()
     {
@@ -79,23 +74,23 @@ namespace UnityEngine.PostProcessing
       this.m_ComponentStates = new Dictionary<PostProcessingComponentBase, bool>();
       foreach (PostProcessingComponentBase component in this.m_Components)
         this.m_ComponentStates.Add(component, false);
-      this.set_useGUILayout(false);
+      this.useGUILayout = false;
     }
 
     private void Start()
     {
-      NetworkIdentity networkIdentity = (NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>();
-      if (Object.op_Equality((Object) networkIdentity, (Object) null))
-        networkIdentity = (NetworkIdentity) ((Component) this).GetComponentInChildren<NetworkIdentity>();
-      if (!Object.op_Inequality((Object) networkIdentity, (Object) null) || networkIdentity.get_isLocalPlayer())
+      NetworkIdentity networkIdentity = this.GetComponent<NetworkIdentity>();
+      if ((Object) networkIdentity == (Object) null)
+        networkIdentity = this.GetComponentInChildren<NetworkIdentity>();
+      if (!((Object) networkIdentity != (Object) null) || networkIdentity.isLocalPlayer)
         return;
       Object.DestroyImmediate((Object) this);
     }
 
     private void OnPreCull()
     {
-      this.m_Camera = (Camera) ((Component) this).GetComponent<Camera>();
-      if (Object.op_Equality((Object) this.profile, (Object) null) || Object.op_Equality((Object) this.m_Camera, (Object) null))
+      this.m_Camera = this.GetComponent<Camera>();
+      if ((Object) this.profile == (Object) null || (Object) this.m_Camera == (Object) null)
         return;
       PostProcessingContext pcontext = this.m_Context.Reset();
       pcontext.profile = this.profile;
@@ -118,19 +113,19 @@ namespace UnityEngine.PostProcessing
       this.m_Vignette.Init(pcontext, this.profile.vignette);
       this.m_Dithering.Init(pcontext, this.profile.dithering);
       this.m_Fxaa.Init(pcontext, this.profile.antialiasing);
-      if (Object.op_Inequality((Object) this.m_PreviousProfile, (Object) this.profile))
+      if ((Object) this.m_PreviousProfile != (Object) this.profile)
       {
         this.DisableComponents();
         this.m_PreviousProfile = this.profile;
       }
       this.CheckObservers();
-      DepthTextureMode depthTextureMode = pcontext.camera.get_depthTextureMode();
+      DepthTextureMode depthTextureMode = pcontext.camera.depthTextureMode;
       foreach (PostProcessingComponentBase component in this.m_Components)
       {
         if (component.active)
-          depthTextureMode = depthTextureMode | component.GetCameraFlags();
+          depthTextureMode |= component.GetCameraFlags();
       }
-      pcontext.camera.set_depthTextureMode(depthTextureMode);
+      pcontext.camera.depthTextureMode = depthTextureMode;
       if (this.m_RenderingInSceneView || !this.m_Taa.active || this.profile.debugViews.willInterrupt)
         return;
       this.m_Taa.SetProjectionMatrix(this.jitteredMatrixFunc);
@@ -138,7 +133,7 @@ namespace UnityEngine.PostProcessing
 
     private void OnPreRender()
     {
-      if (Object.op_Equality((Object) this.profile, (Object) null))
+      if ((Object) this.profile == (Object) null)
         return;
       this.TryExecuteCommandBuffer<BuiltinDebugViewsModel>((PostProcessingComponentCommandBuffer<BuiltinDebugViewsModel>) this.m_DebugViews);
       this.TryExecuteCommandBuffer<AmbientOcclusionModel>((PostProcessingComponentCommandBuffer<AmbientOcclusionModel>) this.m_AmbientOcclusion);
@@ -151,14 +146,14 @@ namespace UnityEngine.PostProcessing
 
     private void OnPostRender()
     {
-      if (Object.op_Equality((Object) this.profile, (Object) null) || Object.op_Equality((Object) this.m_Camera, (Object) null) || (this.m_RenderingInSceneView || !this.m_Taa.active) || this.profile.debugViews.willInterrupt)
+      if ((Object) this.profile == (Object) null || (Object) this.m_Camera == (Object) null || (this.m_RenderingInSceneView || !this.m_Taa.active) || this.profile.debugViews.willInterrupt)
         return;
       this.m_Context.camera.ResetProjectionMatrix();
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-      if (Object.op_Equality((Object) this.profile, (Object) null) || Object.op_Equality((Object) this.m_Camera, (Object) null))
+      if ((Object) this.profile == (Object) null || (Object) this.m_Camera == (Object) null)
       {
         Graphics.Blit((Texture) source, destination);
       }
@@ -169,14 +164,14 @@ namespace UnityEngine.PostProcessing
         bool antialiasCoC = this.m_Taa.active && !this.m_RenderingInSceneView;
         bool flag2 = this.m_DepthOfField.active && !this.m_RenderingInSceneView;
         Material material1 = this.m_MaterialFactory.Get("Hidden/Post FX/Uber Shader");
-        material1.set_shaderKeywords((string[]) null);
+        material1.shaderKeywords = (string[]) null;
         RenderTexture renderTexture1 = source;
-        RenderTexture destination1 = destination;
+        RenderTexture renderTexture2 = destination;
         if (antialiasCoC)
         {
-          RenderTexture destination2 = this.m_RenderTextureFactory.Get(renderTexture1);
-          this.m_Taa.Render(renderTexture1, destination2);
-          renderTexture1 = destination2;
+          RenderTexture destination1 = this.m_RenderTextureFactory.Get(renderTexture1);
+          this.m_Taa.Render(renderTexture1, destination1);
+          renderTexture1 = destination1;
         }
         Texture autoExposure = (Texture) GraphicsUtils.whiteTexture;
         if (this.m_EyeAdaptation.active)
@@ -199,16 +194,16 @@ namespace UnityEngine.PostProcessing
         Material material2 = !active ? (Material) null : this.m_MaterialFactory.Get("Hidden/Post FX/FXAA");
         if (active)
         {
-          material2.set_shaderKeywords((string[]) null);
+          material2.shaderKeywords = (string[]) null;
           this.TryPrepareUberImageEffect<GrainModel>((PostProcessingComponentRenderTexture<GrainModel>) this.m_Grain, material2);
           this.TryPrepareUberImageEffect<DitheringModel>((PostProcessingComponentRenderTexture<DitheringModel>) this.m_Dithering, material2);
           if (flag3)
           {
-            RenderTexture renderTexture2 = this.m_RenderTextureFactory.Get(renderTexture1);
-            Graphics.Blit((Texture) renderTexture1, renderTexture2, material1, 0);
-            renderTexture1 = renderTexture2;
+            RenderTexture dest = this.m_RenderTextureFactory.Get(renderTexture1);
+            Graphics.Blit((Texture) renderTexture1, dest, material1, 0);
+            renderTexture1 = dest;
           }
-          this.m_Fxaa.Render(renderTexture1, destination1);
+          this.m_Fxaa.Render(renderTexture1, renderTexture2);
         }
         else
         {
@@ -217,18 +212,18 @@ namespace UnityEngine.PostProcessing
           {
             if (!GraphicsUtils.isLinearColorSpace)
               material1.EnableKeyword("UNITY_COLORSPACE_GAMMA");
-            Graphics.Blit((Texture) renderTexture1, destination1, material1, 0);
+            Graphics.Blit((Texture) renderTexture1, renderTexture2, material1, 0);
           }
         }
         if (!flag3 && !active)
-          Graphics.Blit((Texture) renderTexture1, destination1);
+          Graphics.Blit((Texture) renderTexture1, renderTexture2);
         this.m_RenderTextureFactory.ReleaseAll();
       }
     }
 
     private void OnGUI()
     {
-      if (Event.get_current().get_type() != 7 || Object.op_Equality((Object) this.profile, (Object) null) || Object.op_Equality((Object) this.m_Camera, (Object) null))
+      if (Event.current.type != EventType.Repaint || (Object) this.profile == (Object) null || (Object) this.m_Camera == (Object) null)
         return;
       if (this.m_EyeAdaptation.active && this.profile.debugViews.IsModeActive(BuiltinDebugViewsModel.Mode.EyeAdaptation))
         this.m_EyeAdaptation.OnGUI();
@@ -246,17 +241,13 @@ namespace UnityEngine.PostProcessing
 
     private void OnDisable()
     {
-      using (Dictionary<Type, KeyValuePair<CameraEvent, CommandBuffer>>.ValueCollection.Enumerator enumerator = this.m_CommandBuffers.Values.GetEnumerator())
+      foreach (KeyValuePair<CameraEvent, CommandBuffer> keyValuePair in this.m_CommandBuffers.Values)
       {
-        while (enumerator.MoveNext())
-        {
-          KeyValuePair<CameraEvent, CommandBuffer> current = enumerator.Current;
-          this.m_Camera.RemoveCommandBuffer(current.Key, current.Value);
-          current.Value.Dispose();
-        }
+        this.m_Camera.RemoveCommandBuffer(keyValuePair.Key, keyValuePair.Value);
+        keyValuePair.Value.Dispose();
       }
       this.m_CommandBuffers.Clear();
-      if (Object.op_Inequality((Object) this.profile, (Object) null))
+      if ((Object) this.profile != (Object) null)
         this.DisableComponents();
       this.m_Components.Clear();
       this.m_MaterialFactory.Dispose();
@@ -313,10 +304,8 @@ namespace UnityEngine.PostProcessing
 
     private CommandBuffer AddCommandBuffer<T>(CameraEvent evt, string name) where T : PostProcessingModel
     {
-      CommandBuffer commandBuffer1 = new CommandBuffer();
-      commandBuffer1.set_name(name);
-      CommandBuffer commandBuffer2 = commandBuffer1;
-      KeyValuePair<CameraEvent, CommandBuffer> keyValuePair = new KeyValuePair<CameraEvent, CommandBuffer>(evt, commandBuffer2);
+      CommandBuffer commandBuffer = new CommandBuffer() { name = name };
+      KeyValuePair<CameraEvent, CommandBuffer> keyValuePair = new KeyValuePair<CameraEvent, CommandBuffer>(evt, commandBuffer);
       this.m_CommandBuffers.Add(typeof (T), keyValuePair);
       this.m_Camera.AddCommandBuffer(evt, keyValuePair.Value);
       return keyValuePair.Value;

@@ -20,9 +20,4 @@ public class UBER_MaterialPresetCollection : ScriptableObject
   [HideInInspector]
   [SerializeField]
   public string[] names;
-
-  public UBER_MaterialPresetCollection()
-  {
-    base.\u002Ector();
-  }
 }

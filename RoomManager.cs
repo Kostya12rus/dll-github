@@ -11,15 +11,10 @@ using UnityEngine.UI;
 
 public class RoomManager : MonoBehaviour
 {
+  public int useSimulator = -1;
+  public List<RoomManager.Room> rooms = new List<RoomManager.Room>();
+  public List<RoomManager.RoomPosition> positions = new List<RoomManager.RoomPosition>();
   public bool isGenerated;
-  public int useSimulator;
-  public List<RoomManager.Room> rooms;
-  public List<RoomManager.RoomPosition> positions;
-
-  public RoomManager()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
@@ -30,14 +25,14 @@ public class RoomManager : MonoBehaviour
 
   public void GenerateMap(int seed)
   {
-    GameConsole.Console objectOfType = (GameConsole.Console) Object.FindObjectOfType<GameConsole.Console>();
+    GameConsole.Console objectOfType = Object.FindObjectOfType<GameConsole.Console>();
     if (!TutorialManager.status)
     {
-      ((PocketDimensionGenerator) ((Component) this).GetComponent<PocketDimensionGenerator>()).GenerateMap(seed);
+      this.GetComponent<PocketDimensionGenerator>().GenerateMap(seed);
       for (int index = 0; index < this.positions.Count; ++index)
       {
-        ((Object) this.positions[index].point).set_name("POINT" + (object) index);
-        if (Object.op_Equality((Object) ((Component) this.positions[index].point).GetComponent<Point>(), (Object) null))
+        this.positions[index].point.name = "POINT" + (object) index;
+        if ((Object) this.positions[index].point.GetComponent<Point>() == (Object) null)
         {
           Debug.LogError((object) "RoomManager: Missing 'Point' script at current position.");
           return;
@@ -56,9 +51,9 @@ public class RoomManager : MonoBehaviour
           if (this.positions[index].type.Equals(room.type))
           {
             bool flag = true;
-            foreach (Point componentsInChild in (Point[]) room.roomPrefab.GetComponentsInChildren<Point>())
+            foreach (Point componentsInChild in room.roomPrefab.GetComponentsInChildren<Point>())
             {
-              if (((Object) this.positions[index].point).get_name() == ((Object) ((Component) componentsInChild).get_gameObject()).get_name())
+              if (this.positions[index].point.name == componentsInChild.gameObject.name)
                 flag = false;
             }
             if (flag)
@@ -68,9 +63,9 @@ public class RoomManager : MonoBehaviour
         List<int> intList2 = intList1;
         for (int index = 0; index < intList2.Count; ++index)
         {
-          foreach (Point componentsInChild in (Point[]) room.roomPrefab.GetComponentsInChildren<Point>())
+          foreach (Point componentsInChild in room.roomPrefab.GetComponentsInChildren<Point>())
           {
-            if (((Object) this.positions[intList2[index]].point).get_name() == ((Object) ((Component) componentsInChild).get_gameObject()).get_name())
+            if (this.positions[intList2[index]].point.name == componentsInChild.gameObject.name)
               intList1.Remove(intList2[index]);
           }
         }
@@ -79,16 +74,16 @@ public class RoomManager : MonoBehaviour
         GameObject roomPrefab = room.roomPrefab;
         RawImage icon = room.icon;
         room.readonlyPoint = position.point;
-        roomPrefab.get_transform().SetParent(position.point);
-        roomPrefab.get_transform().set_localPosition(room.roomOffset.position);
-        roomPrefab.get_transform().set_localRotation(Quaternion.Euler(room.roomOffset.rotation));
-        roomPrefab.get_transform().set_localScale(room.roomOffset.scale);
-        if (Object.op_Inequality((Object) icon, (Object) null))
+        roomPrefab.transform.SetParent(position.point);
+        roomPrefab.transform.localPosition = room.roomOffset.position;
+        roomPrefab.transform.localRotation = Quaternion.Euler(room.roomOffset.rotation);
+        roomPrefab.transform.localScale = room.roomOffset.scale;
+        if ((Object) icon != (Object) null)
         {
-          ((Transform) ((Graphic) icon).get_rectTransform()).SetParent((Transform) position.ui_point);
-          ((Component) icon).get_transform().set_localPosition(room.iconoffset.position);
-          ((Transform) ((Graphic) icon).get_rectTransform()).set_localRotation(Quaternion.Euler(room.iconoffset.rotation));
-          ((Component) icon).get_transform().set_localScale(room.iconoffset.scale);
+          icon.rectTransform.SetParent((Transform) position.ui_point);
+          icon.transform.localPosition = room.iconoffset.position;
+          icon.rectTransform.localRotation = Quaternion.Euler(room.iconoffset.rotation);
+          icon.transform.localScale = room.iconoffset.scale;
         }
         roomPrefab.SetActive(true);
         this.positions.RemoveAt(index1);

@@ -9,27 +9,21 @@ using UnityEngine;
 
 public class ParticleCollision : MonoBehaviour
 {
-  private List<ParticleCollisionEvent> m_CollisionEvents;
+  private List<ParticleCollisionEvent> m_CollisionEvents = new List<ParticleCollisionEvent>();
   private ParticleSystem m_ParticleSystem;
-
-  public ParticleCollision()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this.m_ParticleSystem = (ParticleSystem) ((Component) this).GetComponent<ParticleSystem>();
+    this.m_ParticleSystem = this.GetComponent<ParticleSystem>();
   }
 
   private void OnParticleCollision(GameObject other)
   {
-    int collisionEvents = ParticlePhysicsExtensions.GetCollisionEvents(this.m_ParticleSystem, other, this.m_CollisionEvents);
+    int collisionEvents = this.m_ParticleSystem.GetCollisionEvents(other, this.m_CollisionEvents);
     for (int index = 0; index < collisionEvents; ++index)
     {
-      ParticleCollisionEvent collisionEvent = this.m_CollisionEvents[index];
-      ExtinguishableFire component = (ExtinguishableFire) ((ParticleCollisionEvent) ref collisionEvent).get_colliderComponent().GetComponent<ExtinguishableFire>();
-      if (Object.op_Inequality((Object) component, (Object) null))
+      ExtinguishableFire component = this.m_CollisionEvents[index].colliderComponent.GetComponent<ExtinguishableFire>();
+      if ((Object) component != (Object) null)
         component.Extinguish();
     }
   }

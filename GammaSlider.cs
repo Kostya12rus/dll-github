@@ -14,22 +14,17 @@ public class GammaSlider : MonoBehaviour
   public Slider slider;
   public Text warningText;
 
-  public GammaSlider()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (!Object.op_Inequality((Object) this.slider, (Object) null))
+    if (!((Object) this.slider != (Object) null))
       return;
-    this.slider.set_value(PlayerPrefs.GetFloat("gammavalue", 0.0f));
-    this.SetValue(this.slider.get_value());
+    this.slider.value = PlayerPrefs.GetFloat("gammavalue", 0.0f);
+    this.SetValue(this.slider.value);
   }
 
   public void SetValue(float f)
   {
-    ((Behaviour) this.warningText).set_enabled((double) f > 0.5);
+    this.warningText.enabled = (double) f > 0.5;
     PlayerPrefs.SetFloat("gammavalue", f);
     ColorGradingModel.Settings settings1 = new ColorGradingModel.Settings();
     ColorGradingModel.Settings settings2 = this.profile.colorGrading.settings;

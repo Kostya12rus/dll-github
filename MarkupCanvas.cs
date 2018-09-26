@@ -10,11 +10,6 @@ public class MarkupCanvas : MonoBehaviour
 {
   public static MarkupCanvas singleton;
 
-  public MarkupCanvas()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     MarkupCanvas.singleton = this;

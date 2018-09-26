@@ -14,25 +14,9 @@ using UnityEngine.Networking;
 
 public class ServerLogs : MonoBehaviour
 {
-  public static readonly string[] Txt = new string[6]
-  {
-    "Connection update",
-    "Remote Admin",
-    "Remote Admin - Misc",
-    "Kill",
-    "Game Event",
-    "Internal"
-  };
-  public static readonly string[] Modulestxt = new string[6]
-  {
-    "Warhead",
-    "Networking",
-    "Class change",
-    "Permissions",
-    "Administrative",
-    "Logger"
-  };
-  private readonly List<ServerLogs.ServerLog> _logs;
+  public static readonly string[] Txt = new string[6]{ "Connection update", "Remote Admin", "Remote Admin - Misc", "Kill", "Game Event", "Internal" };
+  public static readonly string[] Modulestxt = new string[6]{ "Warhead", "Networking", "Class change", "Permissions", "Administrative", "Logger" };
+  private readonly List<ServerLogs.ServerLog> _logs = new List<ServerLogs.ServerLog>();
   public static ServerLogs singleton;
   private int _port;
   private int _ready;
@@ -41,11 +25,6 @@ public class ServerLogs : MonoBehaviour
   private bool _locked;
   private bool _queued;
   private string _roundStartTime;
-
-  public ServerLogs()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -66,21 +45,21 @@ public class ServerLogs : MonoBehaviour
       Type = ServerLogs.Txt[(int) type],
       Time = str
     });
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     ServerLogs.singleton.StartCoroutine(ServerLogs.singleton.AppendLog());
   }
 
   private void Start()
   {
-    this._port = ((NetworkManager) NetworkManager.singleton).get_networkPort();
+    this._port = NetworkManager.singleton.networkPort;
     this._roundStartTime = DateTime.Now.Year.ToString() + "-" + (DateTime.Now.Month >= 10 ? DateTime.Now.Month.ToString() : "0" + DateTime.Now.Month.ToString()) + "-" + (DateTime.Now.Day >= 10 ? DateTime.Now.Day.ToString() : "0" + DateTime.Now.Day.ToString()) + " " + (DateTime.Now.Hour >= 10 ? DateTime.Now.Hour.ToString() : "0" + DateTime.Now.Hour.ToString()) + "." + (DateTime.Now.Minute >= 10 ? DateTime.Now.Minute.ToString() : "0" + DateTime.Now.Minute.ToString()) + "." + (DateTime.Now.Second >= 10 ? DateTime.Now.Second.ToString() : "0" + DateTime.Now.Second.ToString());
     ++this._ready;
   }
 
   private void OnDestroy()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     this.AppendLog();
   }
@@ -96,10 +75,7 @@ public class ServerLogs : MonoBehaviour
   private IEnumerator AppendLog()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new ServerLogs.\u003CAppendLog\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new ServerLogs.\u003CAppendLog\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private static string ToMax(string text, int max)

@@ -12,19 +12,14 @@ namespace TMPro.Examples
 {
   public class SkewTextExample : MonoBehaviour
   {
+    public AnimationCurve VertexCurve = new AnimationCurve(new Keyframe[5]{ new Keyframe(0.0f, 0.0f), new Keyframe(0.25f, 2f), new Keyframe(0.5f, 0.0f), new Keyframe(0.75f, 2f), new Keyframe(1f, 0.0f) });
+    public float CurveScale = 1f;
+    public float ShearAmount = 1f;
     private TMP_Text m_TextComponent;
-    public AnimationCurve VertexCurve;
-    public float CurveScale;
-    public float ShearAmount;
-
-    public SkewTextExample()
-    {
-      base.\u002Ector();
-    }
 
     private void Awake()
     {
-      this.m_TextComponent = (TMP_Text) ((Component) this).get_gameObject().GetComponent<TMP_Text>();
+      this.m_TextComponent = this.gameObject.GetComponent<TMP_Text>();
     }
 
     private void Start()
@@ -34,9 +29,7 @@ namespace TMPro.Examples
 
     private AnimationCurve CopyAnimationCurve(AnimationCurve curve)
     {
-      AnimationCurve animationCurve = new AnimationCurve();
-      animationCurve.set_keys(curve.get_keys());
-      return animationCurve;
+      return new AnimationCurve() { keys = curve.keys };
     }
 
     [DebuggerHidden]

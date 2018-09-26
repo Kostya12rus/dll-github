@@ -10,6 +10,20 @@ using UnityEngine;
 [AddComponentMenu("SECTR/Audio/SECTR Door")]
 public class SECTR_Door : MonoBehaviour
 {
+  [SECTR_ToolTip("The name of the control param in the door.")]
+  public string ControlParam = "Open";
+  [SECTR_ToolTip("The name of the control param that indicates if we are allowed to open.")]
+  public string CanOpenParam = "CanOpen";
+  [SECTR_ToolTip("The full name (layer and state) of the Open state in the Animation Controller.")]
+  public string OpenState = "Base Layer.Open";
+  [SECTR_ToolTip("The full name (layer and state) of the Closed state in the Animation Controller.")]
+  public string ClosedState = "Base Layer.Closed";
+  [SECTR_ToolTip("The full name (layer and state) of the Opening state in the Animation Controller.")]
+  public string OpeningState = "Base Layer.Opening";
+  [SECTR_ToolTip("The full name (layer and state) of the Closing state in the Animation Controller.")]
+  public string ClosingState = "Base Layer.Closing";
+  [SECTR_ToolTip("The full name (layer and state) of the Wating state in the Animation Controller.")]
+  public string WaitingState = "Base Layer.Waiting";
   private int controlParam;
   private int canOpenParam;
   private int closedState;
@@ -22,25 +36,6 @@ public class SECTR_Door : MonoBehaviour
   private int openCount;
   [SECTR_ToolTip("The portal this door affects (if any).")]
   public SECTR_Portal Portal;
-  [SECTR_ToolTip("The name of the control param in the door.")]
-  public string ControlParam;
-  [SECTR_ToolTip("The name of the control param that indicates if we are allowed to open.")]
-  public string CanOpenParam;
-  [SECTR_ToolTip("The full name (layer and state) of the Open state in the Animation Controller.")]
-  public string OpenState;
-  [SECTR_ToolTip("The full name (layer and state) of the Closed state in the Animation Controller.")]
-  public string ClosedState;
-  [SECTR_ToolTip("The full name (layer and state) of the Opening state in the Animation Controller.")]
-  public string OpeningState;
-  [SECTR_ToolTip("The full name (layer and state) of the Closing state in the Animation Controller.")]
-  public string ClosingState;
-  [SECTR_ToolTip("The full name (layer and state) of the Wating state in the Animation Controller.")]
-  public string WaitingState;
-
-  public SECTR_Door()
-  {
-    base.\u002Ector();
-  }
 
   public void OpenDoor()
   {
@@ -54,19 +49,17 @@ public class SECTR_Door : MonoBehaviour
 
   public bool IsFullyOpen()
   {
-    AnimatorStateInfo animatorStateInfo = this.cachedAnimator.GetCurrentAnimatorStateInfo(0);
-    return ((AnimatorStateInfo) ref animatorStateInfo).get_fullPathHash() == this.openState;
+    return this.cachedAnimator.GetCurrentAnimatorStateInfo(0).fullPathHash == this.openState;
   }
 
   public bool IsClosed()
   {
-    AnimatorStateInfo animatorStateInfo = this.cachedAnimator.GetCurrentAnimatorStateInfo(0);
-    return ((AnimatorStateInfo) ref animatorStateInfo).get_fullPathHash() == this.closedState;
+    return this.cachedAnimator.GetCurrentAnimatorStateInfo(0).fullPathHash == this.closedState;
   }
 
   protected virtual void OnEnable()
   {
-    this.cachedAnimator = (Animator) ((Component) this).GetComponent<Animator>();
+    this.cachedAnimator = this.GetComponent<Animator>();
     this.controlParam = Animator.StringToHash(this.ControlParam);
     this.canOpenParam = Animator.StringToHash(this.CanOpenParam);
     this.closedState = Animator.StringToHash(this.ClosedState);
@@ -82,11 +75,11 @@ public class SECTR_Door : MonoBehaviour
       this.cachedAnimator.SetBool(this.controlParam, false);
     if (this.canOpenParam != 0)
       this.cachedAnimator.SetBool(this.canOpenParam, false);
-    if (Object.op_Implicit((Object) this.Portal))
+    if ((bool) ((Object) this.Portal))
       this.Portal.SetFlag(SECTR_Portal.PortalFlags.Closed, true);
     this.openCount = 0;
     this.lastState = this.closedState;
-    ((Component) this).SendMessage("OnClose", (SendMessageOptions) 1);
+    this.SendMessage("OnClose", SendMessageOptions.DontRequireReceiver);
   }
 
   private void Update()
@@ -101,23 +94,22 @@ public class SECTR_Door : MonoBehaviour
       else
         this.cachedAnimator.SetBool(this.controlParam, false);
     }
-    AnimatorStateInfo animatorStateInfo = this.cachedAnimator.GetCurrentAnimatorStateInfo(0);
-    int fullPathHash = ((AnimatorStateInfo) ref animatorStateInfo).get_fullPathHash();
+    int fullPathHash = this.cachedAnimator.GetCurrentAnimatorStateInfo(0).fullPathHash;
     if (fullPathHash != this.lastState)
     {
       if (fullPathHash == this.closedState)
-        ((Component) this).SendMessage("OnClose", (SendMessageOptions) 1);
+        this.SendMessage("OnClose", SendMessageOptions.DontRequireReceiver);
       if (fullPathHash == this.waitingState)
-        ((Component) this).SendMessage("OnWaiting", (SendMessageOptions) 1);
+        this.SendMessage("OnWaiting", SendMessageOptions.DontRequireReceiver);
       else if (fullPathHash == this.openingState)
-        ((Component) this).SendMessage("OnOpening", (SendMessageOptions) 1);
+        this.SendMessage("OnOpening", SendMessageOptions.DontRequireReceiver);
       if (fullPathHash == this.openState)
-        ((Component) this).SendMessage("OnOpen", (SendMessageOptions) 1);
+        this.SendMessage("OnOpen", SendMessageOptions.DontRequireReceiver);
       else if (fullPathHash == this.closingState)
-        ((Component) this).SendMessage("OnClosing", (SendMessageOptions) 1);
+        this.SendMessage("OnClosing", SendMessageOptions.DontRequireReceiver);
       this.lastState = fullPathHash;
     }
-    if (!Object.op_Implicit((Object) this.Portal))
+    if (!(bool) ((Object) this.Portal))
       return;
     this.Portal.SetFlag(SECTR_Portal.PortalFlags.Closed, this.IsClosed());
   }

@@ -13,14 +13,9 @@ public class HostItemSpawner : NetworkBehaviour
   private RandomItemSpawner ris;
   private Item[] avItems;
 
-  public HostItemSpawner()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.avItems = ((Inventory) Object.FindObjectOfType<Inventory>()).availableItems;
+    this.avItems = Object.FindObjectOfType<Inventory>().availableItems;
   }
 
   public void Spawn(int seed)
@@ -29,7 +24,7 @@ public class HostItemSpawner : NetworkBehaviour
     string str = string.Empty;
     try
     {
-      this.ris = (RandomItemSpawner) Object.FindObjectOfType<RandomItemSpawner>();
+      this.ris = Object.FindObjectOfType<RandomItemSpawner>();
       RandomItemSpawner.PickupPositionRelation[] pickups = this.ris.pickups;
       List<RandomItemSpawner.PositionPosIdRelation> positionPosIdRelationList1 = new List<RandomItemSpawner.PositionPosIdRelation>();
       str = "Starting";
@@ -50,12 +45,7 @@ public class HostItemSpawner : NetworkBehaviour
         int index1 = Random.Range(0, positionPosIdRelationList2.Count);
         RandomItemSpawner.PositionPosIdRelation positionPosIdRelation1 = positionPosIdRelationList2[index1];
         int index2 = positionPosIdRelation1.index;
-        GameObject gameObject = ((Component) positionRelation.pickup).get_gameObject();
-        Vector3 position = positionPosIdRelation1.position.get_position();
-        int itemId = positionRelation.itemID;
-        Quaternion rotation = positionPosIdRelation1.position.get_rotation();
-        Vector3 eulerAngles = ((Quaternion) ref rotation).get_eulerAngles();
-        this.SetPos(gameObject, position, itemId, eulerAngles);
+        this.SetPos(positionRelation.pickup.gameObject, positionPosIdRelation1.position.position, positionRelation.itemID, positionPosIdRelation1.position.rotation.eulerAngles);
         positionRelation.pickup.RefreshDurability(true);
         positionPosIdRelationList1.RemoveAt(index2);
         ++num;
@@ -70,9 +60,9 @@ public class HostItemSpawner : NetworkBehaviour
   [ServerCallback]
   private void SetPos(GameObject obj, Vector3 pos, int item, Vector3 rot)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
-    ((Pickup) obj.GetComponent<Pickup>()).SetupPickup(new Pickup.PickupInfo()
+    obj.GetComponent<Pickup>().SetupPickup(new Pickup.PickupInfo()
     {
       position = pos,
       rotation = Quaternion.Euler(rot),
@@ -86,13 +76,13 @@ public class HostItemSpawner : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

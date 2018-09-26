@@ -15,11 +15,6 @@ public class UserGroup
 
   public UserGroup Clone()
   {
-    return new UserGroup()
-    {
-      BadgeColor = this.BadgeColor,
-      BadgeText = this.BadgeText,
-      Permissions = this.Permissions
-    };
+    return new UserGroup() { BadgeColor = this.BadgeColor, BadgeText = this.BadgeText, Permissions = this.Permissions };
   }
 }

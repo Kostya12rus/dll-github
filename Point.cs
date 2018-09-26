@@ -8,11 +8,6 @@ using UnityEngine;
 
 public class Point : MonoBehaviour
 {
-  public Point()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
   }

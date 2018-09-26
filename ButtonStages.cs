@@ -12,11 +12,6 @@ public class ButtonStages : MonoBehaviour
   public ButtonStages.DoorType[] inspectorTypes;
   public static ButtonStages.DoorType[] types;
 
-  public ButtonStages()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     ButtonStages.types = this.inspectorTypes;

@@ -18,11 +18,6 @@ public class PlayButton : MonoBehaviour
   public Text Motd;
   public Text Players;
 
-  public PlayButton()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     PlayButton.maxPlayers = 20;
@@ -45,25 +40,25 @@ public class PlayButton : MonoBehaviour
   {
     if (CrashDetector.Show())
       return;
-    CustomNetworkManager objectOfType = (CustomNetworkManager) Object.FindObjectOfType<CustomNetworkManager>();
-    if (NetworkClient.get_active())
+    CustomNetworkManager objectOfType = Object.FindObjectOfType<CustomNetworkManager>();
+    if (NetworkClient.active)
       objectOfType.StopClient();
     NetworkServer.Reset();
     objectOfType.ShowLog(13);
-    objectOfType.set_networkAddress(this.Ip);
+    objectOfType.networkAddress = this.Ip;
     CustomNetworkManager.ConnectionIp = this.Ip;
     try
     {
-      objectOfType.set_networkPort(int.Parse(this.Port));
+      objectOfType.networkPort = int.Parse(this.Port);
     }
     catch
     {
       Console.singleton.AddLog("Wrong server port, parsing to 7777!", new Color32((byte) 182, (byte) 182, (byte) 182, byte.MaxValue), false);
-      objectOfType.set_networkPort(7777);
+      objectOfType.networkPort = 7777;
     }
     Console.singleton.AddLog("Connecting to " + this.Ip + ":" + this.Port + "!", new Color32((byte) 182, (byte) 182, (byte) 182, byte.MaxValue), false);
     objectOfType.StartClient();
-    this.SetMaxPlayers(this.Players.get_text());
+    this.SetMaxPlayers(this.Players.text);
   }
 
   public void ShowInfo()

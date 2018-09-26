@@ -14,14 +14,9 @@ namespace TMPro.Examples
   {
     private TMP_Text m_TextComponent;
 
-    public VertexColorCycler()
-    {
-      base.\u002Ector();
-    }
-
     private void Awake()
     {
-      this.m_TextComponent = (TMP_Text) ((Component) this).GetComponent<TMP_Text>();
+      this.m_TextComponent = this.GetComponent<TMP_Text>();
     }
 
     private void Start()

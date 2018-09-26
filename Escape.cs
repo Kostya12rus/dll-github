@@ -13,33 +13,28 @@ using UnityEngine.UI;
 
 public class Escape : NetworkBehaviour
 {
+  public int radius = 10;
   private CharacterClassManager ccm;
   private Text respawnText;
   private bool escaped;
   public Vector3 worldPosition;
-  public int radius;
-
-  public Escape()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    this.respawnText = (Text) GameObject.Find("Respawn Text").GetComponent<Text>();
+    this.ccm = this.GetComponent<CharacterClassManager>();
+    this.respawnText = GameObject.Find("Respawn Text").GetComponent<Text>();
   }
 
   private void Update()
   {
-    if (!this.get_isLocalPlayer() || (double) Vector3.Distance(((Component) this).get_transform().get_position(), this.worldPosition) >= (double) this.radius)
+    if (!this.isLocalPlayer || (double) Vector3.Distance(this.transform.position, this.worldPosition) >= (double) this.radius)
       return;
     this.EscapeFromFacility();
   }
 
   private void OnDrawGizmosSelected()
   {
-    Gizmos.set_color(Color.get_green());
+    Gizmos.color = Color.green;
     Gizmos.DrawWireSphere(this.worldPosition, (float) this.radius);
   }
 
@@ -51,14 +46,14 @@ public class Escape : NetworkBehaviour
     {
       this.escaped = true;
       this.ccm.RegisterEscape();
-      Timing.RunCoroutine(this._EscapeAnim(TranslationReader.Get("Facility", 29)), (Segment) 0);
+      Timing.RunCoroutine(this._EscapeAnim(TranslationReader.Get("Facility", 29)), Segment.Update);
       AchievementManager.Achieve("forscience");
     }
     if (this.ccm.klasy[this.ccm.curClass].team != Team.CDP)
       return;
     this.escaped = true;
     this.ccm.RegisterEscape();
-    Timing.RunCoroutine(this._EscapeAnim(TranslationReader.Get("Facility", 30)), (Segment) 0);
+    Timing.RunCoroutine(this._EscapeAnim(TranslationReader.Get("Facility", 30)), Segment.Update);
     AchievementManager.Achieve("awayout");
   }
 
@@ -66,24 +61,20 @@ public class Escape : NetworkBehaviour
   private IEnumerator<float> _EscapeAnim(string txt)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new Escape.\u003C_EscapeAnim\u003Ec__Iterator0()
-    {
-      txt = txt,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new Escape.\u003C_EscapeAnim\u003Ec__Iterator0() { txt = txt, \u0024this = this };
   }
 
   private void UNetVersion()
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

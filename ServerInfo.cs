@@ -17,40 +17,28 @@ public class ServerInfo : MonoBehaviour, IPointerClickHandler, IEventSystemHandl
   public GameObject root;
   public TextMeshProUGUI text;
 
-  public ServerInfo()
-  {
-    base.\u002Ector();
-  }
-
   public static void ShowInfo(string id)
   {
-    Timing.RunCoroutine(((ServerInfo) Object.FindObjectOfType<ServerInfo>())._Show(id), (Segment) 1);
+    Timing.RunCoroutine(Object.FindObjectOfType<ServerInfo>()._Show(id), Segment.FixedUpdate);
   }
 
   public void OnPointerClick(PointerEventData eventData)
   {
-    int intersectingLink = TMP_TextUtilities.FindIntersectingLink((TMP_Text) this.text, Input.get_mousePosition(), (Camera) null);
+    int intersectingLink = TMP_TextUtilities.FindIntersectingLink((TMP_Text) this.text, Input.mousePosition, (Camera) null);
     if (intersectingLink == -1)
       return;
-    // ISSUE: cast to a reference type
-    // ISSUE: explicit reference operation
-    TMP_LinkInfo tmpLinkInfo = ^(TMP_LinkInfo&) ref ((TMP_Text) this.text).get_textInfo().linkInfo[intersectingLink];
-    Application.OpenURL(((TMP_LinkInfo) ref tmpLinkInfo).GetLinkID());
+    Application.OpenURL(this.text.textInfo.linkInfo[intersectingLink].GetLinkID());
   }
 
   [DebuggerHidden]
   public IEnumerator<float> _Show(string id)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ServerInfo.\u003C_Show\u003Ec__Iterator0()
-    {
-      id = id,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ServerInfo.\u003C_Show\u003Ec__Iterator0() { id = id, \u0024this = this };
   }
 
   public void Close()
   {
-    ((ServerInfo) Object.FindObjectOfType<ServerInfo>()).root.SetActive(false);
+    Object.FindObjectOfType<ServerInfo>().root.SetActive(false);
   }
 }

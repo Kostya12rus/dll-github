@@ -44,8 +44,7 @@ public class SECTR_Sector : SECTR_Member
     for (int index = 0; index < count; ++index)
     {
       SECTR_Sector allSector = SECTR_Sector.allSectors[index];
-      Bounds totalBounds = allSector.TotalBounds;
-      if (((Bounds) ref totalBounds).Contains(position))
+      if (allSector.TotalBounds.Contains(position))
         sectors.Add(allSector);
     }
   }
@@ -57,8 +56,7 @@ public class SECTR_Sector : SECTR_Member
     for (int index = 0; index < count; ++index)
     {
       SECTR_Sector allSector = SECTR_Sector.allSectors[index];
-      Bounds totalBounds = allSector.TotalBounds;
-      if (((Bounds) ref totalBounds).Intersects(bounds))
+      if (allSector.TotalBounds.Intersects(bounds))
         sectors.Add(allSector);
     }
   }
@@ -95,8 +93,8 @@ public class SECTR_Sector : SECTR_Member
   {
     get
     {
-      if (!Object.op_Implicit((Object) this.LeftTerrain) && !Object.op_Implicit((Object) this.RightTerrain) && !Object.op_Implicit((Object) this.TopTerrain))
-        return Object.op_Implicit((Object) this.BottomTerrain);
+      if (!(bool) ((Object) this.LeftTerrain) && !(bool) ((Object) this.RightTerrain) && !(bool) ((Object) this.TopTerrain))
+        return (bool) ((Object) this.BottomTerrain);
       return true;
     }
   }
@@ -104,7 +102,7 @@ public class SECTR_Sector : SECTR_Member
   public void ConnectTerrainNeighbors()
   {
     Terrain terrain = SECTR_Sector.GetTerrain(this);
-    if (!Object.op_Implicit((Object) terrain))
+    if (!(bool) ((Object) terrain))
       return;
     terrain.SetNeighbors(SECTR_Sector.GetTerrain(this.LeftTerrain), SECTR_Sector.GetTerrain(this.TopTerrain), SECTR_Sector.GetTerrain(this.RightTerrain), SECTR_Sector.GetTerrain(this.BottomTerrain));
   }
@@ -112,19 +110,19 @@ public class SECTR_Sector : SECTR_Member
   public void DisonnectTerrainNeighbors()
   {
     Terrain terrain1 = SECTR_Sector.GetTerrain(this);
-    if (Object.op_Implicit((Object) terrain1))
+    if ((bool) ((Object) terrain1))
       terrain1.SetNeighbors((Terrain) null, (Terrain) null, (Terrain) null, (Terrain) null);
     Terrain terrain2 = SECTR_Sector.GetTerrain(this.TopTerrain);
-    if (Object.op_Implicit((Object) terrain2))
+    if ((bool) ((Object) terrain2))
       terrain2.SetNeighbors(SECTR_Sector.GetTerrain(this.TopTerrain.LeftTerrain), SECTR_Sector.GetTerrain(this.TopTerrain.TopTerrain), SECTR_Sector.GetTerrain(this.TopTerrain.RightTerrain), (Terrain) null);
     Terrain terrain3 = SECTR_Sector.GetTerrain(this.BottomTerrain);
-    if (Object.op_Implicit((Object) terrain3))
+    if ((bool) ((Object) terrain3))
       terrain3.SetNeighbors(SECTR_Sector.GetTerrain(this.BottomTerrain.LeftTerrain), (Terrain) null, SECTR_Sector.GetTerrain(this.BottomTerrain.RightTerrain), SECTR_Sector.GetTerrain(this.BottomTerrain.BottomTerrain));
     Terrain terrain4 = SECTR_Sector.GetTerrain(this.LeftTerrain);
-    if (Object.op_Implicit((Object) terrain4))
+    if ((bool) ((Object) terrain4))
       terrain4.SetNeighbors(SECTR_Sector.GetTerrain(this.LeftTerrain.LeftTerrain), SECTR_Sector.GetTerrain(this.LeftTerrain.TopTerrain), (Terrain) null, SECTR_Sector.GetTerrain(this.LeftTerrain.BottomTerrain));
     Terrain terrain5 = SECTR_Sector.GetTerrain(this.RightTerrain);
-    if (!Object.op_Implicit((Object) terrain5))
+    if (!(bool) ((Object) terrain5))
       return;
     terrain5.SetNeighbors((Terrain) null, SECTR_Sector.GetTerrain(this.RightTerrain.TopTerrain), SECTR_Sector.GetTerrain(this.RightTerrain.RightTerrain), SECTR_Sector.GetTerrain(this.RightTerrain.BottomTerrain));
   }
@@ -154,7 +152,7 @@ public class SECTR_Sector : SECTR_Member
   protected override void OnEnable()
   {
     SECTR_Sector.allSectors.Add(this);
-    if (Object.op_Implicit((Object) this.TopTerrain) || Object.op_Implicit((Object) this.BottomTerrain) || (Object.op_Implicit((Object) this.RightTerrain) || Object.op_Implicit((Object) this.LeftTerrain)))
+    if ((bool) ((Object) this.TopTerrain) || (bool) ((Object) this.BottomTerrain) || ((bool) ((Object) this.RightTerrain) || (bool) ((Object) this.LeftTerrain)))
       this.ConnectTerrainNeighbors();
     base.OnEnable();
   }
@@ -166,7 +164,7 @@ public class SECTR_Sector : SECTR_Member
     for (int index = 0; index < count; ++index)
     {
       SECTR_Member sectrMember = sectrMemberList[index];
-      if (Object.op_Implicit((Object) sectrMember))
+      if ((bool) ((Object) sectrMember))
         sectrMember.SectorDisabled(this);
     }
     SECTR_Sector.allSectors.Remove(this);
@@ -175,8 +173,8 @@ public class SECTR_Sector : SECTR_Member
 
   protected static Terrain GetTerrain(SECTR_Sector sector)
   {
-    if (Object.op_Implicit((Object) sector))
-      return (Terrain) (!Object.op_Implicit((Object) sector.childProxy) ? (Component) sector : (Component) sector.childProxy).GetComponentInChildren<Terrain>();
+    if ((bool) ((Object) sector))
+      return (!(bool) ((Object) sector.childProxy) ? (Component) sector : (Component) sector.childProxy).GetComponentInChildren<Terrain>();
     return (Terrain) null;
   }
 }

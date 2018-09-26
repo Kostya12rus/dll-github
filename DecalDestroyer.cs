@@ -10,20 +10,12 @@ using UnityEngine;
 
 public class DecalDestroyer : MonoBehaviour
 {
-  public float lifeTime;
-
-  public DecalDestroyer()
-  {
-    base.\u002Ector();
-  }
+  public float lifeTime = 5f;
 
   [DebuggerHidden]
   private IEnumerator Start()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new DecalDestroyer.\u003CStart\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new DecalDestroyer.\u003CStart\u003Ec__Iterator0() { \u0024this = this };
   }
 }

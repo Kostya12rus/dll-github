@@ -33,40 +33,39 @@ public class SECTR_Portal : SECTR_Hull
 
   public void Setup()
   {
-    bool flag = Mathf.RoundToInt(Vector3.Angle(((Component) this).get_transform().get_forward(), Vector3.get_forward())) % 180 == 0;
-    Transform transform = ((Component) this).get_transform();
-    transform.set_position(Vector3.op_Addition(transform.get_position(), Vector3.op_Division(Vector3.get_up(), 2f)));
-    RaycastHit raycastHit;
-    if (Physics.Raycast(Vector3.op_Subtraction(((Component) this).get_transform().get_position(), ((Component) this).get_transform().get_forward()), Vector3.get_down(), ref raycastHit))
-      this.FrontSector = (SECTR_Sector) ((Component) ((RaycastHit) ref raycastHit).get_collider()).GetComponentInParent<SECTR_Sector>();
-    if (!Physics.Raycast(Vector3.op_Addition(((Component) this).get_transform().get_position(), ((Component) this).get_transform().get_forward()), Vector3.get_down(), ref raycastHit))
+    bool flag = Mathf.RoundToInt(Vector3.Angle(this.transform.forward, Vector3.forward)) % 180 == 0;
+    this.transform.position += Vector3.up / 2f;
+    RaycastHit hitInfo;
+    if (Physics.Raycast(this.transform.position - this.transform.forward, Vector3.down, out hitInfo))
+      this.FrontSector = hitInfo.collider.GetComponentInParent<SECTR_Sector>();
+    if (!Physics.Raycast(this.transform.position + this.transform.forward, Vector3.down, out hitInfo))
       return;
-    this.BackSector = (SECTR_Sector) ((Component) ((RaycastHit) ref raycastHit).get_collider()).GetComponentInParent<SECTR_Sector>();
+    this.BackSector = hitInfo.collider.GetComponentInParent<SECTR_Sector>();
   }
 
   public Vector3 GetRandomSectorPos()
   {
     if (Random.Range(0, 100) < 50)
-      return ((Component) this.frontSector).get_transform().get_position();
-    return ((Component) this.backSector).get_transform().get_position();
+      return this.frontSector.transform.position;
+    return this.backSector.transform.position;
   }
 
   public SECTR_Sector FrontSector
   {
     set
     {
-      if (!Object.op_Inequality((Object) this.frontSector, (Object) value))
+      if (!((Object) this.frontSector != (Object) value))
         return;
-      if (Object.op_Implicit((Object) this.frontSector))
+      if ((bool) ((Object) this.frontSector))
         this.frontSector.Deregister(this);
       this.frontSector = value;
-      if (!Object.op_Implicit((Object) this.frontSector))
+      if (!(bool) ((Object) this.frontSector))
         return;
       this.frontSector.Register(this);
     }
     get
     {
-      if (Object.op_Implicit((Object) this.frontSector) && ((Behaviour) this.frontSector).get_enabled())
+      if ((bool) ((Object) this.frontSector) && this.frontSector.enabled)
         return this.frontSector;
       return (SECTR_Sector) null;
     }
@@ -76,18 +75,18 @@ public class SECTR_Portal : SECTR_Hull
   {
     set
     {
-      if (!Object.op_Inequality((Object) this.backSector, (Object) value))
+      if (!((Object) this.backSector != (Object) value))
         return;
-      if (Object.op_Implicit((Object) this.backSector))
+      if ((bool) ((Object) this.backSector))
         this.backSector.Deregister(this);
       this.backSector = value;
-      if (!Object.op_Implicit((Object) this.backSector))
+      if (!(bool) ((Object) this.backSector))
         return;
       this.backSector.Register(this);
     }
     get
     {
-      if (Object.op_Implicit((Object) this.backSector) && ((Behaviour) this.backSector).get_enabled())
+      if ((bool) ((Object) this.backSector) && this.backSector.enabled)
         return this.backSector;
       return (SECTR_Sector) null;
     }
@@ -110,10 +109,7 @@ public class SECTR_Portal : SECTR_Hull
   {
     // ISSUE: object of a compiler-generated type is created
     // ISSUE: variable of a compiler-generated type
-    SECTR_Portal.\u003CGetSectors\u003Ec__Iterator0 sectorsCIterator0 = new SECTR_Portal.\u003CGetSectors\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    SECTR_Portal.\u003CGetSectors\u003Ec__Iterator0 sectorsCIterator0 = new SECTR_Portal.\u003CGetSectors\u003Ec__Iterator0() { \u0024this = this };
     // ISSUE: reference to a compiler-generated field
     sectorsCIterator0.\u0024PC = -2;
     return (IEnumerable<SECTR_Sector>) sectorsCIterator0;
@@ -130,9 +126,9 @@ public class SECTR_Portal : SECTR_Hull
   private void OnEnable()
   {
     SECTR_Portal.allPortals.Add(this);
-    if (Object.op_Implicit((Object) this.frontSector))
+    if ((bool) ((Object) this.frontSector))
       this.frontSector.Register(this);
-    if (!Object.op_Implicit((Object) this.backSector))
+    if (!(bool) ((Object) this.backSector))
       return;
     this.backSector.Register(this);
   }
@@ -140,9 +136,9 @@ public class SECTR_Portal : SECTR_Hull
   private void OnDisable()
   {
     SECTR_Portal.allPortals.Remove(this);
-    if (Object.op_Implicit((Object) this.frontSector))
+    if ((bool) ((Object) this.frontSector))
       this.frontSector.Deregister(this);
-    if (!Object.op_Implicit((Object) this.backSector))
+    if (!(bool) ((Object) this.backSector))
       return;
     this.backSector.Deregister(this);
   }

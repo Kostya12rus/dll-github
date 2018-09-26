@@ -13,20 +13,15 @@ public class Embargo : MonoBehaviour
   private Text txt;
   public bool showEmbargo;
 
-  public Embargo()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.txt = (Text) ((Component) this).GetComponent<Text>();
+    this.txt = this.GetComponent<Text>();
     this.InvokeRepeating("ChangePosition", 3f, 3f);
   }
 
   private void ChangePosition()
   {
-    ((Transform) ((Component) this).GetComponent<RectTransform>()).set_localPosition(new Vector3((float) Random.Range(-500, 500), (float) Random.Range(-250, 280), 0.0f));
+    this.GetComponent<RectTransform>().localPosition = new Vector3((float) Random.Range(-500, 500), (float) Random.Range(-250, 280), 0.0f);
   }
 
   private void Update()
@@ -34,9 +29,9 @@ public class Embargo : MonoBehaviour
     if (this.showEmbargo)
     {
       DateTime now = DateTime.Now;
-      this.txt.set_text("<size=30><color=#a11>EMBARGO</color></size>\n\n" + (object) now.Day + "." + (object) now.Month + "." + (object) now.Year + " " + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "\n" + SystemInfo.get_operatingSystem() + "\n" + SystemInfo.get_deviceName() + "\n<size=18><color=#a11>DO NOT SHARE</color></size>");
+      this.txt.text = "<size=30><color=#a11>EMBARGO</color></size>\n\n" + (object) now.Day + "." + (object) now.Month + "." + (object) now.Year + " " + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "\n" + SystemInfo.operatingSystem + "\n" + SystemInfo.deviceName + "\n<size=18><color=#a11>DO NOT SHARE</color></size>";
     }
     else
-      this.txt.set_text(string.Empty);
+      this.txt.text = string.Empty;
   }
 }

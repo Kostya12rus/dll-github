@@ -15,14 +15,9 @@ public class SECTR_Culler : MonoBehaviour
   [SECTR_ToolTip("Overrides the culling information on Member.")]
   public bool CullEachChild;
 
-  public SECTR_Culler()
-  {
-    base.\u002Ector();
-  }
-
   private void OnEnable()
   {
-    this.cachedMember = (SECTR_Member) ((Component) this).GetComponent<SECTR_Member>();
+    this.cachedMember = this.GetComponent<SECTR_Member>();
     this.cachedMember.ChildCulling = !this.CullEachChild ? SECTR_Member.ChildCullModes.Group : SECTR_Member.ChildCullModes.Individual;
   }
 

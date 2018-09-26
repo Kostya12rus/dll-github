@@ -12,11 +12,6 @@ namespace IESLights
 {
   public class RuntimeIESImporter : MonoBehaviour
   {
-    public RuntimeIESImporter()
-    {
-      base.\u002Ector();
-    }
-
     public static void Import(string path, out Texture2D spotlightCookie, out Cubemap pointLightCookie, int resolution = 128, bool enhancedImport = false, bool applyVignette = true)
     {
       spotlightCookie = (Texture2D) null;
@@ -60,9 +55,9 @@ namespace IESLights
 
     private static void GetIESConverterAndCubeSphere(bool logarithmicNormalization, int resolution, out GameObject cubemapSphere, out IESConverter iesConverter)
     {
-      Object @object = Resources.Load("IES cubemap sphere");
-      cubemapSphere = (GameObject) Object.Instantiate(@object);
-      iesConverter = (IESConverter) cubemapSphere.GetComponent<IESConverter>();
+      Object original = Resources.Load("IES cubemap sphere");
+      cubemapSphere = (GameObject) Object.Instantiate(original);
+      iesConverter = cubemapSphere.GetComponent<IESConverter>();
       iesConverter.NormalizationMode = !logarithmicNormalization ? NormalizationMode.Linear : NormalizationMode.Logarithmic;
       iesConverter.Resolution = resolution;
     }
@@ -91,18 +86,12 @@ namespace IESLights
     {
       if (!File.Exists(path))
       {
-        Debug.LogWarningFormat("[IES] The file \"{0}\" does not exist.", new object[1]
-        {
-          (object) path
-        });
+        Debug.LogWarningFormat("[IES] The file \"{0}\" does not exist.", (object) path);
         return false;
       }
       if (!(Path.GetExtension(path).ToLower() != ".ies"))
         return true;
-      Debug.LogWarningFormat("[IES] The file \"{0}\" is not an IES file.", new object[1]
-      {
-        (object) path
-      });
+      Debug.LogWarningFormat("[IES] The file \"{0}\" is not an IES file.", (object) path);
       return false;
     }
   }

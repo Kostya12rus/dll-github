@@ -15,73 +15,65 @@ using UnityEngine.Networking;
 public class Scp049_2PlayerScript : NetworkBehaviour
 {
   private static int kCmdCmdHurtPlayer = 21222532;
+  [Header("Attack")]
+  public float distance = 2.4f;
+  public int damage = 60;
   [Header("Player Properties")]
   public Transform plyCam;
   public Animator animator;
   public bool iAm049_2;
   public bool sameClass;
-  [Header("Attack")]
-  public float distance;
-  public int damage;
   [Header("Boosts")]
   public AnimationCurve multiplier;
   private static int kCmdCmdShootAnim;
   private static int kRpcRpcShootAnim;
 
-  public Scp049_2PlayerScript()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
-    Timing.RunCoroutine(this._UpdateInput(), (Segment) 1);
+    Timing.RunCoroutine(this._UpdateInput(), Segment.FixedUpdate);
   }
 
   public void Init(int classID, Class c)
   {
     this.sameClass = c.team == Team.SCP;
     this.iAm049_2 = classID == 10;
-    ((Component) this.animator).get_gameObject().SetActive(this.get_isLocalPlayer() && this.iAm049_2);
+    this.animator.gameObject.SetActive(this.isLocalPlayer && this.iAm049_2);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _UpdateInput()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new Scp049_2PlayerScript.\u003C_UpdateInput\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new Scp049_2PlayerScript.\u003C_UpdateInput\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private void Attack()
   {
-    RaycastHit raycastHit;
-    if (!Physics.Raycast(((Component) this.plyCam).get_transform().get_position(), ((Component) this.plyCam).get_transform().get_forward(), ref raycastHit, this.distance))
+    RaycastHit hitInfo;
+    if (!Physics.Raycast(this.plyCam.transform.position, this.plyCam.transform.forward, out hitInfo, this.distance))
       return;
-    Scp049_2PlayerScript scp0492PlayerScript = (Scp049_2PlayerScript) ((Component) ((RaycastHit) ref raycastHit).get_transform()).GetComponent<Scp049_2PlayerScript>();
-    if (Object.op_Equality((Object) scp0492PlayerScript, (Object) null))
-      scp0492PlayerScript = (Scp049_2PlayerScript) ((Component) ((RaycastHit) ref raycastHit).get_transform()).GetComponentInParent<Scp049_2PlayerScript>();
-    if (!Object.op_Inequality((Object) scp0492PlayerScript, (Object) null) || scp0492PlayerScript.sameClass)
+    Scp049_2PlayerScript scp0492PlayerScript = hitInfo.transform.GetComponent<Scp049_2PlayerScript>();
+    if ((Object) scp0492PlayerScript == (Object) null)
+      scp0492PlayerScript = hitInfo.transform.GetComponentInParent<Scp049_2PlayerScript>();
+    if (!((Object) scp0492PlayerScript != (Object) null) || scp0492PlayerScript.sameClass)
       return;
     Hitmarker.Hit(1f);
-    this.CallCmdHurtPlayer(((Component) ((RaycastHit) ref raycastHit).get_transform()).get_gameObject(), ((HlapiPlayer) ((Component) this).GetComponent<HlapiPlayer>()).PlayerId);
+    this.CallCmdHurtPlayer(hitInfo.transform.gameObject, this.GetComponent<HlapiPlayer>().PlayerId);
   }
 
   [Command(channel = 2)]
   private void CmdHurtPlayer(GameObject ply, string id)
   {
-    if ((double) Vector3.Distance(((PlyMovementSync) ((Component) this).GetComponent<PlyMovementSync>()).position, ply.get_transform().get_position()) > (double) this.distance * 1.5 || ((CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>()).curClass != 10)
+    if ((double) Vector3.Distance(this.GetComponent<PlyMovementSync>().position, ply.transform.position) > (double) this.distance * 1.5 || this.GetComponent<CharacterClassManager>().curClass != 10)
       return;
-    Vector3 position = ply.get_transform().get_position();
-    ((PlayerStats) ((Component) this).GetComponent<PlayerStats>()).HurtPlayer(new PlayerStats.HitInfo((float) this.damage, id, "SCP:0492", ((QueryProcessor) ((Component) this).GetComponent<QueryProcessor>()).PlayerId), ply);
-    if (((CharacterClassManager) ply.GetComponent<CharacterClassManager>()).curClass == 2)
-      ((CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>()).CallRpcPlaceBlood(position, 0, 1.3f);
+    Vector3 position = ply.transform.position;
+    this.GetComponent<PlayerStats>().HurtPlayer(new PlayerStats.HitInfo((float) this.damage, id, "SCP:0492", this.GetComponent<QueryProcessor>().PlayerId), ply);
+    if (ply.GetComponent<CharacterClassManager>().curClass == 2)
+      this.GetComponent<CharacterClassManager>().CallRpcPlaceBlood(position, 0, 1.3f);
     else
-      ((CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>()).CallRpcPlaceBlood(position, 0, 0.5f);
+      this.GetComponent<CharacterClassManager>().CallRpcPlaceBlood(position, 0, 0.5f);
   }
 
   [Command(channel = 1)]
@@ -93,7 +85,7 @@ public class Scp049_2PlayerScript : NetworkBehaviour
   [ClientRpc]
   private void RpcShootAnim()
   {
-    ((AnimationController) ((Component) this).GetComponent<AnimationController>()).DoAnimation("Shoot");
+    this.GetComponent<AnimationController>().DoAnimation("Shoot");
   }
 
   private void UNetVersion()
@@ -102,15 +94,15 @@ public class Scp049_2PlayerScript : NetworkBehaviour
 
   protected static void InvokeCmdCmdHurtPlayer(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdHurtPlayer called on client.");
     else
-      ((Scp049_2PlayerScript) obj).CmdHurtPlayer((GameObject) reader.ReadGameObject(), reader.ReadString());
+      ((Scp049_2PlayerScript) obj).CmdHurtPlayer(reader.ReadGameObject(), reader.ReadString());
   }
 
   protected static void InvokeCmdCmdShootAnim(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdShootAnim called on client.");
     else
       ((Scp049_2PlayerScript) obj).CmdShootAnim();
@@ -118,47 +110,47 @@ public class Scp049_2PlayerScript : NetworkBehaviour
 
   public void CallCmdHurtPlayer(GameObject ply, string id)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdHurtPlayer called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdHurtPlayer(ply, id);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Scp049_2PlayerScript.kCmdCmdHurtPlayer);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write((GameObject) ply);
-      networkWriter.Write(id);
-      this.SendCommandInternal(networkWriter, 2, "CmdHurtPlayer");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Scp049_2PlayerScript.kCmdCmdHurtPlayer);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(ply);
+      writer.Write(id);
+      this.SendCommandInternal(writer, 2, "CmdHurtPlayer");
     }
   }
 
   public void CallCmdShootAnim()
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdShootAnim called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdShootAnim();
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Scp049_2PlayerScript.kCmdCmdShootAnim);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      this.SendCommandInternal(networkWriter, 1, "CmdShootAnim");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Scp049_2PlayerScript.kCmdCmdShootAnim);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      this.SendCommandInternal(writer, 1, "CmdShootAnim");
     }
   }
 
   protected static void InvokeRpcRpcShootAnim(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcShootAnim called on server.");
     else
       ((Scp049_2PlayerScript) obj).RpcShootAnim();
@@ -166,41 +158,38 @@ public class Scp049_2PlayerScript : NetworkBehaviour
 
   public void CallRpcShootAnim()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcShootAnim called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) Scp049_2PlayerScript.kRpcRpcShootAnim);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      this.SendRPCInternal(networkWriter, 0, "RpcShootAnim");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) Scp049_2PlayerScript.kRpcRpcShootAnim);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      this.SendRPCInternal(writer, 0, "RpcShootAnim");
     }
   }
 
   static Scp049_2PlayerScript()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp049_2PlayerScript), Scp049_2PlayerScript.kCmdCmdHurtPlayer, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdHurtPlayer)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp049_2PlayerScript), Scp049_2PlayerScript.kCmdCmdHurtPlayer, new NetworkBehaviour.CmdDelegate(Scp049_2PlayerScript.InvokeCmdCmdHurtPlayer));
     Scp049_2PlayerScript.kCmdCmdShootAnim = 1794565020;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp049_2PlayerScript), Scp049_2PlayerScript.kCmdCmdShootAnim, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdShootAnim)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp049_2PlayerScript), Scp049_2PlayerScript.kCmdCmdShootAnim, new NetworkBehaviour.CmdDelegate(Scp049_2PlayerScript.InvokeCmdCmdShootAnim));
     Scp049_2PlayerScript.kRpcRpcShootAnim = 201633926;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (Scp049_2PlayerScript), Scp049_2PlayerScript.kRpcRpcShootAnim, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcShootAnim)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (Scp049_2PlayerScript), Scp049_2PlayerScript.kRpcRpcShootAnim, new NetworkBehaviour.CmdDelegate(Scp049_2PlayerScript.InvokeRpcRpcShootAnim));
     NetworkCRC.RegisterBehaviour(nameof (Scp049_2PlayerScript), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

@@ -8,17 +8,12 @@ using UnityEngine;
 
 public class Hitmarker : MonoBehaviour
 {
+  private float t = 10f;
   public static Hitmarker singleton;
   public AnimationCurve size;
   public AnimationCurve opacity;
-  private float t;
   public CanvasRenderer targetImage;
   private float multiplier;
-
-  public Hitmarker()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -40,8 +35,8 @@ public class Hitmarker : MonoBehaviour
   {
     if ((double) this.t >= 10.0)
       return;
-    this.t += Time.get_deltaTime();
+    this.t += Time.deltaTime;
     this.targetImage.SetAlpha(this.opacity.Evaluate(this.t));
-    ((Component) this.targetImage).get_transform().set_localScale(Vector3.op_Multiply(Vector3.op_Multiply(Vector3.get_one(), this.size.Evaluate(this.t)), this.multiplier));
+    this.targetImage.transform.localScale = Vector3.one * this.size.Evaluate(this.t) * this.multiplier;
   }
 }

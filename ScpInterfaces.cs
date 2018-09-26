@@ -20,11 +20,6 @@ public class ScpInterfaces : MonoBehaviour
   public Image Scp049_loading;
   public TextMeshProUGUI remainingTargets;
 
-  public ScpInterfaces()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     Timing.RunCoroutine(this._UpdateTargets());
@@ -34,10 +29,7 @@ public class ScpInterfaces : MonoBehaviour
   private IEnumerator<float> _UpdateTargets()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ScpInterfaces.\u003C_UpdateTargets\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ScpInterfaces.\u003C_UpdateTargets\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private GameObject FindLocalPlayer()
@@ -47,16 +39,16 @@ public class ScpInterfaces : MonoBehaviour
 
   public void CreatePortal()
   {
-    ((Scp106PlayerScript) this.FindLocalPlayer().GetComponent<Scp106PlayerScript>()).CreatePortalInCurrentPosition();
+    this.FindLocalPlayer().GetComponent<Scp106PlayerScript>().CreatePortalInCurrentPosition();
   }
 
   public void Update106Highlight(int id)
   {
-    ((Scp106PlayerScript) this.FindLocalPlayer().GetComponent<Scp106PlayerScript>()).highlightID = id;
+    this.FindLocalPlayer().GetComponent<Scp106PlayerScript>().highlightID = id;
   }
 
   public void Use106Portal()
   {
-    ((Scp106PlayerScript) this.FindLocalPlayer().GetComponent<Scp106PlayerScript>()).UseTeleport();
+    this.FindLocalPlayer().GetComponent<Scp106PlayerScript>().UseTeleport();
   }
 }

@@ -12,27 +12,22 @@ public class ExampleWheelController : MonoBehaviour
   public Renderer motionVectorRenderer;
   private Rigidbody m_Rigidbody;
 
-  public ExampleWheelController()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.m_Rigidbody = (Rigidbody) ((Component) this).GetComponent<Rigidbody>();
-    this.m_Rigidbody.set_maxAngularVelocity(100f);
+    this.m_Rigidbody = this.GetComponent<Rigidbody>();
+    this.m_Rigidbody.maxAngularVelocity = 100f;
   }
 
   private void Update()
   {
-    if (Input.GetKey((KeyCode) 273))
-      this.m_Rigidbody.AddRelativeTorque(new Vector3(-1f * this.acceleration, 0.0f, 0.0f), (ForceMode) 5);
-    else if (Input.GetKey((KeyCode) 274))
-      this.m_Rigidbody.AddRelativeTorque(new Vector3(1f * this.acceleration, 0.0f, 0.0f), (ForceMode) 5);
-    float num = (float) (-this.m_Rigidbody.get_angularVelocity().x / 100.0);
-    if (!Object.op_Implicit((Object) this.motionVectorRenderer))
+    if (Input.GetKey(KeyCode.UpArrow))
+      this.m_Rigidbody.AddRelativeTorque(new Vector3(-1f * this.acceleration, 0.0f, 0.0f), ForceMode.Acceleration);
+    else if (Input.GetKey(KeyCode.DownArrow))
+      this.m_Rigidbody.AddRelativeTorque(new Vector3(1f * this.acceleration, 0.0f, 0.0f), ForceMode.Acceleration);
+    float num = (float) (-(double) this.m_Rigidbody.angularVelocity.x / 100.0);
+    if (!(bool) ((Object) this.motionVectorRenderer))
       return;
-    this.motionVectorRenderer.get_material().SetFloat(ExampleWheelController.Uniforms._MotionAmount, Mathf.Clamp(num, -0.25f, 0.25f));
+    this.motionVectorRenderer.material.SetFloat(ExampleWheelController.Uniforms._MotionAmount, Mathf.Clamp(num, -0.25f, 0.25f));
   }
 
   private static class Uniforms

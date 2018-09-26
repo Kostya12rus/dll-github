@@ -8,22 +8,17 @@ using UnityEngine;
 
 public class CameraFocuser : MonoBehaviour
 {
+  public float targetFovScale = 1f;
   public Transform lookTarget;
-  public float targetFovScale;
   public float minimumAngle;
-
-  public CameraFocuser()
-  {
-    base.\u002Ector();
-  }
 
   private void OnTriggerStay(Collider other)
   {
-    Scp049PlayerScript componentInParent = (Scp049PlayerScript) ((Component) other).GetComponentInParent<Scp049PlayerScript>();
-    if (!Object.op_Inequality((Object) componentInParent, (Object) null) || !componentInParent.get_isLocalPlayer())
+    Scp049PlayerScript componentInParent = other.GetComponentInParent<Scp049PlayerScript>();
+    if (!((Object) componentInParent != (Object) null) || !componentInParent.isLocalPlayer)
       return;
-    FirstPersonController component = (FirstPersonController) ((Component) componentInParent).GetComponent<FirstPersonController>();
-    ((Component) this).get_transform().LookAt(this.lookTarget);
-    Mathf.Clamp(Quaternion.Angle(componentInParent.plyCam.get_transform().get_rotation(), ((Component) this).get_transform().get_rotation()), this.minimumAngle, 70f);
+    componentInParent.GetComponent<FirstPersonController>();
+    this.transform.LookAt(this.lookTarget);
+    Mathf.Clamp(Quaternion.Angle(componentInParent.plyCam.transform.rotation, this.transform.rotation), this.minimumAngle, 70f);
   }
 }

@@ -8,22 +8,17 @@ using UnityEngine.Networking;
 
 public class Scp079PlayerScript : NetworkBehaviour
 {
-  public Scp079PlayerScript()
-  {
-    base.\u002Ector();
-  }
-
   private void UNetVersion()
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

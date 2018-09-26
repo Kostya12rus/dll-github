@@ -11,11 +11,6 @@ public class PlayerArms : MonoBehaviour
 {
   public PlayerArms.Arm[] arms;
 
-  public PlayerArms()
-  {
-    base.\u002Ector();
-  }
-
   [Serializable]
   public class Arm
   {

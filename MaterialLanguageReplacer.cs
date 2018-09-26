@@ -10,13 +10,8 @@ public class MaterialLanguageReplacer : MonoBehaviour
 {
   public Material englishVersion;
 
-  public MaterialLanguageReplacer()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    ((Renderer) ((Component) this).GetComponent<Renderer>()).set_material(this.englishVersion);
+    this.GetComponent<Renderer>().material = this.englishVersion;
   }
 }

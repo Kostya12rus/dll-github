@@ -10,15 +10,10 @@ using UnityEngine;
 
 public class MarkupWriter : MonoBehaviour
 {
+  public List<string> errorLogs = new List<string>();
+  private List<GameObject> spawnedElements = new List<GameObject>();
   public static MarkupWriter singleton;
   public GameObject sample;
-  public List<string> errorLogs;
-  private List<GameObject> spawnedElements;
-
-  public MarkupWriter()
-  {
-    base.\u002Ector();
-  }
 
   public static event MarkupWriter.OnCreateAction OnCreateObject;
 
@@ -29,11 +24,8 @@ public class MarkupWriter : MonoBehaviour
 
   private void ClearAll()
   {
-    using (List<GameObject>.Enumerator enumerator = this.spawnedElements.GetEnumerator())
-    {
-      while (enumerator.MoveNext())
-        Object.Destroy((Object) enumerator.Current);
-    }
+    foreach (Object spawnedElement in this.spawnedElements)
+      Object.Destroy(spawnedElement);
     this.spawnedElements.Clear();
   }
 
@@ -69,9 +61,9 @@ public class MarkupWriter : MonoBehaviour
           float result5;
           if (!float.TryParse(list[5], out result5))
             result5 = 0.0f;
-          MarkupElement component = (MarkupElement) ((GameObject) Object.Instantiate<GameObject>((M0) this.sample, ((Component) MarkupCanvas.singleton).get_transform())).GetComponent<MarkupElement>();
-          this.spawnedElements.Add(((Component) component).get_gameObject());
-          component.markupStyle.position = Vector2.op_Implicit(new Vector3(result1, result2, 0.0f));
+          MarkupElement component = Object.Instantiate<GameObject>(this.sample, MarkupCanvas.singleton.transform).GetComponent<MarkupElement>();
+          this.spawnedElements.Add(component.gameObject);
+          component.markupStyle.position = (Vector2) new Vector3(result1, result2, 0.0f);
           component.markupStyle.size = new Vector2(result3, result4);
           component.markupStyle.rotation = result5;
           component.RefreshStyle(list[0]);

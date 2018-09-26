@@ -11,25 +11,20 @@ public class Decal : MonoBehaviour
   private MeshFilter filter;
   private MeshRenderer renderer;
 
-  public Decal()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.renderer = (MeshRenderer) ((Component) this).GetComponent<MeshRenderer>();
-    this.filter = (MeshFilter) ((Component) this).GetComponent<MeshFilter>();
-    Mesh sharedMesh = this.filter.get_sharedMesh();
-    Vector3[] vertices = sharedMesh.get_vertices();
+    this.renderer = this.GetComponent<MeshRenderer>();
+    this.filter = this.GetComponent<MeshFilter>();
+    Mesh sharedMesh = this.filter.sharedMesh;
+    Vector3[] vertices = sharedMesh.vertices;
     for (int index = 0; index < vertices.Length; ++index)
     {
       MonoBehaviour.print((object) index);
-      Debug.DrawRay(((Component) this).get_transform().TransformPoint(vertices[index]), Vector3.op_UnaryNegation(((Component) this).get_transform().get_forward()), Color.get_red(), 10f);
-      RaycastHit raycastHit;
-      vertices[index] = !Physics.Raycast(((Component) this).get_transform().TransformPoint(vertices[index]), Vector3.op_UnaryNegation(((Component) this).get_transform().get_forward()), ref raycastHit) ? Vector3.get_zero() : ((Component) this).get_transform().InverseTransformPoint(((RaycastHit) ref raycastHit).get_point());
+      Debug.DrawRay(this.transform.TransformPoint(vertices[index]), -this.transform.forward, Color.red, 10f);
+      RaycastHit hitInfo;
+      vertices[index] = !Physics.Raycast(this.transform.TransformPoint(vertices[index]), -this.transform.forward, out hitInfo) ? Vector3.zero : this.transform.InverseTransformPoint(hitInfo.point);
     }
-    sharedMesh.set_vertices(vertices);
+    sharedMesh.vertices = vertices;
     sharedMesh.RecalculateNormals();
   }
 }

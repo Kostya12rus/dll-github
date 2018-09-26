@@ -11,25 +11,20 @@ public class NetManagerValueSetter : MonoBehaviour
 {
   private CustomNetworkManager _singleton;
 
-  public NetManagerValueSetter()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this._singleton = (CustomNetworkManager) ((Component) NetworkManager.singleton).GetComponent<CustomNetworkManager>();
+    this._singleton = NetworkManager.singleton.GetComponent<CustomNetworkManager>();
   }
 
   public void ChangeIP(string ip)
   {
-    this._singleton.set_networkAddress(ip);
+    this._singleton.networkAddress = ip;
     CustomNetworkManager.ConnectionIp = ip;
   }
 
   public void ChangePort(int port)
   {
-    this._singleton.set_networkPort(port);
+    this._singleton.networkPort = port;
   }
 
   public void JoinGame()

@@ -19,11 +19,6 @@ public class CustomPostProcessingSight : MonoBehaviour
   public static bool raycast_bool;
   public static RaycastHit raycast_hit;
 
-  public CustomPostProcessingSight()
-  {
-    base.\u002Ector();
-  }
-
   public int GetAmmoLeft()
   {
     return this.wm.AmmoLeft();
@@ -31,6 +26,6 @@ public class CustomPostProcessingSight : MonoBehaviour
 
   public bool IsHumanHit()
   {
-    return Object.op_Equality((Object) ((Component) ((RaycastHit) ref CustomPostProcessingSight.raycast_hit).get_collider()).GetComponentInParent<CharacterClassManager>(), (Object) null);
+    return (Object) CustomPostProcessingSight.raycast_hit.collider.GetComponentInParent<CharacterClassManager>() == (Object) null;
   }
 }

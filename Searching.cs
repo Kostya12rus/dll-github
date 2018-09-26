@@ -25,21 +25,16 @@ public class Searching : NetworkBehaviour
   private GameObject progressGO;
   public float rayDistance;
 
-  public Searching()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.fpc = (FirstPersonController) ((Component) this).GetComponent<FirstPersonController>();
-    this.cam = ((Scp049PlayerScript) ((Component) this).GetComponent<Scp049PlayerScript>()).plyCam.get_transform();
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
-    this.inv = (Inventory) ((Component) this).GetComponent<Inventory>();
+    this.fpc = this.GetComponent<FirstPersonController>();
+    this.cam = this.GetComponent<Scp049PlayerScript>().plyCam.transform;
+    this.ccm = this.GetComponent<CharacterClassManager>();
+    this.inv = this.GetComponent<Inventory>();
     this.overloaderror = UserMainInterface.singleton.overloadMsg;
     this.progress = UserMainInterface.singleton.searchProgress;
     this.progressGO = UserMainInterface.singleton.searchOBJ;
-    this.ammobox = (AmmoBox) ((Component) this).GetComponent<AmmoBox>();
+    this.ammobox = this.GetComponent<AmmoBox>();
   }
 
   public void Init(bool isNotHuman)
@@ -49,7 +44,7 @@ public class Searching : NetworkBehaviour
 
   private void Update()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     this.Raycast();
     this.ContinuePickup();
@@ -64,75 +59,75 @@ public class Searching : NetworkBehaviour
   private void ErrorMessage()
   {
     if ((double) this.errorMsgDur > 0.0)
-      this.errorMsgDur -= Time.get_deltaTime();
+      this.errorMsgDur -= Time.deltaTime;
     this.overloaderror.SetActive((double) this.errorMsgDur > 0.0);
   }
 
   private void ContinuePickup()
   {
-    if (Object.op_Inequality((Object) this.pickup, (Object) null))
+    if ((Object) this.pickup != (Object) null)
     {
       if (!Input.GetKey(NewInput.GetKey("Interact")))
       {
         this.pickup = (GameObject) null;
-        this.fpc.isSearching = (__Null) 0;
+        this.fpc.isSearching = false;
         this.progressGO.SetActive(false);
       }
       else
       {
-        this.timeToPickUp -= Time.get_deltaTime();
+        this.timeToPickUp -= Time.deltaTime;
         this.progressGO.SetActive(true);
-        this.progress.set_value(this.progress.get_maxValue() - this.timeToPickUp);
+        this.progress.value = this.progress.maxValue - this.timeToPickUp;
         if ((double) this.timeToPickUp > 0.0)
           return;
-        if (Object.op_Inequality((Object) this.pickup.GetComponent<Pickup>(), (Object) null))
+        if ((Object) this.pickup.GetComponent<Pickup>() != (Object) null)
         {
-          foreach (WeaponManager.Weapon weapon in ((WeaponManager) ((Component) this).GetComponent<WeaponManager>()).weapons)
+          foreach (WeaponManager.Weapon weapon in this.GetComponent<WeaponManager>().weapons)
           {
-            if (weapon.inventoryID == ((Pickup) this.pickup.GetComponent<Pickup>()).info.itemId)
+            if (weapon.inventoryID == this.pickup.GetComponent<Pickup>().info.itemId)
               AchievementManager.Achieve("thatcanbeusefull");
           }
         }
         this.progressGO.SetActive(false);
         this.CallCmdPickupItem(this.pickup);
-        this.fpc.isSearching = (__Null) 0;
+        this.fpc.isSearching = false;
         this.pickup = (GameObject) null;
       }
     }
     else
     {
-      this.fpc.isSearching = (__Null) 0;
+      this.fpc.isSearching = false;
       this.progressGO.SetActive(false);
     }
   }
 
   private void Raycast()
   {
-    RaycastHit raycastHit;
-    if (!Input.GetKeyDown(NewInput.GetKey("Interact")) || !this.AllowPickup() || !Physics.Raycast(new Ray(this.cam.get_position(), this.cam.get_forward()), ref raycastHit, this.rayDistance, LayerMask.op_Implicit(((PlayerInteract) ((Component) this).GetComponent<PlayerInteract>()).mask)))
+    RaycastHit hitInfo;
+    if (!Input.GetKeyDown(NewInput.GetKey("Interact")) || !this.AllowPickup() || !Physics.Raycast(new Ray(this.cam.position, this.cam.forward), out hitInfo, this.rayDistance, (int) this.GetComponent<PlayerInteract>().mask))
       return;
-    Pickup componentInParent1 = (Pickup) ((Component) ((RaycastHit) ref raycastHit).get_transform()).GetComponentInParent<Pickup>();
-    Locker componentInParent2 = (Locker) ((Component) ((RaycastHit) ref raycastHit).get_transform()).GetComponentInParent<Locker>();
-    if (Object.op_Inequality((Object) componentInParent1, (Object) null))
+    Pickup componentInParent1 = hitInfo.transform.GetComponentInParent<Pickup>();
+    Locker componentInParent2 = hitInfo.transform.GetComponentInParent<Locker>();
+    if ((Object) componentInParent1 != (Object) null)
     {
-      if (this.inv.items.get_Count() < (ushort) 8 || this.inv.availableItems[componentInParent1.info.itemId].noEquipable)
+      if (this.inv.items.Count < (ushort) 8 || this.inv.availableItems[componentInParent1.info.itemId].noEquipable)
       {
         this.timeToPickUp = componentInParent1.searchTime;
-        this.progress.set_maxValue(componentInParent1.searchTime);
-        this.fpc.isSearching = (__Null) 1;
-        this.pickup = ((Component) componentInParent1).get_gameObject();
+        this.progress.maxValue = componentInParent1.searchTime;
+        this.fpc.isSearching = true;
+        this.pickup = componentInParent1.gameObject;
       }
       else
         this.ShowErrorMessage();
     }
-    if (!Object.op_Inequality((Object) componentInParent2, (Object) null))
+    if (!((Object) componentInParent2 != (Object) null))
       return;
-    if (this.inv.items.get_Count() < (ushort) 8)
+    if (this.inv.items.Count < (ushort) 8)
     {
       this.timeToPickUp = componentInParent2.searchTime;
-      this.progress.set_maxValue(componentInParent2.searchTime);
-      this.fpc.isSearching = (__Null) 1;
-      this.pickup = ((Component) componentInParent2).get_gameObject();
+      this.progress.maxValue = componentInParent2.searchTime;
+      this.fpc.isSearching = true;
+      this.pickup = componentInParent2.gameObject;
     }
     else
       this.ShowErrorMessage();
@@ -144,7 +139,7 @@ public class Searching : NetworkBehaviour
       return false;
     foreach (GameObject player in PlayerManager.singleton.players)
     {
-      if (Object.op_Equality((Object) ((Handcuffs) player.GetComponent<Handcuffs>()).cuffTarget, (Object) ((Component) this).get_gameObject()))
+      if ((Object) player.GetComponent<Handcuffs>().cuffTarget == (Object) this.gameObject)
         return false;
     }
     return true;
@@ -153,24 +148,24 @@ public class Searching : NetworkBehaviour
   [Command(channel = 2)]
   private void CmdPickupItem(GameObject t)
   {
-    if (Object.op_Equality((Object) t, (Object) null) || !this.ccm.IsHuman() || (double) Vector3.Distance(((PlyMovementSync) ((Component) this).GetComponent<PlyMovementSync>()).position, t.get_transform().get_position()) > 3.5)
+    if ((Object) t == (Object) null || !this.ccm.IsHuman() || (double) Vector3.Distance(this.GetComponent<PlyMovementSync>().position, t.transform.position) > 3.5)
       return;
     int id = -1;
-    Pickup component1 = (Pickup) t.GetComponent<Pickup>();
-    if (Object.op_Inequality((Object) component1, (Object) null))
+    Pickup component1 = t.GetComponent<Pickup>();
+    if ((Object) component1 != (Object) null)
     {
       id = component1.info.itemId;
       component1.Delete();
     }
-    Locker component2 = (Locker) t.GetComponent<Locker>();
-    if (Object.op_Inequality((Object) component2, (Object) null) && !component2.isTaken)
+    Locker component2 = t.GetComponent<Locker>();
+    if ((Object) component2 != (Object) null && !component2.isTaken)
     {
       id = component2.GetItem();
       component2.SetTaken(true);
     }
     if (id == -1)
       return;
-    this.AddItem(id, !Object.op_Equality((Object) t.GetComponent<Pickup>(), (Object) null) ? component1.info.durability : -1f);
+    this.AddItem(id, !((Object) t.GetComponent<Pickup>() == (Object) null) ? component1.info.durability : -1f);
   }
 
   public void AddItem(int id, float dur)
@@ -199,46 +194,45 @@ public class Searching : NetworkBehaviour
 
   protected static void InvokeCmdCmdPickupItem(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdPickupItem called on client.");
     else
-      ((Searching) obj).CmdPickupItem((GameObject) reader.ReadGameObject());
+      ((Searching) obj).CmdPickupItem(reader.ReadGameObject());
   }
 
   public void CallCmdPickupItem(GameObject t)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdPickupItem called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdPickupItem(t);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Searching.kCmdCmdPickupItem);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write((GameObject) t);
-      this.SendCommandInternal(networkWriter, 2, "CmdPickupItem");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Searching.kCmdCmdPickupItem);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(t);
+      this.SendCommandInternal(writer, 2, "CmdPickupItem");
     }
   }
 
   static Searching()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Searching), Searching.kCmdCmdPickupItem, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdPickupItem)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Searching), Searching.kCmdCmdPickupItem, new NetworkBehaviour.CmdDelegate(Searching.InvokeCmdCmdPickupItem));
     NetworkCRC.RegisterBehaviour(nameof (Searching), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

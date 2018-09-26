@@ -9,33 +9,23 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class NineTailedFoxAnnouncer : MonoBehaviour
 {
-  public float natoNumberLengthMultiplier;
-  public float natoLetterLengthMultiplier;
+  public float natoNumberLengthMultiplier = 0.9f;
+  public float natoLetterLengthMultiplier = 0.9f;
+  public List<NineTailedFoxAnnouncer.VoiceLine> queue = new List<NineTailedFoxAnnouncer.VoiceLine>();
+  public bool isFree = true;
   public NineTailedFoxAnnouncer.VoiceLine[] voiceLines;
-  public List<NineTailedFoxAnnouncer.VoiceLine> queue;
   public AudioSource speakerSource;
   public AudioSource backgroundSource;
-  public bool isFree;
   public static NineTailedFoxAnnouncer singleton;
-
-  public NineTailedFoxAnnouncer()
-  {
-    base.\u002Ector();
-  }
 
   public void AnnounceNtfEntrance(int _scpsLeft, int _mtfNumber, char _mtfLetter)
   {
     string empty = string.Empty;
     int num = Mathf.Clamp(_scpsLeft, 0, 3);
-    string[] strArray = new string[2]
-    {
-      _mtfNumber.ToString("00")[0].ToString(),
-      _mtfNumber.ToString("00")[1].ToString()
-    };
+    string[] strArray = new string[2]{ _mtfNumber.ToString("00")[0].ToString(), _mtfNumber.ToString("00")[1].ToString() };
     this.AddPhraseToQueue(empty + "BG_MTF1 BREAK_PREANNC MTFUNIT EPSILON NATO_11 DESIGNATED " + "NATO_" + (object) _mtfLetter + " " + "NATO_" + strArray[0] + " NATO_" + strArray[1] + " " + "ENTERED REMAINING " + "SCP" + (object) num);
   }
 
@@ -53,13 +43,13 @@ public class NineTailedFoxAnnouncer : MonoBehaviour
           tts = tts + "NATO_" + (object) ch + " ";
       }
       tts += "CONTAINEDSUCCESSFULLY CONTAINMENTUNIT ";
-      if (Object.op_Equality((Object) executioner, (Object) null) || executioner.curClass < 0 || executioner.klasy[executioner.curClass].team != Team.MTF)
+      if ((Object) executioner == (Object) null || executioner.curClass < 0 || executioner.klasy[executioner.curClass].team != Team.MTF)
       {
         tts += "UNKNOWN";
       }
       else
       {
-        string str1 = ((SyncList<string>) NineTailedFoxUnits.host.list).get_Item(executioner.ntfUnit);
+        string str1 = NineTailedFoxUnits.host.list[executioner.ntfUnit];
         char ch = str1[0];
         string str2 = int.Parse(str1.Split('-')[1]).ToString("00");
         tts = tts + "NATO_" + (object) ch + " NATO_" + (object) str2[0] + " NATO_" + (object) str2[1];
@@ -99,10 +89,7 @@ public class NineTailedFoxAnnouncer : MonoBehaviour
   private IEnumerator Start()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new NineTailedFoxAnnouncer.\u003CStart\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new NineTailedFoxAnnouncer.\u003CStart\u003Ec__Iterator0() { \u0024this = this };
   }
 
   [Serializable]

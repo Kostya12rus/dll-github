@@ -9,17 +9,12 @@ using UnityEngine;
 
 public class PocketDimensionGenerator : MonoBehaviour
 {
-  private List<PocketDimensionTeleport> pdtps;
-
-  public PocketDimensionGenerator()
-  {
-    base.\u002Ector();
-  }
+  private List<PocketDimensionTeleport> pdtps = new List<PocketDimensionTeleport>();
 
   public void GenerateMap(int seed)
   {
     Random.InitState(seed);
-    foreach (PocketDimensionTeleport dimensionTeleport in (PocketDimensionTeleport[]) Object.FindObjectsOfType<PocketDimensionTeleport>())
+    foreach (PocketDimensionTeleport dimensionTeleport in Object.FindObjectsOfType<PocketDimensionTeleport>())
       this.pdtps.Add(dimensionTeleport);
     foreach (PocketDimensionTeleport pdtp in this.pdtps)
       pdtp.SetType(PocketDimensionTeleport.PDTeleportType.Killer);

@@ -17,6 +17,9 @@ using UnityEngine.UI;
 public class Door : NetworkBehaviour, IComparable
 {
   private static int kRpcRpcDoSound = 630763456;
+  public int status = -1;
+  [HideInInspector]
+  public List<GameObject> buttons = new List<GameObject>();
   public AudioSource soundsource;
   public AudioClip sound_checkpointWarning;
   public AudioClip sound_denied;
@@ -30,7 +33,6 @@ public class Door : NetworkBehaviour, IComparable
   public AudioClip[] sound_close;
   private Rigidbody[] _destoryedRb;
   public int doorType;
-  public int status;
   public float curCooldown;
   public float cooldown;
   public bool dontOpenOnWarhead;
@@ -45,8 +47,6 @@ public class Door : NetworkBehaviour, IComparable
   private bool _deniedInProgress;
   public string DoorName;
   public string permissionLevel;
-  [HideInInspector]
-  public List<GameObject> buttons;
   [SyncVar(hook = "DestroyDoor")]
   public bool destroyed;
   [SyncVar(hook = "SetState")]
@@ -54,43 +54,38 @@ public class Door : NetworkBehaviour, IComparable
   [SyncVar(hook = "SetLock")]
   public bool locked;
 
-  public Door()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    Timing.RunCoroutine(this._Start(), (Segment) 1);
+    Timing.RunCoroutine(this._Start(), Segment.FixedUpdate);
   }
 
   private void LateUpdate()
   {
-    if (this._prevDestroyed != this.destroyed && Object.op_Inequality((Object) GameObject.Find("Host"), (Object) null) && RandomSeedSync.generated)
-      ((MonoBehaviour) this).StartCoroutine(this.RefreshDestroyAnimation());
+    if (this._prevDestroyed != this.destroyed && (Object) GameObject.Find("Host") != (Object) null && RandomSeedSync.generated)
+      this.StartCoroutine(this.RefreshDestroyAnimation());
     if ((double) this.curCooldown >= 0.0)
-      this.curCooldown -= Time.get_deltaTime();
+      this.curCooldown -= Time.deltaTime;
     if (!this._deniedInProgress && (!this.locked || this.permissionLevel == "UNACCESSIBLE"))
     {
       if ((double) this.curCooldown >= 0.0 && this.status != 3)
       {
-        if (Object.op_Equality((Object) this.sound_checkpointWarning, (Object) null))
+        if ((Object) this.sound_checkpointWarning == (Object) null)
         {
-          if (Object.op_Inequality((Object) this._portal, (Object) null))
+          if ((Object) this._portal != (Object) null)
             this._portal.Flags = (SECTR_Portal.PortalFlags) 0;
           this.SetActiveStatus(2);
         }
       }
       else
       {
-        if (Object.op_Inequality((Object) this._portal, (Object) null))
+        if ((Object) this._portal != (Object) null)
           this._portal.Flags = !(this.isOpen | this.destroyed) ? SECTR_Portal.PortalFlags.Closed : (SECTR_Portal.PortalFlags) 0;
         this.SetActiveStatus(!this.isOpen ? 0 : 1);
       }
     }
     if (this.locked && this.permissionLevel != "UNACCESSIBLE")
     {
-      if (Object.op_Inequality((Object) this._portal, (Object) null))
+      if ((Object) this._portal != (Object) null)
         this._portal.Flags = !(this.isOpen | this.destroyed | this.moving.moving) ? SECTR_Portal.PortalFlags.Closed : (SECTR_Portal.PortalFlags) 0;
       if (this._wasLocked)
         return;
@@ -131,8 +126,8 @@ public class Door : NetworkBehaviour, IComparable
 
   public void SetLocalPos()
   {
-    this.localPos = ((Component) this).get_transform().get_localPosition();
-    this.localRot = ((Component) this).get_transform().get_localRotation();
+    this.localPos = this.transform.localPosition;
+    this.localRot = this.transform.localRotation;
   }
 
   [DebuggerHidden]
@@ -158,7 +153,7 @@ public class Door : NetworkBehaviour, IComparable
 
   public void DestroyDoor(bool b)
   {
-    if (b && Object.op_Inequality((Object) this.destroyedPrefab, (Object) null))
+    if (b && (Object) this.destroyedPrefab != (Object) null)
       this.Networkdestroyed = true;
     else
       this.Networkdestroyed = false;
@@ -180,15 +175,15 @@ public class Door : NetworkBehaviour, IComparable
 
   public void UpdatePos()
   {
-    if (Vector3.op_Equality(this.localPos, Vector3.get_zero()))
+    if (this.localPos == Vector3.zero)
       return;
-    ((Component) this).get_transform().set_localPosition(this.localPos);
-    ((Component) this).get_transform().set_localRotation(this.localRot);
+    this.transform.localPosition = this.localPos;
+    this.transform.localRotation = this.localRot;
   }
 
   public void SetZero()
   {
-    this.localPos = Vector3.get_zero();
+    this.localPos = Vector3.zero;
   }
 
   public void ChangeState(bool force = false)
@@ -214,7 +209,7 @@ public class Door : NetworkBehaviour, IComparable
 
   public void CloseDecontamination()
   {
-    if (this.permissionLevel == "UNACCESSIBLE" || ((Component) this).get_transform().get_position().y < -100.0 || ((Component) this).get_transform().get_position().y > 100.0)
+    if (this.permissionLevel == "UNACCESSIBLE" || (double) this.transform.position.y < -100.0 || (double) this.transform.position.y > 100.0)
       return;
     this.decontlock = true;
     if (this.isOpen)
@@ -250,23 +245,19 @@ public class Door : NetworkBehaviour, IComparable
     if (this.status == s)
       return;
     this.status = s;
-    using (List<GameObject>.Enumerator enumerator = this.buttons.GetEnumerator())
+    foreach (GameObject button in this.buttons)
     {
-      while (enumerator.MoveNext())
+      MeshRenderer component = button.GetComponent<MeshRenderer>();
+      Text componentInChildren1 = button.GetComponentInChildren<Text>();
+      Image componentInChildren2 = button.GetComponentInChildren<Image>();
+      if ((Object) component != (Object) null)
+        component.material = ButtonStages.types[this.doorType].stages[s].mat;
+      if ((Object) componentInChildren1 != (Object) null)
+        componentInChildren1.text = ButtonStages.types[this.doorType].stages[s].info;
+      if ((Object) componentInChildren2 != (Object) null)
       {
-        GameObject current = enumerator.Current;
-        MeshRenderer component = (MeshRenderer) current.GetComponent<MeshRenderer>();
-        Text componentInChildren1 = (Text) current.GetComponentInChildren<Text>();
-        Image componentInChildren2 = (Image) current.GetComponentInChildren<Image>();
-        if (Object.op_Inequality((Object) component, (Object) null))
-          ((Renderer) component).set_material(ButtonStages.types[this.doorType].stages[s].mat);
-        if (Object.op_Inequality((Object) componentInChildren1, (Object) null))
-          componentInChildren1.set_text(ButtonStages.types[this.doorType].stages[s].info);
-        if (Object.op_Inequality((Object) componentInChildren2, (Object) null))
-        {
-          ((Graphic) componentInChildren2).set_color(!Object.op_Equality((Object) ButtonStages.types[this.doorType].stages[s].texture, (Object) null) ? Color.get_white() : Color.get_clear());
-          componentInChildren2.set_sprite(ButtonStages.types[this.doorType].stages[s].texture);
-        }
+        componentInChildren2.color = !((Object) ButtonStages.types[this.doorType].stages[s].texture == (Object) null) ? Color.white : Color.clear;
+        componentInChildren2.sprite = ButtonStages.types[this.doorType].stages[s].texture;
       }
     }
   }
@@ -281,7 +272,7 @@ public class Door : NetworkBehaviour, IComparable
   public void ForceCooldown(float cd)
   {
     this.curCooldown = cd;
-    Timing.RunCoroutine(this._UpdatePosition(), (Segment) 0);
+    Timing.RunCoroutine(this._UpdatePosition(), Segment.Update);
   }
 
   private void UNetVersion()
@@ -299,13 +290,13 @@ public class Door : NetworkBehaviour, IComparable
       int num1 = value ? 1 : 0;
       ref bool local = ref this.destroyed;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.DestroyDoor(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
@@ -320,13 +311,13 @@ public class Door : NetworkBehaviour, IComparable
       int num1 = value ? 1 : 0;
       ref bool local = ref this.isOpen;
       int num2 = 2;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetState(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
@@ -341,19 +332,19 @@ public class Door : NetworkBehaviour, IComparable
       int num1 = value ? 1 : 0;
       ref bool local = ref this.locked;
       int num2 = 4;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetLock(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
   protected static void InvokeRpcRpcDoSound(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcDoSound called on server.");
     else
       ((Door) obj).RpcDoSound();
@@ -361,29 +352,28 @@ public class Door : NetworkBehaviour, IComparable
 
   public void CallRpcDoSound()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcDoSound called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) Door.kRpcRpcDoSound);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      this.SendRPCInternal(networkWriter, 14, "RpcDoSound");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) Door.kRpcRpcDoSound);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      this.SendRPCInternal(writer, 14, "RpcDoSound");
     }
   }
 
   static Door()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (Door), Door.kRpcRpcDoSound, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcDoSound)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (Door), Door.kRpcRpcDoSound, new NetworkBehaviour.CmdDelegate(Door.InvokeRpcRpcDoSound));
     NetworkCRC.RegisterBehaviour(nameof (Door), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -393,39 +383,39 @@ public class Door : NetworkBehaviour, IComparable
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.destroyed);
     }
-    if (((int) this.get_syncVarDirtyBits() & 2) != 0)
+    if (((int) this.syncVarDirtyBits & 2) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.isOpen);
     }
-    if (((int) this.get_syncVarDirtyBits() & 4) != 0)
+    if (((int) this.syncVarDirtyBits & 4) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.locked);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

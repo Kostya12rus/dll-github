@@ -8,32 +8,27 @@ using UnityEngine;
 
 public class PickupTrigger : MonoBehaviour
 {
-  public int filter;
+  public int filter = -1;
+  public bool disableOnEnd = true;
   public int triggerID;
   public string alias;
-  public bool disableOnEnd;
   public int prioirty;
-
-  public PickupTrigger()
-  {
-    base.\u002Ector();
-  }
 
   public bool Trigger(int item)
   {
     if (this.triggerID == -1)
     {
-      Object.Destroy((Object) ((Component) this).get_gameObject());
+      Object.Destroy((Object) this.gameObject);
       return true;
     }
     if (this.filter != -1 && item != this.filter)
       return false;
     if (this.alias != string.Empty)
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Trigger(this.alias);
+      Object.FindObjectOfType<TutorialManager>().Trigger(this.alias);
     else
-      ((TutorialManager) Object.FindObjectOfType<TutorialManager>()).Trigger(this.triggerID);
+      Object.FindObjectOfType<TutorialManager>().Trigger(this.triggerID);
     if (this.disableOnEnd)
-      Object.Destroy((Object) ((Component) this).get_gameObject());
+      Object.Destroy((Object) this.gameObject);
     return true;
   }
 }

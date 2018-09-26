@@ -11,12 +11,7 @@ using UnityEngine.Networking;
 public class ChopperAutostart : NetworkBehaviour
 {
   [SyncVar(hook = "SetState")]
-  public bool isLanded;
-
-  public ChopperAutostart()
-  {
-    base.\u002Ector();
-  }
+  public bool isLanded = true;
 
   public void SetState(bool b)
   {
@@ -31,7 +26,7 @@ public class ChopperAutostart : NetworkBehaviour
 
   private void RefreshState()
   {
-    ((Animator) ((Component) this).GetComponent<Animator>()).SetBool("IsLanded", this.isLanded);
+    this.GetComponent<Animator>().SetBool("IsLanded", this.isLanded);
   }
 
   private void UNetVersion()
@@ -49,17 +44,17 @@ public class ChopperAutostart : NetworkBehaviour
       int num1 = value ? 1 : 0;
       ref bool local = ref this.isLanded;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetState(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -67,21 +62,21 @@ public class ChopperAutostart : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.isLanded);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

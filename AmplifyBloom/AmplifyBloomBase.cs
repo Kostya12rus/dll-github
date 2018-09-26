@@ -6,6 +6,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace AmplifyBloom
 {
@@ -13,6 +14,51 @@ namespace AmplifyBloom
   [Serializable]
   public class AmplifyBloomBase : MonoBehaviour
   {
+    [SerializeField]
+    private bool m_showDebugMessages = true;
+    [SerializeField]
+    private int m_softMaxdownscales = 6;
+    [SerializeField]
+    private Vector4 m_bloomRange = new Vector4(500f, 1f, 0.0f, 0.0f);
+    [SerializeField]
+    private float m_overallThreshold = 0.53f;
+    [SerializeField]
+    private Vector4 m_bloomParams = new Vector4(0.8f, 1f, 1f, 1f);
+    [SerializeField]
+    private float m_temporalFilteringValue = 0.05f;
+    [SerializeField]
+    private int m_bloomDownsampleCount = 6;
+    [SerializeField]
+    private float m_featuresThreshold = 0.05f;
+    [SerializeField]
+    private AmplifyLensFlare m_lensFlare = new AmplifyLensFlare();
+    [SerializeField]
+    private bool m_applyLensDirt = true;
+    [SerializeField]
+    private float m_lensDirtStrength = 2f;
+    [SerializeField]
+    private bool m_applyLensStardurst = true;
+    [SerializeField]
+    private float m_lensStarburstStrength = 2f;
+    [SerializeField]
+    private AmplifyGlare m_anamorphicGlare = new AmplifyGlare();
+    [SerializeField]
+    private AmplifyBokeh m_bokehFilter = new AmplifyBokeh();
+    [SerializeField]
+    private float[] m_upscaleWeights = new float[6]{ 0.0842f, 0.1282f, 0.1648f, 0.2197f, 0.2197f, 0.1831f };
+    [SerializeField]
+    private float[] m_gaussianRadius = new float[6]{ 1f, 1f, 1f, 1f, 1f, 1f };
+    [SerializeField]
+    private int[] m_gaussianSteps = new int[6]{ 1, 1, 1, 1, 1, 1 };
+    [SerializeField]
+    private float[] m_lensDirtWeights = new float[6]{ 0.067f, 0.102f, 0.1311f, 0.1749f, 0.2332f, 0.3f };
+    [SerializeField]
+    private float[] m_lensStarburstWeights = new float[6]{ 0.067f, 0.102f, 0.1311f, 0.1749f, 0.2332f, 0.3f };
+    [SerializeField]
+    private bool[] m_downscaleSettingsFoldout = new bool[6];
+    private RenderTexture[] m_tempUpscaleRTs = new RenderTexture[6];
+    private RenderTexture[] m_tempAuxDownsampleRTs = new RenderTexture[6];
+    private Vector2[] m_tempDownsamplesSizes = new Vector2[6];
     public const int MaxGhosts = 5;
     public const int MinDownscales = 1;
     public const int MaxDownscales = 6;
@@ -24,61 +70,19 @@ namespace AmplifyBloom
     [SerializeField]
     private RenderTexture m_targetTexture;
     [SerializeField]
-    private bool m_showDebugMessages;
-    [SerializeField]
-    private int m_softMaxdownscales;
-    [SerializeField]
     private DebugToScreenEnum m_debugToScreen;
     [SerializeField]
     private bool m_highPrecision;
     [SerializeField]
-    private Vector4 m_bloomRange;
-    [SerializeField]
-    private float m_overallThreshold;
-    [SerializeField]
-    private Vector4 m_bloomParams;
-    [SerializeField]
     private bool m_temporalFilteringActive;
-    [SerializeField]
-    private float m_temporalFilteringValue;
-    [SerializeField]
-    private int m_bloomDownsampleCount;
     [SerializeField]
     private AnimationCurve m_temporalFilteringCurve;
     [SerializeField]
     private bool m_separateFeaturesThreshold;
     [SerializeField]
-    private float m_featuresThreshold;
-    [SerializeField]
-    private AmplifyLensFlare m_lensFlare;
-    [SerializeField]
-    private bool m_applyLensDirt;
-    [SerializeField]
-    private float m_lensDirtStrength;
-    [SerializeField]
     private Texture m_lensDirtTexture;
     [SerializeField]
-    private bool m_applyLensStardurst;
-    [SerializeField]
     private Texture m_lensStardurstTex;
-    [SerializeField]
-    private float m_lensStarburstStrength;
-    [SerializeField]
-    private AmplifyGlare m_anamorphicGlare;
-    [SerializeField]
-    private AmplifyBokeh m_bokehFilter;
-    [SerializeField]
-    private float[] m_upscaleWeights;
-    [SerializeField]
-    private float[] m_gaussianRadius;
-    [SerializeField]
-    private int[] m_gaussianSteps;
-    [SerializeField]
-    private float[] m_lensDirtWeights;
-    [SerializeField]
-    private float[] m_lensStarburstWeights;
-    [SerializeField]
-    private bool[] m_downscaleSettingsFoldout;
     [SerializeField]
     private int m_featuresSourceId;
     [SerializeField]
@@ -93,19 +97,11 @@ namespace AmplifyBloom
     private Material m_finalCompositionMaterial;
     private RenderTexture m_tempFilterBuffer;
     private Camera m_camera;
-    private RenderTexture[] m_tempUpscaleRTs;
-    private RenderTexture[] m_tempAuxDownsampleRTs;
-    private Vector2[] m_tempDownsamplesSizes;
     private bool silentError;
-
-    public AmplifyBloomBase()
-    {
-      base.\u002Ector();
-    }
 
     private void Awake()
     {
-      if (SystemInfo.get_graphicsDeviceType() == 4)
+      if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
       {
         AmplifyUtils.DebugLog("Null graphics device detected. Skipping effect silently.", LogType.Error);
         this.silentError = true;
@@ -116,9 +112,9 @@ namespace AmplifyBloom
           AmplifyUtils.InitializeIds();
         for (int index = 0; index < 6; ++index)
           this.m_tempDownsamplesSizes[index] = new Vector2(0.0f, 0.0f);
-        this.m_cameraTransform = ((Component) this).get_transform();
+        this.m_cameraTransform = this.transform;
         this.m_tempFilterBuffer = (RenderTexture) null;
-        this.m_starburstMat = Matrix4x4.get_identity();
+        this.m_starburstMat = Matrix4x4.identity;
         if (this.m_temporalFilteringCurve == null)
           this.m_temporalFilteringCurve = new AnimationCurve(new Keyframe[2]
           {
@@ -126,18 +122,18 @@ namespace AmplifyBloom
             new Keyframe(1f, 0.999f)
           });
         this.m_bloomShader = Shader.Find("Hidden/AmplifyBloom");
-        if (Object.op_Inequality((Object) this.m_bloomShader, (Object) null))
+        if ((Object) this.m_bloomShader != (Object) null)
         {
           this.m_bloomMaterial = new Material(this.m_bloomShader);
-          ((Object) this.m_bloomMaterial).set_hideFlags((HideFlags) 52);
+          this.m_bloomMaterial.hideFlags = HideFlags.DontSave;
         }
         else
         {
           AmplifyUtils.DebugLog("Main Bloom shader not found", LogType.Error);
-          ((Component) this).get_gameObject().SetActive(false);
+          this.gameObject.SetActive(false);
         }
         this.m_finalCompositionShader = Shader.Find("Hidden/BloomFinal");
-        if (Object.op_Inequality((Object) this.m_finalCompositionShader, (Object) null))
+        if ((Object) this.m_finalCompositionShader != (Object) null)
         {
           this.m_finalCompositionMaterial = new Material(this.m_finalCompositionShader);
           if (!this.m_finalCompositionMaterial.GetTag(AmplifyUtils.ShaderModeTag, false).Equals(AmplifyUtils.ShaderModeValue))
@@ -147,20 +143,19 @@ namespace AmplifyBloom
           }
           else
             this.m_softMaxdownscales = 6;
-          ((Object) this.m_finalCompositionMaterial).set_hideFlags((HideFlags) 52);
-          if (Object.op_Equality((Object) this.m_lensDirtTexture, (Object) null))
+          this.m_finalCompositionMaterial.hideFlags = HideFlags.DontSave;
+          if ((Object) this.m_lensDirtTexture == (Object) null)
             this.m_lensDirtTexture = this.m_finalCompositionMaterial.GetTexture(AmplifyUtils.LensDirtRTId);
-          if (Object.op_Equality((Object) this.m_lensStardurstTex, (Object) null))
+          if ((Object) this.m_lensStardurstTex == (Object) null)
             this.m_lensStardurstTex = this.m_finalCompositionMaterial.GetTexture(AmplifyUtils.LensStarburstRTId);
         }
         else
         {
           AmplifyUtils.DebugLog("Bloom Composition shader not found", LogType.Error);
-          ((Component) this).get_gameObject().SetActive(false);
+          this.gameObject.SetActive(false);
         }
-        this.m_camera = (Camera) ((Component) this).GetComponent<Camera>();
-        Camera camera = this.m_camera;
-        camera.set_depthTextureMode((DepthTextureMode) (camera.get_depthTextureMode() | 1));
+        this.m_camera = this.GetComponent<Camera>();
+        this.m_camera.depthTextureMode |= DepthTextureMode.Depth;
         this.m_lensFlare.CreateLUTexture();
       }
     }
@@ -188,14 +183,14 @@ namespace AmplifyBloom
       if (amount == 0)
         return;
       this.m_bloomMaterial.SetFloat(AmplifyUtils.BlurRadiusId, radius);
-      RenderTexture tempRenderTarget = AmplifyUtils.GetTempRenderTarget(((Texture) renderTexture).get_width(), ((Texture) renderTexture).get_height());
+      RenderTexture tempRenderTarget = AmplifyUtils.GetTempRenderTarget(renderTexture.width, renderTexture.height);
       for (int index = 0; index < amount; ++index)
       {
         tempRenderTarget.DiscardContents();
         Graphics.Blit((Texture) renderTexture, tempRenderTarget, this.m_bloomMaterial, 14);
         if (this.m_temporalFilteringActive && applyTemporal && index == amount - 1)
         {
-          if (Object.op_Inequality((Object) this.m_tempFilterBuffer, (Object) null) && this.m_temporalFilteringActive)
+          if ((Object) this.m_tempFilterBuffer != (Object) null && this.m_temporalFilteringActive)
           {
             float num = this.m_temporalFilteringCurve.Evaluate(this.m_temporalFilteringValue);
             this.m_bloomMaterial.SetFloat(AmplifyUtils.TempFilterValueId, num);
@@ -209,9 +204,9 @@ namespace AmplifyBloom
             Graphics.Blit((Texture) tempRenderTarget, renderTexture, this.m_bloomMaterial, 15);
           }
           bool flag = false;
-          if (Object.op_Inequality((Object) this.m_tempFilterBuffer, (Object) null))
+          if ((Object) this.m_tempFilterBuffer != (Object) null)
           {
-            if (this.m_tempFilterBuffer.get_format() != renderTexture.get_format() || ((Texture) this.m_tempFilterBuffer).get_width() != ((Texture) renderTexture).get_width() || ((Texture) this.m_tempFilterBuffer).get_height() != ((Texture) renderTexture).get_height())
+            if (this.m_tempFilterBuffer.format != renderTexture.format || this.m_tempFilterBuffer.width != renderTexture.width || this.m_tempFilterBuffer.height != renderTexture.height)
             {
               this.CleanTempFilterRT();
               flag = true;
@@ -235,19 +230,19 @@ namespace AmplifyBloom
 
     private void CreateTempFilterRT(RenderTexture source)
     {
-      if (Object.op_Inequality((Object) this.m_tempFilterBuffer, (Object) null))
+      if ((Object) this.m_tempFilterBuffer != (Object) null)
         this.CleanTempFilterRT();
-      this.m_tempFilterBuffer = new RenderTexture(((Texture) source).get_width(), ((Texture) source).get_height(), 0, source.get_format(), AmplifyUtils.CurrentReadWriteMode);
-      ((Texture) this.m_tempFilterBuffer).set_filterMode(AmplifyUtils.CurrentFilterMode);
-      ((Texture) this.m_tempFilterBuffer).set_wrapMode(AmplifyUtils.CurrentWrapMode);
+      this.m_tempFilterBuffer = new RenderTexture(source.width, source.height, 0, source.format, AmplifyUtils.CurrentReadWriteMode);
+      this.m_tempFilterBuffer.filterMode = AmplifyUtils.CurrentFilterMode;
+      this.m_tempFilterBuffer.wrapMode = AmplifyUtils.CurrentWrapMode;
       this.m_tempFilterBuffer.Create();
     }
 
     private void CleanTempFilterRT()
     {
-      if (!Object.op_Inequality((Object) this.m_tempFilterBuffer, (Object) null))
+      if (!((Object) this.m_tempFilterBuffer != (Object) null))
         return;
-      RenderTexture.set_active((RenderTexture) null);
+      RenderTexture.active = (RenderTexture) null;
       this.m_tempFilterBuffer.Release();
       Object.DestroyImmediate((Object) this.m_tempFilterBuffer);
       this.m_tempFilterBuffer = (RenderTexture) null;
@@ -263,40 +258,40 @@ namespace AmplifyBloom
       {
         AmplifyUtils.EnsureKeywordEnabled(this.m_bloomMaterial, AmplifyUtils.HighPrecisionKeyword, true);
         AmplifyUtils.EnsureKeywordEnabled(this.m_finalCompositionMaterial, AmplifyUtils.HighPrecisionKeyword, true);
-        AmplifyUtils.CurrentRTFormat = (RenderTextureFormat) 9;
+        AmplifyUtils.CurrentRTFormat = RenderTextureFormat.DefaultHDR;
       }
       else
       {
         AmplifyUtils.EnsureKeywordEnabled(this.m_bloomMaterial, AmplifyUtils.HighPrecisionKeyword, false);
         AmplifyUtils.EnsureKeywordEnabled(this.m_finalCompositionMaterial, AmplifyUtils.HighPrecisionKeyword, false);
-        AmplifyUtils.CurrentRTFormat = (RenderTextureFormat) 7;
+        AmplifyUtils.CurrentRTFormat = RenderTextureFormat.Default;
       }
-      float cameraRot = Mathf.Acos(Vector3.Dot(this.m_cameraTransform.get_right(), Vector3.get_right()));
-      if (Vector3.Cross(this.m_cameraTransform.get_right(), Vector3.get_right()).y > 0.0)
-        cameraRot = -cameraRot;
+      float num1 = Mathf.Acos(Vector3.Dot(this.m_cameraTransform.right, Vector3.right));
+      if ((double) Vector3.Cross(this.m_cameraTransform.right, Vector3.right).y > 0.0)
+        num1 = -num1;
       RenderTexture renderTexture1 = (RenderTexture) null;
       RenderTexture dest1 = (RenderTexture) null;
       if (!this.m_highPrecision)
       {
-        this.m_bloomRange.y = (__Null) (1.0 / this.m_bloomRange.x);
+        this.m_bloomRange.y = 1f / this.m_bloomRange.x;
         this.m_bloomMaterial.SetVector(AmplifyUtils.BloomRangeId, this.m_bloomRange);
         this.m_finalCompositionMaterial.SetVector(AmplifyUtils.BloomRangeId, this.m_bloomRange);
       }
-      this.m_bloomParams.y = (__Null) (double) this.m_overallThreshold;
+      this.m_bloomParams.y = this.m_overallThreshold;
       this.m_bloomMaterial.SetVector(AmplifyUtils.BloomParamsId, this.m_bloomParams);
       this.m_finalCompositionMaterial.SetVector(AmplifyUtils.BloomParamsId, this.m_bloomParams);
-      int num1 = 1;
+      int num2 = 1;
       switch (this.m_mainThresholdSize)
       {
         case MainThresholdSizeEnum.Half:
-          num1 = 2;
+          num2 = 2;
           break;
         case MainThresholdSizeEnum.Quarter:
-          num1 = 4;
+          num2 = 4;
           break;
       }
-      RenderTexture tempRenderTarget = AmplifyUtils.GetTempRenderTarget(((Texture) src).get_width() / num1, ((Texture) src).get_height() / num1);
-      if (Object.op_Inequality((Object) this.m_maskTexture, (Object) null))
+      RenderTexture tempRenderTarget = AmplifyUtils.GetTempRenderTarget(src.width / num2, src.height / num2);
+      if ((Object) this.m_maskTexture != (Object) null)
       {
         this.m_bloomMaterial.SetTexture(AmplifyUtils.MaskTextureId, this.m_maskTexture);
         Graphics.Blit((Texture) src, tempRenderTarget, this.m_bloomMaterial, 1);
@@ -315,12 +310,12 @@ namespace AmplifyBloom
         if (this.m_bloomDownsampleCount > 0)
         {
           flag1 = false;
-          int width = ((Texture) tempRenderTarget).get_width();
-          int height = ((Texture) tempRenderTarget).get_height();
+          int width = tempRenderTarget.width;
+          int height = tempRenderTarget.height;
           for (int index = 0; index < this.m_bloomDownsampleCount; ++index)
           {
-            this.m_tempDownsamplesSizes[index].x = (__Null) (double) width;
-            this.m_tempDownsamplesSizes[index].y = (__Null) (double) height;
+            this.m_tempDownsamplesSizes[index].x = (float) width;
+            this.m_tempDownsamplesSizes[index].y = (float) height;
             width = width + 1 >> 1;
             height = height + 1 >> 1;
             this.m_tempAuxDownsampleRTs[index] = AmplifyUtils.GetTempRenderTarget(width, height);
@@ -335,10 +330,10 @@ namespace AmplifyBloom
               }
               else
               {
-                if (Object.op_Inequality((Object) this.m_tempFilterBuffer, (Object) null) && this.m_temporalFilteringActive)
+                if ((Object) this.m_tempFilterBuffer != (Object) null && this.m_temporalFilteringActive)
                 {
-                  float num2 = this.m_temporalFilteringCurve.Evaluate(this.m_temporalFilteringValue);
-                  this.m_bloomMaterial.SetFloat(AmplifyUtils.TempFilterValueId, num2);
+                  float num3 = this.m_temporalFilteringCurve.Evaluate(this.m_temporalFilteringValue);
+                  this.m_bloomMaterial.SetFloat(AmplifyUtils.TempFilterValueId, num3);
                   this.m_bloomMaterial.SetTexture(AmplifyUtils.AnamorphicRTS[0], (Texture) this.m_tempFilterBuffer);
                   if (this.m_upscaleQuality == UpscaleQualityEnum.Realistic)
                     Graphics.Blit((Texture) renderTexture2, this.m_tempAuxDownsampleRTs[index], this.m_bloomMaterial, 12);
@@ -350,9 +345,9 @@ namespace AmplifyBloom
                 else
                   Graphics.Blit((Texture) renderTexture2, this.m_tempAuxDownsampleRTs[index], this.m_bloomMaterial, 11);
                 bool flag2 = false;
-                if (Object.op_Inequality((Object) this.m_tempFilterBuffer, (Object) null))
+                if ((Object) this.m_tempFilterBuffer != (Object) null)
                 {
-                  if (this.m_tempFilterBuffer.get_format() != this.m_tempAuxDownsampleRTs[index].get_format() || ((Texture) this.m_tempFilterBuffer).get_width() != ((Texture) this.m_tempAuxDownsampleRTs[index]).get_width() || ((Texture) this.m_tempFilterBuffer).get_height() != ((Texture) this.m_tempAuxDownsampleRTs[index]).get_height())
+                  if (this.m_tempFilterBuffer.format != this.m_tempAuxDownsampleRTs[index].format || this.m_tempFilterBuffer.width != this.m_tempAuxDownsampleRTs[index].width || this.m_tempFilterBuffer.height != this.m_tempAuxDownsampleRTs[index].height)
                   {
                     this.CleanTempFilterRT();
                     flag2 = true;
@@ -402,10 +397,10 @@ namespace AmplifyBloom
         RenderTexture renderTexture3;
         if (this.m_separateFeaturesThreshold)
         {
-          this.m_bloomParams.y = (__Null) (double) this.m_featuresThreshold;
+          this.m_bloomParams.y = this.m_featuresThreshold;
           this.m_bloomMaterial.SetVector(AmplifyUtils.BloomParamsId, this.m_bloomParams);
           this.m_finalCompositionMaterial.SetVector(AmplifyUtils.BloomParamsId, this.m_bloomParams);
-          renderTexture3 = AmplifyUtils.GetTempRenderTarget(((Texture) renderTexture2).get_width(), ((Texture) renderTexture2).get_height());
+          renderTexture3 = AmplifyUtils.GetTempRenderTarget(renderTexture2.width, renderTexture2.height);
           flag3 = true;
           Graphics.Blit((Texture) renderTexture2, renderTexture3, this.m_bloomMaterial, 0);
           if (this.m_debugToScreen == DebugToScreenEnum.FeaturesThreshold)
@@ -422,7 +417,7 @@ namespace AmplifyBloom
           if (!flag3)
           {
             flag3 = true;
-            renderTexture3 = AmplifyUtils.GetTempRenderTarget(((Texture) renderTexture2).get_width(), ((Texture) renderTexture2).get_height());
+            renderTexture3 = AmplifyUtils.GetTempRenderTarget(renderTexture2.width, renderTexture2.height);
             Graphics.Blit((Texture) renderTexture2, renderTexture3);
           }
           this.m_bokehFilter.ApplyBokehFilter(renderTexture3, this.m_bloomMaterial);
@@ -446,8 +441,8 @@ namespace AmplifyBloom
         }
         if (this.m_anamorphicGlare.ApplyLensGlare && this.m_debugToScreen != DebugToScreenEnum.Bloom)
         {
-          dest1 = AmplifyUtils.GetTempRenderTarget(((Texture) renderTexture2).get_width(), ((Texture) renderTexture2).get_height());
-          this.m_anamorphicGlare.OnRenderImage(this.m_bloomMaterial, renderTexture3, dest1, cameraRot);
+          dest1 = AmplifyUtils.GetTempRenderTarget(renderTexture2.width, renderTexture2.height);
+          this.m_anamorphicGlare.OnRenderImage(this.m_bloomMaterial, renderTexture3, dest1, num1);
           if (this.m_debugToScreen == DebugToScreenEnum.LensGlare)
           {
             Graphics.Blit((Texture) dest1, dest);
@@ -533,10 +528,10 @@ namespace AmplifyBloom
           }
           if (this.m_applyLensStardurst)
           {
-            ((Matrix4x4) ref this.m_starburstMat).set_Item(0, 0, Mathf.Cos(cameraRot));
-            ((Matrix4x4) ref this.m_starburstMat).set_Item(0, 1, -Mathf.Sin(cameraRot));
-            ((Matrix4x4) ref this.m_starburstMat).set_Item(1, 0, Mathf.Sin(cameraRot));
-            ((Matrix4x4) ref this.m_starburstMat).set_Item(1, 1, Mathf.Cos(cameraRot));
+            this.m_starburstMat[0, 0] = Mathf.Cos(num1);
+            this.m_starburstMat[0, 1] = -Mathf.Sin(num1);
+            this.m_starburstMat[1, 0] = Mathf.Sin(num1);
+            this.m_starburstMat[1, 1] = Mathf.Cos(num1);
             this.m_finalCompositionMaterial.SetMatrix(AmplifyUtils.LensFlareStarMatrixId, this.m_starburstMat);
             this.m_finalCompositionMaterial.SetFloat(AmplifyUtils.LensFlareStarburstStrengthId, this.m_lensStarburstStrength * 1f);
             this.m_finalCompositionMaterial.SetTexture(AmplifyUtils.LensStarburstRTId, this.m_lensStardurstTex);
@@ -546,7 +541,7 @@ namespace AmplifyBloom
               return;
             }
           }
-          if (Object.op_Inequality((Object) this.m_targetTexture, (Object) null))
+          if ((Object) this.m_targetTexture != (Object) null)
           {
             this.m_targetTexture.DiscardContents();
             this.FinalComposition(0.0f, 1f, src, this.m_targetTexture, -1);
@@ -562,24 +557,24 @@ namespace AmplifyBloom
     {
       this.m_finalCompositionMaterial.SetFloat(AmplifyUtils.SourceContributionId, srcContribution);
       this.m_finalCompositionMaterial.SetFloat(AmplifyUtils.UpscaleContributionId, upscaleContribution);
-      int num1 = 0;
+      int num = 0;
       if (forcePassId > -1)
       {
-        num1 = forcePassId;
+        num = forcePassId;
       }
       else
       {
         if (this.LensFlareInstance.ApplyLensFlare)
-          num1 |= 8;
+          num |= 8;
         if (this.LensGlareInstance.ApplyLensGlare)
-          num1 |= 4;
+          num |= 4;
         if (this.m_applyLensDirt)
-          num1 |= 2;
+          num |= 2;
         if (this.m_applyLensStardurst)
-          num1 |= 1;
+          num |= 1;
       }
-      int num2 = num1 + (this.m_bloomDownsampleCount - 1) * 16;
-      Graphics.Blit((Texture) src, dest, this.m_finalCompositionMaterial, num2);
+      int pass = num + (this.m_bloomDownsampleCount - 1) * 16;
+      Graphics.Blit((Texture) src, dest, this.m_finalCompositionMaterial, pass);
       AmplifyUtils.ReleaseAllRT();
     }
 
@@ -730,11 +725,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bloomRange.x;
+        return this.m_bloomRange.x;
       }
       set
       {
-        this.m_bloomRange.x = (double) value >= 0.0 ? (__Null) (double) value : (__Null) 0.0;
+        this.m_bloomRange.x = (double) value >= 0.0 ? value : 0.0f;
       }
     }
 
@@ -766,11 +761,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bloomParams.x;
+        return this.m_bloomParams.x;
       }
       set
       {
-        this.m_bloomParams.x = (double) value >= 0.0 ? (__Null) (double) value : (__Null) 0.0;
+        this.m_bloomParams.x = (double) value >= 0.0 ? value : 0.0f;
       }
     }
 
@@ -778,11 +773,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bloomParams.w;
+        return this.m_bloomParams.w;
       }
       set
       {
-        this.m_bloomParams.w = (double) value >= 0.0 ? (__Null) (double) value : (__Null) 0.0;
+        this.m_bloomParams.w = (double) value >= 0.0 ? value : 0.0f;
       }
     }
 
@@ -790,11 +785,11 @@ namespace AmplifyBloom
     {
       get
       {
-        return (float) this.m_bloomParams.z;
+        return this.m_bloomParams.z;
       }
       set
       {
-        this.m_bloomParams.z = (__Null) (double) value;
+        this.m_bloomParams.z = value;
       }
     }
 

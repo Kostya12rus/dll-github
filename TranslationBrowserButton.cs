@@ -10,14 +10,9 @@ using UnityEngine.UI;
 
 public class TranslationBrowserButton : MonoBehaviour
 {
-  public TranslationBrowserButton()
-  {
-    base.\u002Ector();
-  }
-
   public void OnClick()
   {
-    PlayerPrefs.SetString("translation_path", ((Text) ((Component) this).GetComponent<Text>()).get_text());
+    PlayerPrefs.SetString("translation_path", this.GetComponent<Text>().text);
     SceneManager.LoadScene(0);
   }
 }

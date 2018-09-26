@@ -10,40 +10,35 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Drawing/Paper")]
 public class CameraFilterPack_Drawing_Paper : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
-  public Color Pencil_Color;
+  private float TimeX = 1f;
+  public Color Pencil_Color = new Color(0.156f, 0.3f, 0.738f, 1f);
   [Range(0.0001f, 0.0022f)]
-  public float Pencil_Size;
+  public float Pencil_Size = 0.0008f;
   [Range(0.0f, 2f)]
-  public float Pencil_Correction;
+  public float Pencil_Correction = 0.76f;
   [Range(0.0f, 1f)]
-  public float Intensity;
+  public float Intensity = 1f;
   [Range(0.0f, 2f)]
-  public float Speed_Animation;
+  public float Speed_Animation = 1f;
   [Range(0.0f, 1f)]
-  public float Corner_Lose;
+  public float Corner_Lose = 0.5f;
+  [Range(0.0f, 1f)]
+  public float Fade_With_Original = 1f;
+  public Color Back_Color = new Color(1f, 1f, 1f, 1f);
+  public Shader SCShader;
   [Range(0.0f, 1f)]
   public float Fade_Paper_to_BackColor;
-  [Range(0.0f, 1f)]
-  public float Fade_With_Original;
-  public Color Back_Color;
   private Material SCMaterial;
   private Texture2D Texture2;
-
-  public CameraFilterPack_Drawing_Paper()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -53,16 +48,16 @@ public class CameraFilterPack_Drawing_Paper : MonoBehaviour
   {
     this.Texture2 = Resources.Load("CameraFilterPack_Paper1") as Texture2D;
     this.SCShader = Shader.Find("CameraFilterPack/Drawing_Paper");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -88,7 +83,7 @@ public class CameraFilterPack_Drawing_Paper : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

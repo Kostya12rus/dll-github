@@ -22,7 +22,7 @@ namespace AmplifyBloom
 
     public void Destroy()
     {
-      if (Object.op_Inequality((Object) this.BokehRenderTexture, (Object) null))
+      if ((Object) this.BokehRenderTexture != (Object) null)
       {
         AmplifyUtils.ReleaseTempRenderTarget(this.BokehRenderTexture);
         this.BokehRenderTexture = (RenderTexture) null;

@@ -4,7 +4,6 @@
 // MVID: 51F4D31F-B166-4C43-9BCF-DD08031E944E
 // Assembly location: C:\Users\Kostya12rus\Desktop\Cheat\TextureLoger\Assembly-CSharp.dll
 
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
@@ -28,43 +27,35 @@ public class Handcuffs : NetworkBehaviour
   private NetworkInstanceId ___cuffTargetNetId;
   private static int kCmdCmdResetTarget;
 
-  public Handcuffs()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.uncuffProgress = (Image) GameObject.Find("UncuffProgress").GetComponent<Image>();
-    this.inv = (Inventory) ((Component) this).GetComponent<Inventory>();
-    this.plyCam = ((Scp049PlayerScript) ((Component) this).GetComponent<Scp049PlayerScript>()).plyCam.get_transform();
-    this.ccm = (CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>();
+    this.uncuffProgress = GameObject.Find("UncuffProgress").GetComponent<Image>();
+    this.inv = this.GetComponent<Inventory>();
+    this.plyCam = this.GetComponent<Scp049PlayerScript>().plyCam.transform;
+    this.ccm = this.GetComponent<CharacterClassManager>();
   }
 
   private void Update()
   {
-    if (this.get_isLocalPlayer())
+    if (this.isLocalPlayer)
     {
       this.CheckForInput();
       this.UpdateText();
     }
-    if (!Object.op_Inequality((Object) this.cuffTarget, (Object) null))
+    if (!((Object) this.cuffTarget != (Object) null))
       return;
-    ((AnimationController) this.cuffTarget.GetComponent<AnimationController>()).cuffed = true;
+    this.cuffTarget.GetComponent<AnimationController>().cuffed = true;
   }
 
   private void CheckForInput()
   {
-    if (Object.op_Inequality((Object) this.cuffTarget, (Object) null))
+    if ((Object) this.cuffTarget != (Object) null)
     {
       bool flag = false;
-      using (IEnumerator<Inventory.SyncItemInfo> enumerator = ((SyncList<Inventory.SyncItemInfo>) this.inv.items).GetEnumerator())
+      foreach (Inventory.SyncItemInfo syncItemInfo in (SyncList<Inventory.SyncItemInfo>) this.inv.items)
       {
-        while (enumerator.MoveNext())
-        {
-          if (enumerator.Current.id == 27)
-            flag = true;
-        }
+        if (syncItemInfo.id == 27)
+          flag = true;
       }
       if (!flag)
         this.CallCmdTarget((GameObject) null);
@@ -73,26 +64,26 @@ public class Handcuffs : NetworkBehaviour
       return;
     if (this.inv.curItem == 27)
     {
-      if (Input.GetKeyDown(NewInput.GetKey("Shoot")) && Object.op_Equality((Object) this.cuffTarget, (Object) null))
+      if (Input.GetKeyDown(NewInput.GetKey("Shoot")) && (Object) this.cuffTarget == (Object) null)
         this.CuffPlayer();
-      else if (Input.GetKeyDown(NewInput.GetKey("Zoom")) && Object.op_Inequality((Object) this.cuffTarget, (Object) null))
+      else if (Input.GetKeyDown(NewInput.GetKey("Zoom")) && (Object) this.cuffTarget != (Object) null)
         this.CallCmdTarget((GameObject) null);
     }
     if (this.ccm.curClass >= 0 && this.ccm.klasy[this.ccm.curClass].team != Team.SCP && Input.GetKey(NewInput.GetKey("Interact")))
     {
-      RaycastHit raycastHit;
-      if (Physics.Raycast(this.plyCam.get_position(), this.plyCam.get_forward(), ref raycastHit, this.maxDistance, LayerMask.op_Implicit(((PlayerInteract) ((Component) this).GetComponent<PlayerInteract>()).mask)))
+      RaycastHit hitInfo;
+      if (Physics.Raycast(this.plyCam.position, this.plyCam.forward, out hitInfo, this.maxDistance, (int) this.GetComponent<PlayerInteract>().mask))
       {
-        Handcuffs componentInParent = (Handcuffs) ((Component) ((RaycastHit) ref raycastHit).get_collider()).GetComponentInParent<Handcuffs>();
-        if (Object.op_Inequality((Object) componentInParent, (Object) null) && Object.op_Inequality((Object) ((AnimationController) ((Component) componentInParent).GetComponent<AnimationController>()).handAnimator, (Object) null) && ((AnimationController) ((Component) componentInParent).GetComponent<AnimationController>()).handAnimator.GetBool("Cuffed"))
+        Handcuffs componentInParent = hitInfo.collider.GetComponentInParent<Handcuffs>();
+        if ((Object) componentInParent != (Object) null && (Object) componentInParent.GetComponent<AnimationController>().handAnimator != (Object) null && componentInParent.GetComponent<AnimationController>().handAnimator.GetBool("Cuffed"))
         {
-          this.progress += Time.get_deltaTime();
+          this.progress += Time.deltaTime;
           if ((double) this.progress >= 1.5)
           {
             this.progress = 0.0f;
             foreach (GameObject player in PlayerManager.singleton.players)
             {
-              if (Object.op_Equality((Object) ((Handcuffs) player.GetComponent<Handcuffs>()).cuffTarget, (Object) ((Component) componentInParent).get_gameObject()))
+              if ((Object) player.GetComponent<Handcuffs>().cuffTarget == (Object) componentInParent.gameObject)
                 this.CallCmdResetTarget(player);
             }
           }
@@ -107,42 +98,40 @@ public class Handcuffs : NetworkBehaviour
       this.progress = 0.0f;
     if (this.ccm.curClass == 3)
       return;
-    this.uncuffProgress.set_fillAmount(Mathf.Clamp01(this.progress / 1.5f));
+    this.uncuffProgress.fillAmount = Mathf.Clamp01(this.progress / 1.5f);
   }
 
   private void CuffPlayer()
   {
-    Ray ray;
-    ((Ray) ref ray).\u002Ector(this.plyCam.get_position(), this.plyCam.get_forward());
-    RaycastHit raycastHit;
-    if (!Physics.Raycast(ray, ref raycastHit, this.maxDistance, LayerMask.op_Implicit(this.mask)))
+    RaycastHit hitInfo;
+    if (!Physics.Raycast(new Ray(this.plyCam.position, this.plyCam.forward), out hitInfo, this.maxDistance, (int) this.mask))
       return;
-    CharacterClassManager componentInParent = (CharacterClassManager) ((Component) ((RaycastHit) ref raycastHit).get_collider()).GetComponentInParent<CharacterClassManager>();
-    if (!Object.op_Inequality((Object) componentInParent, (Object) null))
+    CharacterClassManager componentInParent = hitInfo.collider.GetComponentInParent<CharacterClassManager>();
+    if (!((Object) componentInParent != (Object) null))
       return;
     Class @class = this.ccm.klasy[componentInParent.curClass];
-    if (@class.team == Team.SCP || ((@class.team == Team.CDP ? 1 : (@class.team == Team.CHI ? 1 : 0)) == (this.ccm.klasy[this.ccm.curClass].team == Team.CDP ? 1 : (this.ccm.klasy[this.ccm.curClass].team == Team.CHI ? 1 : 0)) || ((AnimationController) ((Component) componentInParent).GetComponent<AnimationController>()).curAnim != 0 || !Vector2.op_Equality(((AnimationController) ((Component) componentInParent).GetComponent<AnimationController>()).speed, Vector2.get_zero())))
+    if (@class.team == Team.SCP || ((@class.team == Team.CDP ? 1 : (@class.team == Team.CHI ? 1 : 0)) == (this.ccm.klasy[this.ccm.curClass].team == Team.CDP ? 1 : (this.ccm.klasy[this.ccm.curClass].team == Team.CHI ? 1 : 0)) || componentInParent.GetComponent<AnimationController>().curAnim != 0 || !(componentInParent.GetComponent<AnimationController>().speed == Vector2.zero)))
       return;
     if (this.ccm.klasy[this.ccm.curClass].team == Team.CDP && @class.team == Team.MTF)
       AchievementManager.Achieve("tableshaveturned");
-    this.CallCmdTarget(((Component) componentInParent).get_gameObject());
+    this.CallCmdTarget(componentInParent.gameObject);
   }
 
   [Command(channel = 2)]
   public void CmdTarget(GameObject t)
   {
-    if (!Object.op_Equality((Object) t, (Object) null) && ((double) Vector3.Distance(((Component) this).get_transform().get_position(), t.get_transform().get_position()) >= 3.0 || this.inv.curItem != 27))
+    if (!((Object) t == (Object) null) && ((double) Vector3.Distance(this.transform.position, t.transform.position) >= 3.0 || this.inv.curItem != 27))
       return;
     this.SetTarget(t);
-    if (!Object.op_Inequality((Object) t, (Object) null))
+    if (!((Object) t != (Object) null))
       return;
-    ((Inventory) t.GetComponent<Inventory>()).ServerDropAll();
+    t.GetComponent<Inventory>().ServerDropAll();
   }
 
   [Command(channel = 2)]
   public void CmdResetTarget(GameObject t)
   {
-    ((Handcuffs) t.GetComponent<Handcuffs>()).SetTarget((GameObject) null);
+    t.GetComponent<Handcuffs>().SetTarget((GameObject) null);
   }
 
   private void SetTarget(GameObject t)
@@ -152,22 +141,22 @@ public class Handcuffs : NetworkBehaviour
 
   private void UpdateText()
   {
-    if (Object.op_Inequality((Object) this.cuffTarget, (Object) null))
+    if ((Object) this.cuffTarget != (Object) null)
     {
-      float num = Vector3.Distance(((Component) this).get_transform().get_position(), this.cuffTarget.get_transform().get_position());
+      float num = Vector3.Distance(this.transform.position, this.cuffTarget.transform.position);
       if ((double) num > 200.0)
       {
         num = 200f;
-        this.lostCooldown += Time.get_deltaTime();
+        this.lostCooldown += Time.deltaTime;
         if ((double) this.lostCooldown > 1.0)
           this.CallCmdTarget((GameObject) null);
       }
       else
         this.lostCooldown = 0.0f;
-      ((TMP_Text) this.distanceText).set_text((num * 1.5f).ToString("0 m"));
+      this.distanceText.text = (num * 1.5f).ToString("0 m");
     }
     else
-      ((TMP_Text) this.distanceText).set_text("NONE");
+      this.distanceText.text = "NONE";
   }
 
   private void UNetVersion()
@@ -182,109 +171,107 @@ public class Handcuffs : NetworkBehaviour
     }
     [param: In] set
     {
-      GameObject gameObject = value;
+      GameObject newGameObject = value;
       ref GameObject local1 = ref this.cuffTarget;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetTarget(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
       ref NetworkInstanceId local2 = ref this.___cuffTargetNetId;
-      this.SetSyncVarGameObject((GameObject) gameObject, (GameObject&) ref local1, (uint) num, ref local2);
+      this.SetSyncVarGameObject(newGameObject, ref local1, (uint) num, ref local2);
     }
   }
 
   protected static void InvokeCmdCmdTarget(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdTarget called on client.");
     else
-      ((Handcuffs) obj).CmdTarget((GameObject) reader.ReadGameObject());
+      ((Handcuffs) obj).CmdTarget(reader.ReadGameObject());
   }
 
   protected static void InvokeCmdCmdResetTarget(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdResetTarget called on client.");
     else
-      ((Handcuffs) obj).CmdResetTarget((GameObject) reader.ReadGameObject());
+      ((Handcuffs) obj).CmdResetTarget(reader.ReadGameObject());
   }
 
   public void CallCmdTarget(GameObject t)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdTarget called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdTarget(t);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Handcuffs.kCmdCmdTarget);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write((GameObject) t);
-      this.SendCommandInternal(networkWriter, 2, "CmdTarget");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Handcuffs.kCmdCmdTarget);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(t);
+      this.SendCommandInternal(writer, 2, "CmdTarget");
     }
   }
 
   public void CallCmdResetTarget(GameObject t)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdResetTarget called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdResetTarget(t);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Handcuffs.kCmdCmdResetTarget);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write((GameObject) t);
-      this.SendCommandInternal(networkWriter, 2, "CmdResetTarget");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Handcuffs.kCmdCmdResetTarget);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(t);
+      this.SendCommandInternal(writer, 2, "CmdResetTarget");
     }
   }
 
   static Handcuffs()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Handcuffs), Handcuffs.kCmdCmdTarget, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdTarget)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Handcuffs), Handcuffs.kCmdCmdTarget, new NetworkBehaviour.CmdDelegate(Handcuffs.InvokeCmdCmdTarget));
     Handcuffs.kCmdCmdResetTarget = -1476369842;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Handcuffs), Handcuffs.kCmdCmdResetTarget, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdResetTarget)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Handcuffs), Handcuffs.kCmdCmdResetTarget, new NetworkBehaviour.CmdDelegate(Handcuffs.InvokeCmdCmdResetTarget));
     NetworkCRC.RegisterBehaviour(nameof (Handcuffs), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
-      writer.Write((GameObject) this.cuffTarget);
+      writer.Write(this.cuffTarget);
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
-      writer.Write((GameObject) this.cuffTarget);
+      writer.Write(this.cuffTarget);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {
@@ -294,14 +281,14 @@ public class Handcuffs : NetworkBehaviour
     {
       if (((int) reader.ReadPackedUInt32() & 1) == 0)
         return;
-      this.SetTarget((GameObject) reader.ReadGameObject());
+      this.SetTarget(reader.ReadGameObject());
     }
   }
 
-  public virtual void PreStartClient()
+  public override void PreStartClient()
   {
-    if (((NetworkInstanceId) ref this.___cuffTargetNetId).IsEmpty())
+    if (this.___cuffTargetNetId.IsEmpty())
       return;
-    this.NetworkcuffTarget = (GameObject) ClientScene.FindLocalObject(this.___cuffTargetNetId);
+    this.NetworkcuffTarget = ClientScene.FindLocalObject(this.___cuffTargetNetId);
   }
 }

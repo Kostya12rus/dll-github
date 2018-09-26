@@ -13,7 +13,7 @@ namespace UnityEngine.PostProcessing
       get
       {
         UserLutModel.Settings settings = this.model.settings;
-        if (this.model.enabled && Object.op_Inequality((Object) settings.lut, (Object) null) && ((double) settings.contribution > 0.0 && ((Texture) settings.lut).get_height() == (int) Mathf.Sqrt((float) ((Texture) settings.lut).get_width())))
+        if (this.model.enabled && (Object) settings.lut != (Object) null && ((double) settings.contribution > 0.0 && settings.lut.height == (int) Mathf.Sqrt((float) settings.lut.width)))
           return !this.context.interrupted;
         return false;
       }
@@ -24,21 +24,13 @@ namespace UnityEngine.PostProcessing
       UserLutModel.Settings settings = this.model.settings;
       uberMaterial.EnableKeyword("USER_LUT");
       uberMaterial.SetTexture(UserLutComponent.Uniforms._UserLut, (Texture) settings.lut);
-      uberMaterial.SetVector(UserLutComponent.Uniforms._UserLut_Params, new Vector4(1f / (float) ((Texture) settings.lut).get_width(), 1f / (float) ((Texture) settings.lut).get_height(), (float) ((Texture) settings.lut).get_height() - 1f, settings.contribution));
+      uberMaterial.SetVector(UserLutComponent.Uniforms._UserLut_Params, new Vector4(1f / (float) settings.lut.width, 1f / (float) settings.lut.height, (float) settings.lut.height - 1f, settings.contribution));
     }
 
     public void OnGUI()
     {
       UserLutModel.Settings settings = this.model.settings;
-      Rect rect;
-      ref Rect local = ref rect;
-      Rect viewport = this.context.viewport;
-      double num1 = (double) ((Rect) ref viewport).get_x() * (double) Screen.get_width() + 8.0;
-      double num2 = 8.0;
-      double width = (double) ((Texture) settings.lut).get_width();
-      double height = (double) ((Texture) settings.lut).get_height();
-      ((Rect) ref local).\u002Ector((float) num1, (float) num2, (float) width, (float) height);
-      GUI.DrawTexture(rect, (Texture) settings.lut);
+      GUI.DrawTexture(new Rect((float) ((double) this.context.viewport.x * (double) Screen.width + 8.0), 8f, (float) settings.lut.width, (float) settings.lut.height), (Texture) settings.lut);
     }
 
     private static class Uniforms

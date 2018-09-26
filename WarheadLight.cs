@@ -11,19 +11,14 @@ using UnityEngine;
 
 public class WarheadLight : MonoBehaviour
 {
+  public float IntensityMultiplier = 1f;
   public Color NormalColor;
   public Color RedColor;
   private float startIntensity;
-  public float IntensityMultiplier;
-
-  public WarheadLight()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
-    this.startIntensity = ((Light) ((Component) this).GetComponent<Light>()).get_intensity();
+    this.startIntensity = this.GetComponent<Light>().intensity;
   }
 
   private void Start()
@@ -33,15 +28,15 @@ public class WarheadLight : MonoBehaviour
 
   public void WarheadEnable()
   {
-    Timing.KillCoroutines(((Component) this).get_gameObject());
-    ((Light) ((Component) this).GetComponent<Light>()).set_color(this.RedColor);
-    ((Light) ((Component) this).GetComponent<Light>()).set_intensity(this.startIntensity * this.IntensityMultiplier);
+    Timing.KillCoroutines(this.gameObject);
+    this.GetComponent<Light>().color = this.RedColor;
+    this.GetComponent<Light>().intensity = this.startIntensity * this.IntensityMultiplier;
   }
 
   public void WarheadDisable()
   {
-    Timing.KillCoroutines(((Component) this).get_gameObject());
-    Timing.RunCoroutine(this._FadeoffAnimation(), (Segment) 1);
+    Timing.KillCoroutines(this.gameObject);
+    Timing.RunCoroutine(this._FadeoffAnimation(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]

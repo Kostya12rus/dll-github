@@ -14,15 +14,10 @@ using UnityEngine.UI;
 
 public class ChangeKeyBinding : MonoBehaviour
 {
+  private List<GameObject> instances = new List<GameObject>();
   public Transform list_parent;
   public GameObject list_element;
-  private List<GameObject> instances;
   private bool working;
-
-  public ChangeKeyBinding()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
@@ -32,22 +27,19 @@ public class ChangeKeyBinding : MonoBehaviour
   private void RefreshList()
   {
     this.working = false;
-    using (List<GameObject>.Enumerator enumerator = this.instances.GetEnumerator())
-    {
-      while (enumerator.MoveNext())
-        Object.Destroy((Object) enumerator.Current);
-    }
+    foreach (Object instance in this.instances)
+      Object.Destroy(instance);
     NewInput.Load();
-    for (int index = 0; index < ((List<NewInput.Bind>) NewInput.bindings).Count; ++index)
+    for (int index = 0; index < NewInput.bindings.Count; ++index)
     {
-      GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) this.list_element, this.list_parent);
-      gameObject.get_transform().set_localScale(Vector3.get_one());
+      GameObject gameObject = Object.Instantiate<GameObject>(this.list_element, this.list_parent);
+      gameObject.transform.localScale = Vector3.one;
       gameObject.SetActive(true);
       this.instances.Add(gameObject);
-      ((Text) gameObject.GetComponentInChildren<Text>()).set_text(((object) ((List<NewInput.Bind>) NewInput.bindings)[index].axis).ToString());
-      Button componentInChildren = (Button) gameObject.GetComponentInChildren<Button>();
-      ((Text) ((Component) componentInChildren).GetComponentInChildren<Text>()).set_text(((List<NewInput.Bind>) NewInput.bindings)[index].key.ToString());
-      ((KeyBindElement) ((Component) componentInChildren).GetComponent<KeyBindElement>()).axis = (string) ((List<NewInput.Bind>) NewInput.bindings)[index].axis;
+      gameObject.GetComponentInChildren<Text>().text = NewInput.bindings[index].axis.ToString();
+      Button componentInChildren = gameObject.GetComponentInChildren<Button>();
+      componentInChildren.GetComponentInChildren<Text>().text = NewInput.bindings[index].key.ToString();
+      componentInChildren.GetComponent<KeyBindElement>().axis = NewInput.bindings[index].axis;
     }
   }
 
@@ -55,16 +47,12 @@ public class ChangeKeyBinding : MonoBehaviour
   private IEnumerator<float> _AwaitPress(string axis)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new ChangeKeyBinding.\u003C_AwaitPress\u003Ec__Iterator0()
-    {
-      axis = axis,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new ChangeKeyBinding.\u003C_AwaitPress\u003Ec__Iterator0() { axis = axis, \u0024this = this };
   }
 
   public void ChangeKey(string axis)
   {
-    Timing.RunCoroutine(this._AwaitPress(axis), (Segment) 1);
+    Timing.RunCoroutine(this._AwaitPress(axis), Segment.FixedUpdate);
   }
 
   public void Revent()
@@ -91,6 +79,6 @@ public class ChangeKeyBinding : MonoBehaviour
       if ((disposable = enumerator as IDisposable) != null)
         disposable.Dispose();
     }
-    return (KeyCode) 0;
+    return KeyCode.None;
   }
 }

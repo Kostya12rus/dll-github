@@ -20,10 +20,10 @@ namespace Cryptography
       AsymmetricKeyParameter asymmetricKeyParameter = (AsymmetricKeyParameter) new PemReader((TextReader) new StringReader(key)).ReadObject();
       ISigner signer = SignerUtilities.GetSigner("SHA256withRSA");
       signer.Init(false, (ICipherParameters) asymmetricKeyParameter);
-      byte[] numArray = Convert.FromBase64String(signature);
+      byte[] signature1 = Convert.FromBase64String(signature);
       byte[] bytes = Encoding.UTF8.GetBytes(data);
       signer.BlockUpdate(bytes, 0, bytes.Length);
-      return signer.VerifySignature(numArray);
+      return signer.VerifySignature(signature1);
     }
   }
 }

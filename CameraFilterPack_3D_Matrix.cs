@@ -10,37 +10,32 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_3D_Matrix : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 100f)]
+  public float _FixDistance = 1f;
+  [Range(-5f, 5f)]
+  public float LightIntensity = 1f;
+  [Range(0.0f, 6f)]
+  public float MatrixSize = 1f;
+  [Range(-4f, 4f)]
+  public float MatrixSpeed = 1f;
+  [Range(0.0f, 1f)]
+  public float Fade = 1f;
+  public Color _MatrixColor = new Color(0.0f, 1f, 0.0f, 1f);
   public Shader SCShader;
-  private float TimeX;
   private Material SCMaterial;
   public bool _Visualize;
-  [Range(0.0f, 100f)]
-  public float _FixDistance;
-  [Range(-5f, 5f)]
-  public float LightIntensity;
-  [Range(0.0f, 6f)]
-  public float MatrixSize;
-  [Range(-4f, 4f)]
-  public float MatrixSpeed;
-  [Range(0.0f, 1f)]
-  public float Fade;
-  public Color _MatrixColor;
   public static Color ChangeColorRGB;
   private Texture2D Texture2;
-
-  public CameraFilterPack_3D_Matrix()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -50,16 +45,16 @@ public class CameraFilterPack_3D_Matrix : MonoBehaviour
   {
     this.Texture2 = Resources.Load("CameraFilterPack_3D_Matrix1") as Texture2D;
     this.SCShader = Shader.Find("CameraFilterPack/3D_Matrix");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -71,9 +66,9 @@ public class CameraFilterPack_3D_Matrix : MonoBehaviour
       this.material.SetFloat("_Visualize", !this._Visualize ? 0.0f : 1f);
       this.material.SetFloat("_LightIntensity", this.LightIntensity);
       this.material.SetTexture("_MainTex2", (Texture) this.Texture2);
-      this.material.SetFloat("_FarCamera", 1000f / ((Camera) ((Component) this).GetComponent<Camera>()).get_farClipPlane());
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
-      ((Camera) ((Component) this).GetComponent<Camera>()).set_depthTextureMode((DepthTextureMode) 1);
+      this.material.SetFloat("_FarCamera", 1000f / this.GetComponent<Camera>().farClipPlane);
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
+      this.GetComponent<Camera>().depthTextureMode = DepthTextureMode.Depth;
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -86,7 +81,7 @@ public class CameraFilterPack_3D_Matrix : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

@@ -5,7 +5,6 @@
 // Assembly location: C:\Users\Kostya12rus\Desktop\Cheat\TextureLoger\Assembly-CSharp.dll
 
 using System.Runtime.InteropServices;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Unity
@@ -16,14 +15,14 @@ namespace Unity
     public static void _ReadStructSyncListItemInfo_Inventory(NetworkReader reader, Inventory.SyncListItemInfo instance)
     {
       ushort num = reader.ReadUInt16();
-      ((SyncList<Inventory.SyncItemInfo>) instance).Clear();
+      instance.Clear();
       for (ushort index = 0; (int) index < (int) num; ++index)
         instance.AddInternal(instance.DeserializeItem(reader));
     }
 
     public static void _WriteStructSyncListItemInfo_Inventory(NetworkWriter writer, Inventory.SyncListItemInfo value)
     {
-      ushort count = value.get_Count();
+      ushort count = value.Count;
       writer.Write(count);
       for (ushort index = 0; (int) index < (int) count; ++index)
         value.SerializeItem(writer, value.GetItem((int) index));
@@ -45,8 +44,8 @@ namespace Unity
 
     public static void _WritePickupInfo_Pickup(NetworkWriter writer, Pickup.PickupInfo value)
     {
-      writer.Write((Vector3) value.position);
-      writer.Write((Quaternion) value.rotation);
+      writer.Write(value.position);
+      writer.Write(value.rotation);
       writer.WritePackedUInt32((uint) value.itemId);
       writer.Write(value.durability);
       writer.WritePackedUInt32((uint) value.ownerPlayerID);
@@ -54,12 +53,12 @@ namespace Unity
 
     public static Pickup.PickupInfo _ReadPickupInfo_Pickup(NetworkReader reader)
     {
-      return new Pickup.PickupInfo() { position = (Vector3) reader.ReadVector3(), rotation = (Quaternion) reader.ReadQuaternion(), itemId = (int) reader.ReadPackedUInt32(), durability = reader.ReadSingle(), ownerPlayerID = (int) reader.ReadPackedUInt32() };
+      return new Pickup.PickupInfo() { position = reader.ReadVector3(), rotation = reader.ReadQuaternion(), itemId = (int) reader.ReadPackedUInt32(), durability = reader.ReadSingle(), ownerPlayerID = (int) reader.ReadPackedUInt32() };
     }
 
     public static PlayerPositionData _ReadPlayerPositionData_None(NetworkReader reader)
     {
-      return new PlayerPositionData() { position = (Vector3) reader.ReadVector3(), rotation = reader.ReadSingle(), playerID = (int) reader.ReadPackedUInt32() };
+      return new PlayerPositionData() { position = reader.ReadVector3(), rotation = reader.ReadSingle(), playerID = (int) reader.ReadPackedUInt32() };
     }
 
     public static PlayerPositionData[] _ReadArrayPlayerPositionData_None(NetworkReader reader)
@@ -75,7 +74,7 @@ namespace Unity
 
     public static void _WritePlayerPositionData_None(NetworkWriter writer, PlayerPositionData value)
     {
-      writer.Write((Vector3) value.position);
+      writer.Write(value.position);
       writer.Write(value.rotation);
       writer.WritePackedUInt32((uint) value.playerID);
     }
@@ -127,26 +126,26 @@ namespace Unity
 
     public static void _WriteOffset_None(NetworkWriter writer, Offset value)
     {
-      writer.Write((Vector3) value.position);
-      writer.Write((Vector3) value.rotation);
-      writer.Write((Vector3) value.scale);
+      writer.Write(value.position);
+      writer.Write(value.rotation);
+      writer.Write(value.scale);
     }
 
     public static Offset _ReadOffset_None(NetworkReader reader)
     {
-      return new Offset() { position = (Vector3) reader.ReadVector3(), rotation = (Vector3) reader.ReadVector3(), scale = (Vector3) reader.ReadVector3() };
+      return new Offset() { position = reader.ReadVector3(), rotation = reader.ReadVector3(), scale = reader.ReadVector3() };
     }
 
     public static void _WriteBreakableWindowStatus_BreakableWindow(NetworkWriter writer, BreakableWindow.BreakableWindowStatus value)
     {
-      writer.Write((Vector3) value.position);
-      writer.Write((Quaternion) value.rotation);
+      writer.Write(value.position);
+      writer.Write(value.rotation);
       writer.Write(value.broken);
     }
 
     public static BreakableWindow.BreakableWindowStatus _ReadBreakableWindowStatus_BreakableWindow(NetworkReader reader)
     {
-      return new BreakableWindow.BreakableWindowStatus() { position = (Vector3) reader.ReadVector3(), rotation = (Quaternion) reader.ReadQuaternion(), broken = reader.ReadBoolean() };
+      return new BreakableWindow.BreakableWindowStatus() { position = reader.ReadVector3(), rotation = reader.ReadQuaternion(), broken = reader.ReadBoolean() };
     }
   }
 }

@@ -6,18 +6,12 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
 public class SimpleMenu : MonoBehaviour
 {
   public static string targetSceneName;
   private static bool server;
-
-  public SimpleMenu()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -41,7 +35,7 @@ public class SimpleMenu : MonoBehaviour
   private void Refresh()
   {
     SimpleMenu.targetSceneName = !SimpleMenu.server ? (PlayerPrefs.GetInt("fastmenu", 0) != 0 ? "FastMenu" : "MainMenuRemastered") : "FastMenu";
-    ((NetworkManager) Object.FindObjectOfType<CustomNetworkManager>()).set_offlineScene(SimpleMenu.targetSceneName);
+    Object.FindObjectOfType<CustomNetworkManager>().offlineScene = SimpleMenu.targetSceneName;
   }
 
   public static void LoadCorrectScene()

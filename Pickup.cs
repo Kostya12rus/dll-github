@@ -15,18 +15,13 @@ using UnityEngine.Networking;
 
 public class Pickup : NetworkBehaviour
 {
+  private int previousId = -1;
   public float searchTime;
   [SyncVar(hook = "SyncPickup")]
   public Pickup.PickupInfo info;
   public static Inventory inv;
   public static List<Pickup> instances;
-  private int previousId;
   private GameObject model;
-
-  public Pickup()
-  {
-    base.\u002Ector();
-  }
 
   private void SyncPickup(Pickup.PickupInfo pickupInfo)
   {
@@ -36,8 +31,8 @@ public class Pickup : NetworkBehaviour
   public void SetupPickup(Pickup.PickupInfo pickupInfo)
   {
     this.Networkinfo = pickupInfo;
-    ((Component) this).get_transform().set_position(this.info.position);
-    ((Component) this).get_transform().set_rotation(this.info.rotation);
+    this.transform.position = this.info.position;
+    this.transform.rotation = this.info.rotation;
     this.RefreshModel();
     this.UpdatePosition();
   }
@@ -45,18 +40,18 @@ public class Pickup : NetworkBehaviour
   [ServerCallback]
   private void UpdatePosition()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     Pickup.PickupInfo info = this.info;
-    info.position = ((Component) this).get_transform().get_position();
-    info.rotation = ((Component) this).get_transform().get_rotation();
+    info.position = this.transform.position;
+    info.rotation = this.transform.rotation;
     this.SyncPickup(info);
   }
 
   public void CheckForRefresh()
   {
     this.UpdatePosition();
-    if (this.previousId == this.info.itemId && !Object.op_Equality((Object) this.model, (Object) null))
+    if (this.previousId == this.info.itemId && !((Object) this.model == (Object) null))
       return;
     this.previousId = this.info.itemId;
     this.RefreshModel();
@@ -64,28 +59,25 @@ public class Pickup : NetworkBehaviour
 
   private void RefreshModel()
   {
-    if (Object.op_Inequality((Object) this.model, (Object) null))
-      Object.Destroy((Object) this.model.get_gameObject());
-    this.model = (GameObject) Object.Instantiate<GameObject>((M0) Pickup.inv.availableItems[this.info.itemId].prefab, ((Component) this).get_transform());
-    this.model.get_transform().set_localPosition(Vector3.get_zero());
+    if ((Object) this.model != (Object) null)
+      Object.Destroy((Object) this.model.gameObject);
+    this.model = Object.Instantiate<GameObject>(Pickup.inv.availableItems[this.info.itemId].prefab, this.transform);
+    this.model.transform.localPosition = Vector3.zero;
     this.searchTime = Pickup.inv.availableItems[this.info.itemId].pickingtime;
-    ((Component) this).get_transform().set_position(this.info.position);
-    ((Component) this).get_transform().set_rotation(this.info.rotation);
+    this.transform.position = this.info.position;
+    this.transform.rotation = this.info.rotation;
   }
 
   public void Delete()
   {
-    NetworkServer.Destroy(((Component) this).get_gameObject());
+    NetworkServer.Destroy(this.gameObject);
   }
 
   [DebuggerHidden]
   private IEnumerator Start()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new Pickup.\u003CStart\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new Pickup.\u003CStart\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private void OnDestroy()
@@ -118,17 +110,17 @@ public class Pickup : NetworkBehaviour
       Pickup.PickupInfo pickupInfo = value;
       ref Pickup.PickupInfo local = ref this.info;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SyncPickup(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<Pickup.PickupInfo>((M0) pickupInfo, (M0&) ref local, (uint) num);
+      this.SetSyncVar<Pickup.PickupInfo>(pickupInfo, ref local, (uint) num);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -136,21 +128,21 @@ public class Pickup : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       GeneratedNetworkCode._WritePickupInfo_Pickup(writer, this.info);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

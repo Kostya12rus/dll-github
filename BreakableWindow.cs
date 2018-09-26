@@ -13,19 +13,14 @@ using UnityEngine.Networking;
 
 public class BreakableWindow : NetworkBehaviour
 {
+  public float health = 30f;
   public GameObject template;
   public Transform parent;
   public Vector3 size;
   private BreakableWindow.BreakableWindowStatus prevStatus;
   [SyncVar(hook = "SetStatus")]
   public BreakableWindow.BreakableWindowStatus syncStatus;
-  public float health;
   public bool isBroken;
-
-  public BreakableWindow()
-  {
-    base.\u002Ector();
-  }
 
   public void SetStatus(BreakableWindow.BreakableWindowStatus s)
   {
@@ -35,7 +30,7 @@ public class BreakableWindow : NetworkBehaviour
   [ServerCallback]
   private void UpdateStatus(BreakableWindow.BreakableWindowStatus s)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     this.SetStatus(s);
   }
@@ -43,34 +38,29 @@ public class BreakableWindow : NetworkBehaviour
   [ServerCallback]
   public void ServerDamageWindow(float damage)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     this.health -= damage;
     if ((double) this.health > 0.0)
       return;
-    ((MonoBehaviour) this).StartCoroutine(this.BreakWindow());
+    this.StartCoroutine(this.BreakWindow());
   }
 
   private void Update()
   {
-    BreakableWindow.BreakableWindowStatus s = new BreakableWindow.BreakableWindowStatus()
-    {
-      position = ((Component) this).get_transform().get_position(),
-      rotation = ((Component) this).get_transform().get_rotation(),
-      broken = this.isBroken
-    };
+    BreakableWindow.BreakableWindowStatus s = new BreakableWindow.BreakableWindowStatus() { position = this.transform.position, rotation = this.transform.rotation, broken = this.isBroken };
     if (s.IsEqual(this.syncStatus))
       return;
-    if (NetworkServer.get_active())
+    if (NetworkServer.active)
     {
       this.UpdateStatus(s);
     }
     else
     {
       if (!this.isBroken && this.syncStatus.broken)
-        ((MonoBehaviour) this).StartCoroutine(this.BreakWindow());
-      ((Component) this).get_transform().set_position(this.syncStatus.position);
-      ((Component) this).get_transform().set_rotation(this.syncStatus.rotation);
+        this.StartCoroutine(this.BreakWindow());
+      this.transform.position = this.syncStatus.position;
+      this.transform.rotation = this.syncStatus.rotation;
       this.isBroken = this.syncStatus.broken;
     }
   }
@@ -79,10 +69,7 @@ public class BreakableWindow : NetworkBehaviour
   private IEnumerator BreakWindow()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new BreakableWindow.\u003CBreakWindow\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new BreakableWindow.\u003CBreakWindow\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private void UNetVersion()
@@ -100,17 +87,17 @@ public class BreakableWindow : NetworkBehaviour
       BreakableWindow.BreakableWindowStatus breakableWindowStatus = value;
       ref BreakableWindow.BreakableWindowStatus local = ref this.syncStatus;
       int num = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetStatus(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<BreakableWindow.BreakableWindowStatus>((M0) breakableWindowStatus, (M0&) ref local, (uint) num);
+      this.SetSyncVar<BreakableWindow.BreakableWindowStatus>(breakableWindowStatus, ref local, (uint) num);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -118,21 +105,21 @@ public class BreakableWindow : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       GeneratedNetworkCode._WriteBreakableWindowStatus_BreakableWindow(writer, this.syncStatus);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {
@@ -154,7 +141,7 @@ public class BreakableWindow : NetworkBehaviour
 
     public bool IsEqual(BreakableWindow.BreakableWindowStatus stat)
     {
-      if (Vector3.op_Equality(this.position, stat.position) && Quaternion.op_Equality(this.rotation, stat.rotation))
+      if (this.position == stat.position && this.rotation == stat.rotation)
         return this.broken == stat.broken;
       return false;
     }

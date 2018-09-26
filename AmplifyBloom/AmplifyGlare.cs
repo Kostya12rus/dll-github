@@ -15,7 +15,7 @@ namespace AmplifyBloom
     [SerializeField]
     private bool m_applyGlare = true;
     [SerializeField]
-    private Color _overallTint = Color.get_white();
+    private Color _overallTint = Color.white;
     [SerializeField]
     private int m_glareMaxPassCount = 4;
     [SerializeField]
@@ -61,11 +61,11 @@ namespace AmplifyBloom
       this.m_cromaticAberrationGrad = new Gradient();
       this.m_cromaticAberrationGrad.SetKeys(new GradientColorKey[5]
       {
-        new GradientColorKey(Color.get_white(), 0.0f),
-        new GradientColorKey(Color.get_blue(), 0.25f),
-        new GradientColorKey(Color.get_green(), 0.5f),
-        new GradientColorKey(Color.get_yellow(), 0.75f),
-        new GradientColorKey(Color.get_red(), 1f)
+        new GradientColorKey(Color.white, 0.0f),
+        new GradientColorKey(Color.blue, 0.25f),
+        new GradientColorKey(Color.green, 0.5f),
+        new GradientColorKey(Color.yellow, 0.75f),
+        new GradientColorKey(Color.red, 1f)
       }, new GradientAlphaKey[5]
       {
         new GradientAlphaKey(1f, 0.0f),
@@ -111,7 +111,7 @@ namespace AmplifyBloom
       this.m_offsetsMat = (Matrix4x4[]) null;
       for (int index = 0; index < this._rtBuffer.Length; ++index)
       {
-        if (Object.op_Inequality((Object) this._rtBuffer[index], (Object) null))
+        if ((Object) this._rtBuffer[index] != (Object) null)
         {
           AmplifyUtils.ReleaseTempRenderTarget(this._rtBuffer[index]);
           this._rtBuffer[index] = (RenderTexture) null;
@@ -130,7 +130,7 @@ namespace AmplifyBloom
     public void OnRenderFromCache(RenderTexture source, RenderTexture dest, Material material, float glareIntensity, float cameraRotation)
     {
       for (int index = 0; index < this.m_amplifyGlareCache.TotalRT; ++index)
-        this._rtBuffer[index] = AmplifyUtils.GetTempRenderTarget(((Texture) source).get_width(), ((Texture) source).get_height());
+        this._rtBuffer[index] = AmplifyUtils.GetTempRenderTarget(source.width, source.height);
       int index1 = 0;
       for (int index2 = 0; index2 < this.m_amplifyGlareCache.StarDef.StarlinesCount; ++index2)
       {
@@ -150,9 +150,9 @@ namespace AmplifyBloom
         int index3 = (index2 + 1) * this.m_amplifyGlareCache.CurrentPassCount - 1;
         material.SetTexture(AmplifyUtils.AnamorphicRTS[index2], (Texture) this._rtBuffer[index3]);
       }
-      int num = 19 + this.m_amplifyGlareCache.StarDef.StarlinesCount - 1;
+      int pass = 19 + this.m_amplifyGlareCache.StarDef.StarlinesCount - 1;
       dest.DiscardContents();
-      Graphics.Blit((Texture) this._rtBuffer[0], dest, material, num);
+      Graphics.Blit((Texture) this._rtBuffer[0], dest, material, pass);
       for (int index2 = 0; index2 < this._rtBuffer.Length; ++index2)
       {
         AmplifyUtils.ReleaseTempRenderTarget(this._rtBuffer[index2]);
@@ -167,12 +167,12 @@ namespace AmplifyBloom
       for (int index1 = 0; index1 < 16; ++index1)
       {
         int index2 = index1 >> 2;
-        int num3 = index1 & 3;
-        ((Matrix4x4) ref this.m_offsetsMat[index2]).set_Item(num3, 0, (float) (offsets[index1].x * (double) num1 - offsets[index1].y * (double) num2));
-        ((Matrix4x4) ref this.m_offsetsMat[index2]).set_Item(num3, 1, (float) (offsets[index1].x * (double) num2 + offsets[index1].y * (double) num1));
-        ((Matrix4x4) ref this.m_weigthsMat[index2]).set_Item(num3, 0, glareIntensity * (float) weights[index1].x);
-        ((Matrix4x4) ref this.m_weigthsMat[index2]).set_Item(num3, 1, glareIntensity * (float) weights[index1].y);
-        ((Matrix4x4) ref this.m_weigthsMat[index2]).set_Item(num3, 2, glareIntensity * (float) weights[index1].z);
+        int index3 = index1 & 3;
+        this.m_offsetsMat[index2][index3, 0] = (float) ((double) offsets[index1].x * (double) num1 - (double) offsets[index1].y * (double) num2);
+        this.m_offsetsMat[index2][index3, 1] = (float) ((double) offsets[index1].x * (double) num2 + (double) offsets[index1].y * (double) num1);
+        this.m_weigthsMat[index2][index3, 0] = glareIntensity * weights[index1].x;
+        this.m_weigthsMat[index2][index3, 1] = glareIntensity * weights[index1].y;
+        this.m_weigthsMat[index2][index3, 2] = glareIntensity * weights[index1].z;
       }
       for (int index = 0; index < 4; ++index)
       {
@@ -183,12 +183,12 @@ namespace AmplifyBloom
 
     public void OnRenderImage(Material material, RenderTexture source, RenderTexture dest, float cameraRot)
     {
-      Graphics.Blit((Texture) Texture2D.get_blackTexture(), dest);
-      if (this.m_isDirty || this.m_currentWidth != ((Texture) source).get_width() || this.m_currentHeight != ((Texture) source).get_height())
+      Graphics.Blit((Texture) Texture2D.blackTexture, dest);
+      if (this.m_isDirty || this.m_currentWidth != source.width || this.m_currentHeight != source.height)
       {
         this.m_isDirty = false;
-        this.m_currentWidth = ((Texture) source).get_width();
-        this.m_currentHeight = ((Texture) source).get_height();
+        this.m_currentWidth = source.width;
+        this.m_currentHeight = source.height;
         bool flag = false;
         GlareDefData glareDefData;
         if (this.m_currentGlareType == GlareLibType.Custom)
@@ -204,8 +204,8 @@ namespace AmplifyBloom
         else
           glareDefData = this.m_glareDefArr[this.m_currentGlareIdx];
         this.m_amplifyGlareCache.GlareDef = glareDefData;
-        float width = (float) ((Texture) source).get_width();
-        float height = (float) ((Texture) source).get_height();
+        float width = (float) source.width;
+        float height = (float) source.height;
         StarDefData starDefData = !flag ? this.m_starDefArr[(int) glareDefData.StarType] : glareDefData.CustomStarData;
         this.m_amplifyGlareCache.StarDef = starDefData;
         int num1 = this.m_glareMaxPassCount >= starDefData.PassCount ? starDefData.PassCount : this.m_glareMaxPassCount;
@@ -213,46 +213,45 @@ namespace AmplifyBloom
         float num2 = glareDefData.StarInclination + starDefData.Inclination;
         for (int index1 = 0; index1 < this.m_glareMaxPassCount; ++index1)
         {
-          float num3 = (float) (index1 + 1) / (float) this.m_glareMaxPassCount;
+          float t = (float) (index1 + 1) / (float) this.m_glareMaxPassCount;
           for (int index2 = 0; index2 < 8; ++index2)
           {
-            Color color = Color.op_Multiply(this._overallTint, Color.Lerp(this.m_cromaticAberrationGrad.Evaluate((float) index2 / 7f), this.m_whiteReference, num3));
-            this.m_amplifyGlareCache.CromaticAberrationMat[index1, index2] = Color.op_Implicit(Color.Lerp(this.m_whiteReference, color, glareDefData.ChromaticAberration));
+            Color b = this._overallTint * Color.Lerp(this.m_cromaticAberrationGrad.Evaluate((float) index2 / 7f), this.m_whiteReference, t);
+            this.m_amplifyGlareCache.CromaticAberrationMat[index1, index2] = (Vector4) Color.Lerp(this.m_whiteReference, b, glareDefData.ChromaticAberration);
           }
         }
         this.m_amplifyGlareCache.TotalRT = starDefData.StarlinesCount * num1;
         for (int index = 0; index < this.m_amplifyGlareCache.TotalRT; ++index)
-          this._rtBuffer[index] = AmplifyUtils.GetTempRenderTarget(((Texture) source).get_width(), ((Texture) source).get_height());
+          this._rtBuffer[index] = AmplifyUtils.GetTempRenderTarget(source.width, source.height);
         int index3 = 0;
         for (int index1 = 0; index1 < starDefData.StarlinesCount; ++index1)
         {
           StarLineData starLineData = starDefData.StarLinesArr[index1];
-          float num3 = num2 + starLineData.Inclination;
-          float num4 = Mathf.Sin(num3);
-          float num5 = Mathf.Cos(num3);
-          Vector2 vector2 = (Vector2) null;
-          vector2.x = (__Null) ((double) num5 / (double) width * ((double) starLineData.SampleLength * (double) this.m_overallStreakScale));
-          vector2.y = (__Null) ((double) num4 / (double) height * ((double) starLineData.SampleLength * (double) this.m_overallStreakScale));
-          float num6 = (float) (((double) this.m_aTanFoV + 0.100000001490116) * 280.0 / ((double) width + (double) height) * 1.20000004768372);
+          float f = num2 + starLineData.Inclination;
+          float num3 = Mathf.Sin(f);
+          float num4 = Mathf.Cos(f);
+          Vector2 vector2 = new Vector2();
+          vector2.x = (float) ((double) num4 / (double) width * ((double) starLineData.SampleLength * (double) this.m_overallStreakScale));
+          vector2.y = (float) ((double) num3 / (double) height * ((double) starLineData.SampleLength * (double) this.m_overallStreakScale));
+          float num5 = (float) (((double) this.m_aTanFoV + 0.100000001490116) * 280.0 / ((double) width + (double) height) * 1.20000004768372);
           for (int index2 = 0; index2 < num1; ++index2)
           {
             for (int index4 = 0; index4 < 8; ++index4)
             {
-              float num7 = Mathf.Pow(starLineData.Attenuation, num6 * (float) index4);
-              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Weights[index4] = Vector4.op_Multiply(Vector4.op_Multiply(Vector4.op_Multiply(this.m_amplifyGlareCache.CromaticAberrationMat[num1 - 1 - index2, index4], num7), (float) index2 + 1f), 0.5f);
-              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].x = (__Null) (vector2.x * (double) index4);
-              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].y = (__Null) (vector2.y * (double) index4);
-              if ((double) Mathf.Abs((float) this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].x) >= 0.899999976158142 || (double) Mathf.Abs((float) this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].y) >= 0.899999976158142)
+              float num6 = Mathf.Pow(starLineData.Attenuation, num5 * (float) index4);
+              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Weights[index4] = this.m_amplifyGlareCache.CromaticAberrationMat[num1 - 1 - index2, index4] * num6 * ((float) index2 + 1f) * 0.5f;
+              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].x = vector2.x * (float) index4;
+              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].y = vector2.y * (float) index4;
+              if ((double) Mathf.Abs(this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].x) >= 0.899999976158142 || (double) Mathf.Abs(this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].y) >= 0.899999976158142)
               {
-                this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].x = (__Null) 0.0;
-                this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].y = (__Null) 0.0;
-                ref Vector4 local = ref this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Weights[index4];
-                local = Vector4.op_Multiply(local, 0.0f);
+                this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].x = 0.0f;
+                this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4].y = 0.0f;
+                this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Weights[index4] *= 0.0f;
               }
             }
             for (int index4 = 8; index4 < 16; ++index4)
             {
-              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4] = Vector4.op_UnaryNegation(this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4 - 8]);
+              this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4] = -this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets[index4 - 8];
               this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Weights[index4] = this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Weights[index4 - 8];
             }
             this.UpdateMatrixesForPass(material, this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Offsets, this.m_amplifyGlareCache.Starlines[index1].Passes[index2].Weights, this.m_intensity, starDefData.CameraRotInfluence * cameraRot);
@@ -261,20 +260,20 @@ namespace AmplifyBloom
             else
               Graphics.Blit((Texture) this._rtBuffer[index3 - 1], this._rtBuffer[index3], material, 2);
             ++index3;
-            vector2 = Vector2.op_Multiply(vector2, this.m_perPassDisplacement);
-            num6 *= this.m_perPassDisplacement;
+            vector2 *= this.m_perPassDisplacement;
+            num5 *= this.m_perPassDisplacement;
           }
         }
-        this.m_amplifyGlareCache.AverageWeight = Vector4.op_Division(Vector4.get_one(), (float) starDefData.StarlinesCount);
+        this.m_amplifyGlareCache.AverageWeight = Vector4.one / (float) starDefData.StarlinesCount;
         for (int index1 = 0; index1 < starDefData.StarlinesCount; ++index1)
         {
           material.SetVector(AmplifyUtils.AnamorphicGlareWeightsStr[index1], this.m_amplifyGlareCache.AverageWeight);
           int index2 = (index1 + 1) * num1 - 1;
           material.SetTexture(AmplifyUtils.AnamorphicRTS[index1], (Texture) this._rtBuffer[index2]);
         }
-        int num8 = 19 + starDefData.StarlinesCount - 1;
+        int pass = 19 + starDefData.StarlinesCount - 1;
         dest.DiscardContents();
-        Graphics.Blit((Texture) this._rtBuffer[0], dest, material, num8);
+        Graphics.Blit((Texture) this._rtBuffer[0], dest, material, pass);
         for (int index1 = 0; index1 < this._rtBuffer.Length; ++index1)
         {
           AmplifyUtils.ReleaseTempRenderTarget(this._rtBuffer[index1]);

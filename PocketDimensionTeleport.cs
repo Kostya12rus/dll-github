@@ -11,11 +11,6 @@ public class PocketDimensionTeleport : NetworkBehaviour
 {
   private PocketDimensionTeleport.PDTeleportType type;
 
-  public PocketDimensionTeleport()
-  {
-    base.\u002Ector();
-  }
-
   public void SetType(PocketDimensionTeleport.PDTeleportType t)
   {
     this.type = t;
@@ -24,22 +19,22 @@ public class PocketDimensionTeleport : NetworkBehaviour
   [ServerCallback]
   private void OnTriggerEnter(Collider other)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
-    NetworkIdentity component = (NetworkIdentity) ((Component) other).GetComponent<NetworkIdentity>();
-    if (!Object.op_Inequality((Object) component, (Object) null))
+    NetworkIdentity component = other.GetComponent<NetworkIdentity>();
+    if (!((Object) component != (Object) null))
       return;
-    if (this.type == PocketDimensionTeleport.PDTeleportType.Killer || ((BlastDoor) Object.FindObjectOfType<BlastDoor>()).isClosed)
+    if (this.type == PocketDimensionTeleport.PDTeleportType.Killer || Object.FindObjectOfType<BlastDoor>().isClosed)
     {
-      ((PlayerStats) ((Component) component).GetComponent<PlayerStats>()).HurtPlayer(new PlayerStats.HitInfo(999990f, "WORLD", "POCKET", 0), ((Component) other).get_gameObject());
+      component.GetComponent<PlayerStats>().HurtPlayer(new PlayerStats.HitInfo(999990f, "WORLD", "POCKET", 0), other.gameObject);
     }
     else
     {
       if (this.type != PocketDimensionTeleport.PDTeleportType.Exit)
         return;
       GameObject[] gameObjectsWithTag = GameObject.FindGameObjectsWithTag("PD_EXIT");
-      ((PlyMovementSync) ((Component) other).GetComponent<PlyMovementSync>()).SetPosition(gameObjectsWithTag[Random.Range(0, gameObjectsWithTag.Length)].get_transform().get_position());
-      ((PlayerStats) PlayerManager.localPlayer.GetComponent<PlayerStats>()).CallTargetAchieve(component.get_connectionToClient(), "larryisyourfriend");
+      other.GetComponent<PlyMovementSync>().SetPosition(gameObjectsWithTag[Random.Range(0, gameObjectsWithTag.Length)].transform.position);
+      PlayerManager.localPlayer.GetComponent<PlayerStats>().CallTargetAchieve(component.connectionToClient, "larryisyourfriend");
     }
   }
 
@@ -47,13 +42,13 @@ public class PocketDimensionTeleport : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 

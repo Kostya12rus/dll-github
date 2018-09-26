@@ -15,31 +15,26 @@ public class CullingDisabler : MonoBehaviour
   public Behaviour culler;
   private bool state;
 
-  public CullingDisabler()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    NetworkBehaviour componentInParent = (NetworkBehaviour) ((Component) this).GetComponentInParent<NetworkBehaviour>();
-    if (!Object.op_Inequality((Object) componentInParent, (Object) null) || componentInParent.get_isLocalPlayer())
+    NetworkBehaviour componentInParent = this.GetComponentInParent<NetworkBehaviour>();
+    if (!((Object) componentInParent != (Object) null) || componentInParent.isLocalPlayer)
       return;
     Object.Destroy((Object) this.culler);
-    Object.Destroy((Object) ((Component) this).GetComponent<GlobalFog>());
-    Object.Destroy((Object) ((Component) this).GetComponent<VignetteAndChromaticAberration>());
-    Object.Destroy((Object) ((Component) this).GetComponent<NoiseAndGrain>());
-    Object.Destroy((Object) ((Component) this).GetComponent<FlareLayer>());
-    Object.Destroy((Object) ((Component) this.camera).GetComponent<PostProcessingBehaviour>());
+    Object.Destroy((Object) this.GetComponent<GlobalFog>());
+    Object.Destroy((Object) this.GetComponent<VignetteAndChromaticAberration>());
+    Object.Destroy((Object) this.GetComponent<NoiseAndGrain>());
+    Object.Destroy((Object) this.GetComponent<FlareLayer>());
+    Object.Destroy((Object) this.camera.GetComponent<PostProcessingBehaviour>());
     Object.Destroy((Object) this.camera);
     Object.Destroy((Object) this);
   }
 
   private void Update()
   {
-    if (this.state == this.camera.get_enabled())
+    if (this.state == this.camera.enabled)
       return;
     this.state = !this.state;
-    this.culler.set_enabled(this.state);
+    this.culler.enabled = this.state;
   }
 }

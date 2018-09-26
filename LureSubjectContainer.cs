@@ -10,8 +10,8 @@ using UnityEngine.Networking;
 
 public class LureSubjectContainer : NetworkBehaviour
 {
-  private Vector3 position;
-  private Vector3 rotation;
+  private Vector3 position = new Vector3(-1471f, 160.5f, -3426.9f);
+  private Vector3 rotation = new Vector3(0.0f, 180f, 0.0f);
   public float range;
   [SyncVar(hook = "SetState")]
   public bool allowContain;
@@ -22,52 +22,47 @@ public class LureSubjectContainer : NetworkBehaviour
   public Vector3 openPosition;
   private GameObject localplayer;
 
-  public LureSubjectContainer()
-  {
-    base.\u002Ector();
-  }
-
   public void SetState(bool b)
   {
     this.NetworkallowContain = b;
     if (!b)
       return;
-    ((AudioSource) ((Component) this.hatch).GetComponent<AudioSource>()).Play();
+    this.hatch.GetComponent<AudioSource>().Play();
   }
 
   private void Start()
   {
-    ((Component) this).get_transform().set_localPosition(this.position);
-    ((Component) this).get_transform().set_localRotation(Quaternion.Euler(this.rotation));
+    this.transform.localPosition = this.position;
+    this.transform.localRotation = Quaternion.Euler(this.rotation);
   }
 
   private void Update()
   {
     this.CheckForLure();
-    this.hatch.set_localPosition(Vector3.Slerp(this.hatch.get_localPosition(), !this.allowContain ? this.openPosition : this.closedPos, Time.get_deltaTime() * 3f));
+    this.hatch.localPosition = Vector3.Slerp(this.hatch.localPosition, !this.allowContain ? this.openPosition : this.closedPos, Time.deltaTime * 3f);
   }
 
   private void CheckForLure()
   {
-    if (Object.op_Equality((Object) this.ccm, (Object) null))
+    if ((Object) this.ccm == (Object) null)
     {
       this.localplayer = PlayerManager.localPlayer;
-      if (!Object.op_Inequality((Object) this.localplayer, (Object) null))
+      if (!((Object) this.localplayer != (Object) null))
         return;
-      this.ccm = (CharacterClassManager) this.localplayer.GetComponent<CharacterClassManager>();
+      this.ccm = this.localplayer.GetComponent<CharacterClassManager>();
     }
     else
     {
       if (this.ccm.curClass < 0)
         return;
-      ((Collider) ((Component) this).GetComponent<BoxCollider>()).set_enabled(this.ccm.klasy[this.ccm.curClass].team == Team.SCP);
+      this.GetComponent<BoxCollider>().enabled = this.ccm.klasy[this.ccm.curClass].team == Team.SCP;
     }
   }
 
   private void OnDrawGizmosSelected()
   {
-    Gizmos.set_color(Color.get_green());
-    Gizmos.DrawWireSphere(((Component) this).get_transform().get_position(), this.range);
+    Gizmos.color = Color.green;
+    Gizmos.DrawWireSphere(this.transform.position, this.range);
   }
 
   private void UNetVersion()
@@ -85,17 +80,17 @@ public class LureSubjectContainer : NetworkBehaviour
       int num1 = value ? 1 : 0;
       ref bool local = ref this.allowContain;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetState(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -103,21 +98,21 @@ public class LureSubjectContainer : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.allowContain);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

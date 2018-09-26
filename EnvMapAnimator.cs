@@ -15,24 +15,16 @@ public class EnvMapAnimator : MonoBehaviour
   private TMP_Text m_textMeshPro;
   private Material m_material;
 
-  public EnvMapAnimator()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
-    this.m_textMeshPro = (TMP_Text) ((Component) this).GetComponent<TMP_Text>();
-    this.m_material = this.m_textMeshPro.get_fontSharedMaterial();
+    this.m_textMeshPro = this.GetComponent<TMP_Text>();
+    this.m_material = this.m_textMeshPro.fontSharedMaterial;
   }
 
   [DebuggerHidden]
   private IEnumerator Start()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new EnvMapAnimator.\u003CStart\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new EnvMapAnimator.\u003CStart\u003Ec__Iterator0() { \u0024this = this };
   }
 }

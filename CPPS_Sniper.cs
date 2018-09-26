@@ -11,15 +11,15 @@ public class CPPS_Sniper : CustomPostProcessingSight
 {
   private void Start()
   {
-    this.wm = (WeaponManager) ((Component) this).GetComponentInParent<WeaponManager>();
-    if (!this.wm.get_isLocalPlayer())
+    this.wm = this.GetComponentInParent<WeaponManager>();
+    if (!this.wm.isLocalPlayer)
       Object.Destroy((Object) this);
     else
-      this.ppb = (PostProcessingBehaviour) ((Component) this.wm.weaponModelCamera).GetComponent<PostProcessingBehaviour>();
+      this.ppb = this.wm.weaponModelCamera.GetComponent<PostProcessingBehaviour>();
   }
 
   private void Update()
   {
-    this.canvas.SetActive(((Object) this.ppb.profile).get_name().Equals(((Object) this.targetProfile).get_name()));
+    this.canvas.SetActive(this.ppb.profile.name.Equals(this.targetProfile.name));
   }
 }

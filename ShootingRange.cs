@@ -15,16 +15,11 @@ public class ShootingRange : MonoBehaviour
   private float remainingTime;
   private Text txt;
 
-  public ShootingRange()
-  {
-    base.\u002Ector();
-  }
-
   public void PrintDamage(float dmg)
   {
     if (!this.isOnRange)
       return;
-    this.txt = (Text) GameObject.Find("ShootingText").GetComponent<Text>();
+    this.txt = GameObject.Find("ShootingText").GetComponent<Text>();
     this.curDamage = "-" + (object) (float) ((double) Mathf.Round(dmg * 100f) / 100.0) + " HP";
     this.remainingTime = 3f;
   }
@@ -35,15 +30,15 @@ public class ShootingRange : MonoBehaviour
       return;
     if ((double) this.remainingTime > 0.0)
     {
-      this.txt.set_text(this.curDamage);
-      this.remainingTime -= Time.get_deltaTime();
+      this.txt.text = this.curDamage;
+      this.remainingTime -= Time.deltaTime;
     }
-    else if (Object.op_Inequality((Object) this.txt, (Object) null))
-      this.txt.set_text(string.Empty);
-    Camera component = (Camera) ((Component) ((Component) this).GetComponentInChildren<GlobalFog>()).GetComponent<Camera>();
-    bool flag = ((Component) this).get_transform().get_position().x > 1500.0 & ((Component) this).get_transform().get_position().y > -10.0;
-    ((GlobalFog) ((Component) this).GetComponentInChildren<GlobalFog>()).startDistance = !flag ? (__Null) 0.0 : (__Null) 200.0;
-    ((FirstPersonController) ((Component) this).GetComponent<FirstPersonController>()).rangeSpeed = (__Null) (flag ? 1 : 0);
-    component.set_farClipPlane(!flag ? 47f : 1000f);
+    else if ((Object) this.txt != (Object) null)
+      this.txt.text = string.Empty;
+    Camera component = this.GetComponentInChildren<GlobalFog>().GetComponent<Camera>();
+    bool flag = (double) this.transform.position.x > 1500.0 & (double) this.transform.position.y > -10.0;
+    this.GetComponentInChildren<GlobalFog>().startDistance = !flag ? 0.0f : 200f;
+    this.GetComponent<FirstPersonController>().rangeSpeed = flag;
+    component.farClipPlane = !flag ? 47f : 1000f;
   }
 }

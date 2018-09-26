@@ -10,12 +10,7 @@ using UnityEngine;
 
 public class ExplosionPhysicsForce : MonoBehaviour
 {
-  public float explosionForce;
-
-  public ExplosionPhysicsForce()
-  {
-    base.\u002Ector();
-  }
+  public float explosionForce = 4f;
 
   [DebuggerHidden]
   private IEnumerator Start()

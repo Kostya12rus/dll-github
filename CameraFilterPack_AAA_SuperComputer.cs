@@ -10,35 +10,30 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_AAA_SuperComputer : MonoBehaviour
 {
-  public Shader SCShader;
   [Range(0.0f, 1f)]
-  public float _AlphaHexa;
-  private float TimeX;
-  private Material SCMaterial;
+  public float _AlphaHexa = 1f;
+  private float TimeX = 1f;
   [Range(-20f, 20f)]
-  public float ShapeFormula;
+  public float ShapeFormula = 10f;
   [Range(0.0f, 6f)]
-  public float Shape;
+  public float Shape = 1f;
   [Range(-4f, 4f)]
-  public float _BorderSize;
-  public Color _BorderColor;
-  public float _SpotSize;
-  public Vector2 center;
-  public float Radius;
-
-  public CameraFilterPack_AAA_SuperComputer()
-  {
-    base.\u002Ector();
-  }
+  public float _BorderSize = 1f;
+  public Color _BorderColor = new Color(0.0f, 0.2f, 1f, 1f);
+  public float _SpotSize = 2.5f;
+  public Vector2 center = new Vector2(0.0f, 0.0f);
+  public float Radius = 0.77f;
+  public Shader SCShader;
+  private Material SCMaterial;
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -47,29 +42,29 @@ public class CameraFilterPack_AAA_SuperComputer : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/AAA_Super_Computer");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime() / 4f;
+      this.TimeX += Time.deltaTime / 4f;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
       this.material.SetFloat("_Value", this.ShapeFormula);
       this.material.SetFloat("_Value2", this.Shape);
-      this.material.SetFloat("_PositionX", (float) this.center.x);
-      this.material.SetFloat("_PositionY", (float) this.center.y);
+      this.material.SetFloat("_PositionX", this.center.x);
+      this.material.SetFloat("_PositionY", this.center.y);
       this.material.SetFloat("_Radius", this.Radius);
       this.material.SetFloat("_BorderSize", this._BorderSize);
       this.material.SetColor("_BorderColor", this._BorderColor);
       this.material.SetFloat("_AlphaHexa", this._AlphaHexa);
       this.material.SetFloat("_SpotSize", this._SpotSize);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -82,7 +77,7 @@ public class CameraFilterPack_AAA_SuperComputer : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

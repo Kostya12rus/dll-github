@@ -14,27 +14,22 @@ namespace TMPro
   public class TMP_TextEventHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IEventSystemHandler
   {
     [SerializeField]
-    private TMP_TextEventHandler.CharacterSelectionEvent m_OnCharacterSelection;
+    private TMP_TextEventHandler.CharacterSelectionEvent m_OnCharacterSelection = new TMP_TextEventHandler.CharacterSelectionEvent();
     [SerializeField]
-    private TMP_TextEventHandler.SpriteSelectionEvent m_OnSpriteSelection;
+    private TMP_TextEventHandler.SpriteSelectionEvent m_OnSpriteSelection = new TMP_TextEventHandler.SpriteSelectionEvent();
     [SerializeField]
-    private TMP_TextEventHandler.WordSelectionEvent m_OnWordSelection;
+    private TMP_TextEventHandler.WordSelectionEvent m_OnWordSelection = new TMP_TextEventHandler.WordSelectionEvent();
     [SerializeField]
-    private TMP_TextEventHandler.LineSelectionEvent m_OnLineSelection;
+    private TMP_TextEventHandler.LineSelectionEvent m_OnLineSelection = new TMP_TextEventHandler.LineSelectionEvent();
     [SerializeField]
-    private TMP_TextEventHandler.LinkSelectionEvent m_OnLinkSelection;
+    private TMP_TextEventHandler.LinkSelectionEvent m_OnLinkSelection = new TMP_TextEventHandler.LinkSelectionEvent();
+    private int m_selectedLink = -1;
+    private int m_lastCharIndex = -1;
+    private int m_lastWordIndex = -1;
+    private int m_lastLineIndex = -1;
     private TMP_Text m_TextComponent;
     private Camera m_Camera;
     private Canvas m_Canvas;
-    private int m_selectedLink;
-    private int m_lastCharIndex;
-    private int m_lastWordIndex;
-    private int m_lastLineIndex;
-
-    public TMP_TextEventHandler()
-    {
-      base.\u002Ector();
-    }
 
     public TMP_TextEventHandler.CharacterSelectionEvent onCharacterSelection
     {
@@ -98,78 +93,62 @@ namespace TMPro
 
     private void Awake()
     {
-      this.m_TextComponent = (TMP_Text) ((Component) this).get_gameObject().GetComponent<TMP_Text>();
-      if (((object) this.m_TextComponent).GetType() == typeof (TextMeshProUGUI))
+      this.m_TextComponent = this.gameObject.GetComponent<TMP_Text>();
+      if (this.m_TextComponent.GetType() == typeof (TextMeshProUGUI))
       {
-        this.m_Canvas = (Canvas) ((Component) this).get_gameObject().GetComponentInParent<Canvas>();
-        if (!Object.op_Inequality((Object) this.m_Canvas, (Object) null))
+        this.m_Canvas = this.gameObject.GetComponentInParent<Canvas>();
+        if (!((Object) this.m_Canvas != (Object) null))
           return;
-        if (this.m_Canvas.get_renderMode() == null)
+        if (this.m_Canvas.renderMode == RenderMode.ScreenSpaceOverlay)
           this.m_Camera = (Camera) null;
         else
-          this.m_Camera = this.m_Canvas.get_worldCamera();
+          this.m_Camera = this.m_Canvas.worldCamera;
       }
       else
-        this.m_Camera = Camera.get_main();
+        this.m_Camera = Camera.main;
     }
 
     private void LateUpdate()
     {
-      if (!TMP_TextUtilities.IsIntersectingRectTransform(this.m_TextComponent.get_rectTransform(), Input.get_mousePosition(), this.m_Camera))
+      if (!TMP_TextUtilities.IsIntersectingRectTransform(this.m_TextComponent.rectTransform, Input.mousePosition, this.m_Camera))
         return;
-      int intersectingCharacter = TMP_TextUtilities.FindIntersectingCharacter(this.m_TextComponent, Input.get_mousePosition(), this.m_Camera, true);
+      int intersectingCharacter = TMP_TextUtilities.FindIntersectingCharacter(this.m_TextComponent, Input.mousePosition, this.m_Camera, true);
       if (intersectingCharacter != -1 && intersectingCharacter != this.m_lastCharIndex)
       {
         this.m_lastCharIndex = intersectingCharacter;
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        TMP_TextElementType elementType = (TMP_TextElementType) (^(TMP_CharacterInfo&) ref this.m_TextComponent.get_textInfo().characterInfo[intersectingCharacter]).elementType;
-        if (elementType == null)
+        switch (this.m_TextComponent.textInfo.characterInfo[intersectingCharacter].elementType)
         {
-          // ISSUE: cast to a reference type
-          // ISSUE: explicit reference operation
-          this.SendOnCharacterSelection((char) (^(TMP_CharacterInfo&) ref this.m_TextComponent.get_textInfo().characterInfo[intersectingCharacter]).character, intersectingCharacter);
-        }
-        else if (elementType == 1)
-        {
-          // ISSUE: cast to a reference type
-          // ISSUE: explicit reference operation
-          this.SendOnSpriteSelection((char) (^(TMP_CharacterInfo&) ref this.m_TextComponent.get_textInfo().characterInfo[intersectingCharacter]).character, intersectingCharacter);
+          case TMP_TextElementType.Character:
+            this.SendOnCharacterSelection(this.m_TextComponent.textInfo.characterInfo[intersectingCharacter].character, intersectingCharacter);
+            break;
+          case TMP_TextElementType.Sprite:
+            this.SendOnSpriteSelection(this.m_TextComponent.textInfo.characterInfo[intersectingCharacter].character, intersectingCharacter);
+            break;
         }
       }
-      int intersectingWord = TMP_TextUtilities.FindIntersectingWord(this.m_TextComponent, Input.get_mousePosition(), this.m_Camera);
+      int intersectingWord = TMP_TextUtilities.FindIntersectingWord(this.m_TextComponent, Input.mousePosition, this.m_Camera);
       if (intersectingWord != -1 && intersectingWord != this.m_lastWordIndex)
       {
         this.m_lastWordIndex = intersectingWord;
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        TMP_WordInfo tmpWordInfo = ^(TMP_WordInfo&) ref this.m_TextComponent.get_textInfo().wordInfo[intersectingWord];
-        this.SendOnWordSelection(((TMP_WordInfo) ref tmpWordInfo).GetWord(), (int) tmpWordInfo.firstCharacterIndex, (int) tmpWordInfo.characterCount);
+        TMP_WordInfo tmpWordInfo = this.m_TextComponent.textInfo.wordInfo[intersectingWord];
+        this.SendOnWordSelection(tmpWordInfo.GetWord(), tmpWordInfo.firstCharacterIndex, tmpWordInfo.characterCount);
       }
-      int intersectingLine = TMP_TextUtilities.FindIntersectingLine(this.m_TextComponent, Input.get_mousePosition(), this.m_Camera);
+      int intersectingLine = TMP_TextUtilities.FindIntersectingLine(this.m_TextComponent, Input.mousePosition, this.m_Camera);
       if (intersectingLine != -1 && intersectingLine != this.m_lastLineIndex)
       {
         this.m_lastLineIndex = intersectingLine;
-        // ISSUE: cast to a reference type
-        // ISSUE: explicit reference operation
-        TMP_LineInfo tmpLineInfo = ^(TMP_LineInfo&) ref this.m_TextComponent.get_textInfo().lineInfo[intersectingLine];
+        TMP_LineInfo tmpLineInfo = this.m_TextComponent.textInfo.lineInfo[intersectingLine];
         char[] chArray = new char[tmpLineInfo.characterCount];
-        for (int index = 0; index < tmpLineInfo.characterCount && index < this.m_TextComponent.get_textInfo().characterInfo.Length; ++index)
-        {
-          // ISSUE: cast to a reference type
-          // ISSUE: explicit reference operation
-          chArray[index] = (char) (^(TMP_CharacterInfo&) ref this.m_TextComponent.get_textInfo().characterInfo[index + tmpLineInfo.firstCharacterIndex]).character;
-        }
-        this.SendOnLineSelection(new string(chArray), (int) tmpLineInfo.firstCharacterIndex, (int) tmpLineInfo.characterCount);
+        for (int index = 0; index < tmpLineInfo.characterCount && index < this.m_TextComponent.textInfo.characterInfo.Length; ++index)
+          chArray[index] = this.m_TextComponent.textInfo.characterInfo[index + tmpLineInfo.firstCharacterIndex].character;
+        this.SendOnLineSelection(new string(chArray), tmpLineInfo.firstCharacterIndex, tmpLineInfo.characterCount);
       }
-      int intersectingLink = TMP_TextUtilities.FindIntersectingLink(this.m_TextComponent, Input.get_mousePosition(), this.m_Camera);
+      int intersectingLink = TMP_TextUtilities.FindIntersectingLink(this.m_TextComponent, Input.mousePosition, this.m_Camera);
       if (intersectingLink == -1 || intersectingLink == this.m_selectedLink)
         return;
       this.m_selectedLink = intersectingLink;
-      // ISSUE: cast to a reference type
-      // ISSUE: explicit reference operation
-      TMP_LinkInfo tmpLinkInfo = ^(TMP_LinkInfo&) ref this.m_TextComponent.get_textInfo().linkInfo[intersectingLink];
-      this.SendOnLinkSelection(((TMP_LinkInfo) ref tmpLinkInfo).GetLinkID(), ((TMP_LinkInfo) ref tmpLinkInfo).GetLinkText(), intersectingLink);
+      TMP_LinkInfo tmpLinkInfo = this.m_TextComponent.textInfo.linkInfo[intersectingLink];
+      this.SendOnLinkSelection(tmpLinkInfo.GetLinkID(), tmpLinkInfo.GetLinkText(), intersectingLink);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -218,46 +197,26 @@ namespace TMPro
     [Serializable]
     public class CharacterSelectionEvent : UnityEvent<char, int>
     {
-      public CharacterSelectionEvent()
-      {
-        base.\u002Ector();
-      }
     }
 
     [Serializable]
     public class SpriteSelectionEvent : UnityEvent<char, int>
     {
-      public SpriteSelectionEvent()
-      {
-        base.\u002Ector();
-      }
     }
 
     [Serializable]
     public class WordSelectionEvent : UnityEvent<string, int, int>
     {
-      public WordSelectionEvent()
-      {
-        base.\u002Ector();
-      }
     }
 
     [Serializable]
     public class LineSelectionEvent : UnityEvent<string, int, int>
     {
-      public LineSelectionEvent()
-      {
-        base.\u002Ector();
-      }
     }
 
     [Serializable]
     public class LinkSelectionEvent : UnityEvent<string, string, int>
     {
-      public LinkSelectionEvent()
-      {
-        base.\u002Ector();
-      }
     }
   }
 }

@@ -20,19 +20,13 @@ public class DiscordManager : MonoBehaviour
   public DiscordRpc.RichPresence waitingPreset;
   public DiscordRpc.RichPresence[] classPresets;
 
-  public DiscordManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     DiscordManager.singleton = this;
-    this.nm = (CustomNetworkManager) ((Component) this).GetComponent<CustomNetworkManager>();
-    this.ccm = (CharacterClassManager) Resources.FindObjectsOfTypeAll<CharacterClassManager>()[0];
-    this.discordController = (DiscordController) ((Component) this).GetComponent<DiscordController>();
-    // ISSUE: method pointer
-    SceneManager.add_sceneLoaded(new UnityAction<Scene, LoadSceneMode>((object) this, __methodptr(OnLevelFinishedLoading)));
+    this.nm = this.GetComponent<CustomNetworkManager>();
+    this.ccm = Resources.FindObjectsOfTypeAll<CharacterClassManager>()[0];
+    this.discordController = this.GetComponent<DiscordController>();
+    SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(this.OnLevelFinishedLoading);
   }
 
   public void ChangePreset(int classID)
@@ -55,8 +49,8 @@ public class DiscordManager : MonoBehaviour
     }
     this.discordController.presence.startTimestamp = (long) (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
     string str1;
-    if (classID != -2 && this.nm.get_networkAddress().Contains("."))
-      str1 = Convert.ToBase64String(Encoding.UTF8.GetBytes(this.nm.get_networkAddress() + ":" + (object) this.nm.get_networkPort() + ":" + this.nm.CompatibleVersions[0]));
+    if (classID != -2 && this.nm.networkAddress.Contains("."))
+      str1 = Convert.ToBase64String(Encoding.UTF8.GetBytes(this.nm.networkAddress + ":" + (object) this.nm.networkPort + ":" + this.nm.CompatibleVersions[0]));
     else
       str1 = string.Empty;
     string str2 = str1;
@@ -84,24 +78,24 @@ public class DiscordManager : MonoBehaviour
 
   private void Update()
   {
-    if (!Input.GetKey((KeyCode) 306))
+    if (!Input.GetKey(KeyCode.LeftControl))
       return;
-    if (Input.GetKeyDown((KeyCode) 121))
+    if (Input.GetKeyDown(KeyCode.Y))
       this.discordController.RequestRespondYes();
-    if (!Input.GetKeyDown((KeyCode) 110))
+    if (!Input.GetKeyDown(KeyCode.N))
       return;
     this.discordController.RequestRespondNo();
   }
 
   private void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
   {
-    if (((Scene) ref scene).get_buildIndex() == 1)
+    if (scene.buildIndex == 1)
     {
       this.discordController.presence.partySize = 0;
       this.discordController.presence.partyMax = 0;
       this.ChangePreset(-2);
     }
-    if (!(((Scene) ref scene).get_name() == "Facility"))
+    if (!(scene.name == "Facility"))
       return;
     this.ChangePreset(-1);
   }

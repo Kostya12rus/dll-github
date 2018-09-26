@@ -26,12 +26,12 @@ namespace UnitySA.Utility
     {
       this.CheckStatus(camera);
       this.Camera = camera;
-      this.originalFov = camera.get_fieldOfView();
+      this.originalFov = camera.fieldOfView;
     }
 
     private void CheckStatus(Camera camera)
     {
-      if (Object.op_Equality((Object) camera, (Object) null))
+      if ((Object) camera == (Object) null)
         throw new Exception("FOVKick camera is null, please supply the camera to the constructor");
       if (this.IncreaseCurve == null)
         throw new Exception("FOVKick Increase curve is null, please define the curve for the field of view kicks");

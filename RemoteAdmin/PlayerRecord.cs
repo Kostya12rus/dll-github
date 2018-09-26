@@ -17,15 +17,10 @@ namespace RemoteAdmin
     public bool isSelected;
     public string playerId;
 
-    public PlayerRecord()
-    {
-      base.\u002Ector();
-    }
-
     public void Toggle()
     {
       bool flag = !this.isSelected;
-      if (!Input.GetKey((KeyCode) 306))
+      if (!Input.GetKey(KeyCode.LeftControl))
       {
         foreach (PlayerRecord record in PlayerRecord.records)
         {
@@ -44,7 +39,7 @@ namespace RemoteAdmin
 
     private void LateUpdate()
     {
-      ((Behaviour) ((Component) this.myText).GetComponent<Outline>()).set_enabled(this.isSelected);
+      this.myText.GetComponent<Outline>().enabled = this.isSelected;
     }
 
     private void Start()
@@ -54,7 +49,7 @@ namespace RemoteAdmin
 
     public void Setup(Color c)
     {
-      ((Graphic) this.myText).set_color(c);
+      this.myText.color = c;
     }
   }
 }

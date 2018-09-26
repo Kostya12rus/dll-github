@@ -16,20 +16,15 @@ namespace TMPro.Examples
     private const string k_label = "The count is <#0080ff>{0}</color>";
     private int count;
 
-    public TMP_ExampleScript_01()
-    {
-      base.\u002Ector();
-    }
-
     private void Awake()
     {
-      this.m_text = this.ObjectType != TMP_ExampleScript_01.objectType.TextMeshPro ? (TMP_Text) (((Component) this).GetComponent<TextMeshProUGUI>() ?? ((Component) this).get_gameObject().AddComponent<TextMeshProUGUI>()) : (TMP_Text) (((Component) this).GetComponent<TextMeshPro>() ?? ((Component) this).get_gameObject().AddComponent<TextMeshPro>());
-      this.m_text.set_font((TMP_FontAsset) Resources.Load<TMP_FontAsset>("Fonts & Materials/Anton SDF"));
-      this.m_text.set_fontSharedMaterial((Material) Resources.Load<Material>("Fonts & Materials/Anton SDF - Drop Shadow"));
-      this.m_text.set_fontSize(120f);
-      this.m_text.set_text("A <#0080ff>simple</color> line of text.");
+      this.m_text = this.ObjectType != TMP_ExampleScript_01.objectType.TextMeshPro ? (TMP_Text) (this.GetComponent<TextMeshProUGUI>() ?? this.gameObject.AddComponent<TextMeshProUGUI>()) : (TMP_Text) (this.GetComponent<TextMeshPro>() ?? this.gameObject.AddComponent<TextMeshPro>());
+      this.m_text.font = Resources.Load<TMP_FontAsset>("Fonts & Materials/Anton SDF");
+      this.m_text.fontSharedMaterial = Resources.Load<Material>("Fonts & Materials/Anton SDF - Drop Shadow");
+      this.m_text.fontSize = 120f;
+      this.m_text.text = "A <#0080ff>simple</color> line of text.";
       Vector2 preferredValues = this.m_text.GetPreferredValues(float.PositiveInfinity, float.PositiveInfinity);
-      this.m_text.get_rectTransform().set_sizeDelta(new Vector2((float) preferredValues.x, (float) preferredValues.y));
+      this.m_text.rectTransform.sizeDelta = new Vector2(preferredValues.x, preferredValues.y);
     }
 
     private void Update()

@@ -16,18 +16,13 @@ public class WeaponShootAnimation : MonoBehaviour
   private float yOverride;
   private float curY;
 
-  public WeaponShootAnimation()
-  {
-    base.\u002Ector();
-  }
-
   private void LateUpdate()
   {
-    this.curPosition = Mathf.Lerp(this.curPosition, 0.0f, Time.get_deltaTime() * this.backSpeed * this.curPosition);
+    this.curPosition = Mathf.Lerp(this.curPosition, 0.0f, Time.deltaTime * this.backSpeed * this.curPosition);
     this.yOverride = Mathf.Lerp(0.0f, this.yOverride, this.curPosition);
-    this.curY = Mathf.Lerp(this.curY, this.yOverride, Time.get_deltaTime() * this.backY_Speed * this.curPosition);
-    ((Component) this).get_transform().set_localPosition(Vector3.Lerp(Vector3.get_zero(), this.maxRecoilPos, this.curPosition));
-    ((Component) this).get_transform().set_localRotation(Quaternion.Lerp(Quaternion.Euler(Vector3.get_zero()), Quaternion.Euler(Vector3.op_Addition(this.maxRecoilRot, Vector3.op_Multiply(Vector3.get_up(), this.curY))), this.curPosition));
+    this.curY = Mathf.Lerp(this.curY, this.yOverride, Time.deltaTime * this.backY_Speed * this.curPosition);
+    this.transform.localPosition = Vector3.Lerp(Vector3.zero, this.maxRecoilPos, this.curPosition);
+    this.transform.localRotation = Quaternion.Lerp(Quaternion.Euler(Vector3.zero), Quaternion.Euler(this.maxRecoilRot + Vector3.up * this.curY), this.curPosition);
   }
 
   public void Recoil(float f)

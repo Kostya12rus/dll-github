@@ -26,11 +26,6 @@ public class TeslaGate : NetworkBehaviour
   private bool inProgress;
   public GameObject particles;
 
-  public TeslaGate()
-  {
-    base.\u002Ector();
-  }
-
   private void ServerSideCode()
   {
     if (this.inProgress || this.PlayersInRange(false).Length <= 0)
@@ -40,25 +35,22 @@ public class TeslaGate : NetworkBehaviour
 
   private void ClientSideCode()
   {
-    ((Component) this).get_transform().set_localPosition(this.localPosition);
-    ((Component) this).get_transform().set_localRotation(Quaternion.Euler(this.localRotation));
-    ((Renderer) ((Component) this).GetComponent<Renderer>()).set_enabled(true);
+    this.transform.localPosition = this.localPosition;
+    this.transform.localRotation = Quaternion.Euler(this.localRotation);
+    this.GetComponent<Renderer>().enabled = true;
   }
 
   [ClientRpc]
   private void RpcPlayAnimation()
   {
-    Timing.RunCoroutine(this._PlayAnimation(), (Segment) 1);
+    Timing.RunCoroutine(this._PlayAnimation(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _PlayAnimation()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new TeslaGate.\u003C_PlayAnimation\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new TeslaGate.\u003C_PlayAnimation\u003Ec__Iterator0() { \u0024this = this };
   }
 
   private PlayerStats[] PlayersInRange(bool hurtRange)
@@ -68,10 +60,10 @@ public class TeslaGate : NetworkBehaviour
     {
       foreach (GameObject killer in this.killers)
       {
-        foreach (Component component in Physics.OverlapBox(Vector3.op_Addition(killer.get_transform().get_position(), Vector3.op_Multiply(Vector3.get_up(), (float) (this.sizeOfKiller.y / 2.0))), Vector3.op_Division(this.sizeOfKiller, 2f), (Quaternion) null, LayerMask.op_Implicit(this.killerMask)))
+        foreach (Component component in Physics.OverlapBox(killer.transform.position + Vector3.up * (this.sizeOfKiller.y / 2f), this.sizeOfKiller / 2f, new Quaternion(), (int) this.killerMask))
         {
-          PlayerStats componentInParent = (PlayerStats) component.GetComponentInParent<PlayerStats>();
-          if (Object.op_Inequality((Object) componentInParent, (Object) null) && componentInParent.ccm.curClass != 2)
+          PlayerStats componentInParent = component.GetComponentInParent<PlayerStats>();
+          if ((Object) componentInParent != (Object) null && componentInParent.ccm.curClass != 2)
             playerStatsList.Add(componentInParent);
         }
       }
@@ -80,8 +72,8 @@ public class TeslaGate : NetworkBehaviour
     {
       foreach (GameObject player in PlayerManager.singleton.players)
       {
-        if ((double) Vector3.Distance(((Component) this).get_transform().get_position(), player.get_transform().get_position()) < (double) this.sizeOfTrigger && ((CharacterClassManager) player.GetComponent<CharacterClassManager>()).curClass != 2)
-          playerStatsList.Add((PlayerStats) player.GetComponent<PlayerStats>());
+        if ((double) Vector3.Distance(this.transform.position, player.transform.position) < (double) this.sizeOfTrigger && player.GetComponent<CharacterClassManager>().curClass != 2)
+          playerStatsList.Add(player.GetComponent<PlayerStats>());
       }
     }
     return playerStatsList.ToArray();
@@ -91,16 +83,16 @@ public class TeslaGate : NetworkBehaviour
   {
     if (!this.showGizmos)
       return;
-    Gizmos.set_color(new Color(1f, 0.0f, 0.0f, 0.2f));
+    Gizmos.color = new Color(1f, 0.0f, 0.0f, 0.2f);
     foreach (GameObject killer in this.killers)
-      Gizmos.DrawCube(Vector3.op_Addition(killer.get_transform().get_position(), Vector3.op_Multiply(Vector3.get_up(), (float) (this.sizeOfKiller.y / 2.0))), this.sizeOfKiller);
-    Gizmos.set_color(new Color(1f, 1f, 0.0f, 0.2f));
-    Gizmos.DrawSphere(((Component) this).get_transform().get_position(), this.sizeOfTrigger);
+      Gizmos.DrawCube(killer.transform.position + Vector3.up * (this.sizeOfKiller.y / 2f), this.sizeOfKiller);
+    Gizmos.color = new Color(1f, 1f, 0.0f, 0.2f);
+    Gizmos.DrawSphere(this.transform.position, this.sizeOfTrigger);
   }
 
   private void Update()
   {
-    if (NetworkServer.get_active())
+    if (NetworkServer.active)
       this.ServerSideCode();
     else
       this.ClientSideCode();
@@ -112,7 +104,7 @@ public class TeslaGate : NetworkBehaviour
 
   protected static void InvokeRpcRpcPlayAnimation(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcPlayAnimation called on server.");
     else
       ((TeslaGate) obj).RpcPlayAnimation();
@@ -120,35 +112,34 @@ public class TeslaGate : NetworkBehaviour
 
   public void CallRpcPlayAnimation()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcPlayAnimation called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) TeslaGate.kRpcRpcPlayAnimation);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      this.SendRPCInternal(networkWriter, 0, "RpcPlayAnimation");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) TeslaGate.kRpcRpcPlayAnimation);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      this.SendRPCInternal(writer, 0, "RpcPlayAnimation");
     }
   }
 
   static TeslaGate()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (TeslaGate), TeslaGate.kRpcRpcPlayAnimation, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcPlayAnimation)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (TeslaGate), TeslaGate.kRpcRpcPlayAnimation, new NetworkBehaviour.CmdDelegate(TeslaGate.InvokeRpcRpcPlayAnimation));
     NetworkCRC.RegisterBehaviour(nameof (TeslaGate), 0);
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

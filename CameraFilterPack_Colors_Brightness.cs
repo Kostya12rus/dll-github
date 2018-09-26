@@ -10,24 +10,19 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Colors_Brightness : MonoBehaviour
 {
-  public Shader SCShader;
   [Range(0.0f, 2f)]
-  public float _Brightness;
+  public float _Brightness = 1.5f;
+  public Shader SCShader;
   private Material SCMaterial;
-
-  public CameraFilterPack_Colors_Brightness()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -36,14 +31,14 @@ public class CameraFilterPack_Colors_Brightness : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Colors_Brightness");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
       this.material.SetFloat("_Val", this._Brightness);
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
@@ -58,7 +53,7 @@ public class CameraFilterPack_Colors_Brightness : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

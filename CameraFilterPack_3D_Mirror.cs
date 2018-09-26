@@ -10,38 +10,33 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_3D_Mirror : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 100f)]
+  public float _FixDistance = 1.5f;
+  [Range(-0.99f, 0.99f)]
+  public float _Distance = 0.4f;
+  [Range(0.0f, 0.5f)]
+  public float _Size = 0.5f;
+  [Range(0.0f, 1f)]
+  public float Fade = 1f;
+  [Range(0.0f, 2f)]
+  public float Lightning = 2f;
+  [Range(-5f, 5f)]
+  public float AutoAnimatedNearSpeed = 0.5f;
   public Shader SCShader;
   public bool _Visualize;
-  private float TimeX;
   private Material SCMaterial;
-  [Range(0.0f, 100f)]
-  public float _FixDistance;
-  [Range(-0.99f, 0.99f)]
-  public float _Distance;
-  [Range(0.0f, 0.5f)]
-  public float _Size;
-  [Range(0.0f, 1f)]
-  public float Fade;
-  [Range(0.0f, 2f)]
-  public float Lightning;
   public bool AutoAnimatedNear;
-  [Range(-5f, 5f)]
-  public float AutoAnimatedNearSpeed;
   public static Color ChangeColorRGB;
-
-  public CameraFilterPack_3D_Mirror()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -50,22 +45,22 @@ public class CameraFilterPack_3D_Mirror : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/3D_Mirror");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
       if (this.AutoAnimatedNear)
       {
-        this._Distance += Time.get_deltaTime() * this.AutoAnimatedNearSpeed;
+        this._Distance += Time.deltaTime * this.AutoAnimatedNearSpeed;
         if ((double) this._Distance > 1.0)
           this._Distance = -1f;
         if ((double) this._Distance < -1.0)
@@ -79,9 +74,9 @@ public class CameraFilterPack_3D_Mirror : MonoBehaviour
       this.material.SetFloat("Fade", this.Fade);
       this.material.SetFloat("Lightning", this.Lightning);
       this.material.SetFloat("_Visualize", !this._Visualize ? 0.0f : 1f);
-      this.material.SetFloat("_FarCamera", 1000f / ((Camera) ((Component) this).GetComponent<Camera>()).get_farClipPlane());
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
-      ((Camera) ((Component) this).GetComponent<Camera>()).set_depthTextureMode((DepthTextureMode) 1);
+      this.material.SetFloat("_FarCamera", 1000f / this.GetComponent<Camera>().farClipPlane);
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
+      this.GetComponent<Camera>().depthTextureMode = DepthTextureMode.Depth;
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -94,7 +89,7 @@ public class CameraFilterPack_3D_Mirror : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

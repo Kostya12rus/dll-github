@@ -24,20 +24,15 @@ public class WorkStationUpgrader : NetworkBehaviour
   public TextMeshProUGUI ms_stats;
   public TextMeshProUGUI ms_curModSize;
 
-  public WorkStationUpgrader()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.ws = (WorkStation) ((Component) this).GetComponent<WorkStation>();
+    this.ws = this.GetComponent<WorkStation>();
   }
 
   public void ChangeWeapon(Button button)
   {
     int result = 0;
-    int.TryParse(((Object) button).get_name(), out result);
+    int.TryParse(button.name, out result);
     this.ws.ChangeScreen("slots");
     this.curWeapon = result;
     this.slotID = -1;
@@ -47,7 +42,7 @@ public class WorkStationUpgrader : NetworkBehaviour
   public void ChangeSlot(Button button)
   {
     int result = 0;
-    int.TryParse(((Object) button).get_name().Remove(1), out result);
+    int.TryParse(button.name.Remove(1), out result);
     this.ws.ChangeScreen("mods");
     this.slotID = result;
     this.curMod = this.manager.weapons[this.curWeapon].GetMod((ModPrefab.ModType) this.slotID);
@@ -79,57 +74,57 @@ public class WorkStationUpgrader : NetworkBehaviour
 
   private void RefreshSlotSelector()
   {
-    if (Object.op_Equality((Object) this.manager, (Object) null))
-      this.manager = (WeaponManager) PlayerManager.localPlayer.GetComponent<WeaponManager>();
-    ((Selectable) this.ss_sight).set_interactable(this.manager.weapons[this.curWeapon].mod_sights.Length > 1);
-    ((TMP_Text) ((Component) this.ss_sight).GetComponent<TextMeshProUGUI>()).set_text(((TMP_Text) ((Component) this.ss_sight).GetComponent<TextMeshProUGUI>()).get_text().Remove(((TMP_Text) ((Component) this.ss_sight).GetComponent<TextMeshProUGUI>()).get_text().IndexOf('(')));
-    M0 component1 = ((Component) this.ss_sight).GetComponent<TextMeshProUGUI>();
-    ((TMP_Text) component1).set_text(((TMP_Text) component1).get_text() + "(" + (object) (this.manager.weapons[this.curWeapon].mod_sights.Length - 1) + " ready)");
-    ((Selectable) this.ss_barrel).set_interactable(this.manager.weapons[this.curWeapon].mod_barrels.Length > 1);
-    ((TMP_Text) ((Component) this.ss_barrel).GetComponent<TextMeshProUGUI>()).set_text(((TMP_Text) ((Component) this.ss_barrel).GetComponent<TextMeshProUGUI>()).get_text().Remove(((TMP_Text) ((Component) this.ss_barrel).GetComponent<TextMeshProUGUI>()).get_text().IndexOf('(')));
-    M0 component2 = ((Component) this.ss_barrel).GetComponent<TextMeshProUGUI>();
-    ((TMP_Text) component2).set_text(((TMP_Text) component2).get_text() + "(" + (object) (this.manager.weapons[this.curWeapon].mod_barrels.Length - 1) + " ready)");
-    ((Selectable) this.ss_other).set_interactable(this.manager.weapons[this.curWeapon].mod_others.Length > 1);
-    ((TMP_Text) ((Component) this.ss_other).GetComponent<TextMeshProUGUI>()).set_text(((TMP_Text) ((Component) this.ss_other).GetComponent<TextMeshProUGUI>()).get_text().Remove(((TMP_Text) ((Component) this.ss_other).GetComponent<TextMeshProUGUI>()).get_text().IndexOf('(')));
-    M0 component3 = ((Component) this.ss_other).GetComponent<TextMeshProUGUI>();
-    ((TMP_Text) component3).set_text(((TMP_Text) component3).get_text() + "(" + (object) (this.manager.weapons[this.curWeapon].mod_others.Length - 1) + " ready)");
+    if ((Object) this.manager == (Object) null)
+      this.manager = PlayerManager.localPlayer.GetComponent<WeaponManager>();
+    this.ss_sight.interactable = this.manager.weapons[this.curWeapon].mod_sights.Length > 1;
+    this.ss_sight.GetComponent<TextMeshProUGUI>().text = this.ss_sight.GetComponent<TextMeshProUGUI>().text.Remove(this.ss_sight.GetComponent<TextMeshProUGUI>().text.IndexOf('('));
+    TextMeshProUGUI component1 = this.ss_sight.GetComponent<TextMeshProUGUI>();
+    component1.text = component1.text + "(" + (object) (this.manager.weapons[this.curWeapon].mod_sights.Length - 1) + " ready)";
+    this.ss_barrel.interactable = this.manager.weapons[this.curWeapon].mod_barrels.Length > 1;
+    this.ss_barrel.GetComponent<TextMeshProUGUI>().text = this.ss_barrel.GetComponent<TextMeshProUGUI>().text.Remove(this.ss_barrel.GetComponent<TextMeshProUGUI>().text.IndexOf('('));
+    TextMeshProUGUI component2 = this.ss_barrel.GetComponent<TextMeshProUGUI>();
+    component2.text = component2.text + "(" + (object) (this.manager.weapons[this.curWeapon].mod_barrels.Length - 1) + " ready)";
+    this.ss_other.interactable = this.manager.weapons[this.curWeapon].mod_others.Length > 1;
+    this.ss_other.GetComponent<TextMeshProUGUI>().text = this.ss_other.GetComponent<TextMeshProUGUI>().text.Remove(this.ss_other.GetComponent<TextMeshProUGUI>().text.IndexOf('('));
+    TextMeshProUGUI component3 = this.ss_other.GetComponent<TextMeshProUGUI>();
+    component3.text = component3.text + "(" + (object) (this.manager.weapons[this.curWeapon].mod_others.Length - 1) + " ready)";
   }
 
   private void RefreshModSelector()
   {
     if (this.slotID == 0)
     {
-      ((TMP_Text) this.ms_header).set_text(this.manager.weapons[this.curWeapon].mod_sights[this.curMod].name);
-      this.ms_icon.set_texture(this.manager.weapons[this.curWeapon].mod_sights[this.curMod].icon);
-      ((TMP_Text) this.ms_stats).set_text(this.manager.weapons[this.curWeapon].GetStats(ModPrefab.ModType.Sight, this.curMod));
+      this.ms_header.text = this.manager.weapons[this.curWeapon].mod_sights[this.curMod].name;
+      this.ms_icon.texture = this.manager.weapons[this.curWeapon].mod_sights[this.curMod].icon;
+      this.ms_stats.text = this.manager.weapons[this.curWeapon].GetStats(ModPrefab.ModType.Sight, this.curMod);
     }
     else if (this.slotID == 1)
     {
-      ((TMP_Text) this.ms_header).set_text(this.manager.weapons[this.curWeapon].mod_barrels[this.curMod].name);
-      this.ms_icon.set_texture(this.manager.weapons[this.curWeapon].mod_barrels[this.curMod].icon);
-      ((TMP_Text) this.ms_stats).set_text(this.manager.weapons[this.curWeapon].GetStats(ModPrefab.ModType.Barrel, this.curMod));
+      this.ms_header.text = this.manager.weapons[this.curWeapon].mod_barrels[this.curMod].name;
+      this.ms_icon.texture = this.manager.weapons[this.curWeapon].mod_barrels[this.curMod].icon;
+      this.ms_stats.text = this.manager.weapons[this.curWeapon].GetStats(ModPrefab.ModType.Barrel, this.curMod);
     }
     else if (this.slotID == 2)
     {
-      ((TMP_Text) this.ms_header).set_text(this.manager.weapons[this.curWeapon].mod_others[this.curMod].name);
-      this.ms_icon.set_texture(this.manager.weapons[this.curWeapon].mod_others[this.curMod].icon);
-      ((TMP_Text) this.ms_stats).set_text(this.manager.weapons[this.curWeapon].GetStats(ModPrefab.ModType.Other, this.curMod));
+      this.ms_header.text = this.manager.weapons[this.curWeapon].mod_others[this.curMod].name;
+      this.ms_icon.texture = this.manager.weapons[this.curWeapon].mod_others[this.curMod].icon;
+      this.ms_stats.text = this.manager.weapons[this.curWeapon].GetStats(ModPrefab.ModType.Other, this.curMod);
     }
-    ((TMP_Text) this.ms_curModSize).set_text(this.curMod.ToString() + " / " + (object) (this.GetModLength(this.slotID) - 1));
-    this.manager.weapons[this.curWeapon].ChangeMod((ModPrefab.ModType) this.slotID, this.curMod, true, ((WeaponManager) PlayerManager.localPlayer.GetComponent<WeaponManager>()).flashlightEnabled);
+    this.ms_curModSize.text = this.curMod.ToString() + " / " + (object) (this.GetModLength(this.slotID) - 1);
+    this.manager.weapons[this.curWeapon].ChangeMod((ModPrefab.ModType) this.slotID, this.curMod, true, PlayerManager.localPlayer.GetComponent<WeaponManager>().flashlightEnabled);
   }
 
   private void UNetVersion()
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

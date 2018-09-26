@@ -45,11 +45,6 @@ public class GFXSettings : MonoBehaviour
   public Text blood_txt;
   public Text textures_txt;
 
-  public GFXSettings()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.LoadSavedSettings();
@@ -57,74 +52,74 @@ public class GFXSettings : MonoBehaviour
 
   public void RefreshGUI()
   {
-    if (Object.op_Equality((Object) this.pxlc_slider, (Object) null))
+    if ((Object) this.pxlc_slider == (Object) null)
       return;
-    this.pxlc_slider.set_value((float) (QualitySettings.get_pixelLightCount() - 6));
-    this.shadows_slider.set_value((float) QualitySettings.get_shadows());
-    this.shadres_slider.set_value((float) PlayerPrefs.GetInt("gfxsets_shadres", 2));
-    this.shaddis_slider.set_value((float) ((int) QualitySettings.get_shadowDistance() - 25));
-    this.vsync_slider.set_value((float) QualitySettings.get_vSyncCount());
-    this.aa_slider.set_value((float) PlayerPrefs.GetInt("gfxsets_aa", 1));
-    this.aocc_slider.set_value((float) PlayerPrefs.GetInt("gfxsets_mb", 0));
-    this.cc_slider.set_value((float) PlayerPrefs.GetInt("gfxsets_cc", 1));
-    this.hp_slider.set_value((float) PlayerPrefs.GetInt("gfxsets_hp", 0));
-    this.textures_slider.set_value((float) PlayerPrefs.GetInt("gfxsets_textures", 0));
+    this.pxlc_slider.value = (float) (QualitySettings.pixelLightCount - 6);
+    this.shadows_slider.value = (float) QualitySettings.shadows;
+    this.shadres_slider.value = (float) PlayerPrefs.GetInt("gfxsets_shadres", 2);
+    this.shaddis_slider.value = (float) ((int) QualitySettings.shadowDistance - 25);
+    this.vsync_slider.value = (float) QualitySettings.vSyncCount;
+    this.aa_slider.value = (float) PlayerPrefs.GetInt("gfxsets_aa", 1);
+    this.aocc_slider.value = (float) PlayerPrefs.GetInt("gfxsets_mb", 0);
+    this.cc_slider.value = (float) PlayerPrefs.GetInt("gfxsets_cc", 1);
+    this.hp_slider.value = (float) PlayerPrefs.GetInt("gfxsets_hp", 0);
+    this.textures_slider.value = (float) PlayerPrefs.GetInt("gfxsets_textures", 0);
     for (int index = 0; index < this.blood_v.Length; ++index)
     {
       if (this.blood_v[index].en == PlayerPrefs.GetInt("gfxsets_maxblood", 250).ToString())
-        this.blood_slider.set_value((float) index);
+        this.blood_slider.value = (float) index;
     }
     this.RefreshValues();
   }
 
   public void RefreshValues()
   {
-    this.pxlc_txt.set_text(this.pxlc_v[Mathf.RoundToInt(this.pxlc_slider.get_value())].Return());
-    this.shadows_txt.set_text(this.shadows_v[Mathf.RoundToInt(this.shadows_slider.get_value())].Return());
-    this.shadres_txt.set_text(this.shadres_v[Mathf.RoundToInt(this.shadres_slider.get_value())].Return());
-    this.shaddis_txt.set_text(this.shaddis_v[Mathf.RoundToInt(this.shaddis_slider.get_value())].Return());
-    this.vsync_txt.set_text(this.vsync_v[Mathf.RoundToInt(this.vsync_slider.get_value())].Return());
-    this.blood_txt.set_text(this.blood_v[Mathf.RoundToInt(this.blood_slider.get_value())].Return());
-    this.aa_txt.set_text(this.aa_v[Mathf.RoundToInt(this.aa_slider.get_value())].Return());
-    this.aocc_txt.set_text(this.aocc_v[Mathf.RoundToInt(this.aocc_slider.get_value())].Return());
-    this.cc_txt.set_text(this.cc_v[Mathf.RoundToInt(this.cc_slider.get_value())].Return());
-    this.hp_txt.set_text(this.hp_v[Mathf.RoundToInt(this.hp_slider.get_value())].Return());
-    this.textures_txt.set_text(this.textures_v[Mathf.RoundToInt(this.textures_slider.get_value())].Return());
+    this.pxlc_txt.text = this.pxlc_v[Mathf.RoundToInt(this.pxlc_slider.value)].Return();
+    this.shadows_txt.text = this.shadows_v[Mathf.RoundToInt(this.shadows_slider.value)].Return();
+    this.shadres_txt.text = this.shadres_v[Mathf.RoundToInt(this.shadres_slider.value)].Return();
+    this.shaddis_txt.text = this.shaddis_v[Mathf.RoundToInt(this.shaddis_slider.value)].Return();
+    this.vsync_txt.text = this.vsync_v[Mathf.RoundToInt(this.vsync_slider.value)].Return();
+    this.blood_txt.text = this.blood_v[Mathf.RoundToInt(this.blood_slider.value)].Return();
+    this.aa_txt.text = this.aa_v[Mathf.RoundToInt(this.aa_slider.value)].Return();
+    this.aocc_txt.text = this.aocc_v[Mathf.RoundToInt(this.aocc_slider.value)].Return();
+    this.cc_txt.text = this.cc_v[Mathf.RoundToInt(this.cc_slider.value)].Return();
+    this.hp_txt.text = this.hp_v[Mathf.RoundToInt(this.hp_slider.value)].Return();
+    this.textures_txt.text = this.textures_v[Mathf.RoundToInt(this.textures_slider.value)].Return();
   }
 
   public void SaveSettings()
   {
-    PlayerPrefs.SetInt("gfxsets_pxlc", (int) this.pxlc_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_shadows", (int) this.shadows_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_shadres", (int) this.shadres_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_shaddis", (int) this.shaddis_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_vsync", (int) this.vsync_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_aa", (int) this.aa_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_mb", (int) this.aocc_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_cc", (int) this.cc_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_hp", (int) this.hp_slider.get_value());
-    PlayerPrefs.SetInt("gfxsets_maxblood", int.Parse(this.blood_txt.get_text()));
-    PlayerPrefs.SetInt("gfxsets_textures", (int) this.textures_slider.get_value());
+    PlayerPrefs.SetInt("gfxsets_pxlc", (int) this.pxlc_slider.value);
+    PlayerPrefs.SetInt("gfxsets_shadows", (int) this.shadows_slider.value);
+    PlayerPrefs.SetInt("gfxsets_shadres", (int) this.shadres_slider.value);
+    PlayerPrefs.SetInt("gfxsets_shaddis", (int) this.shaddis_slider.value);
+    PlayerPrefs.SetInt("gfxsets_vsync", (int) this.vsync_slider.value);
+    PlayerPrefs.SetInt("gfxsets_aa", (int) this.aa_slider.value);
+    PlayerPrefs.SetInt("gfxsets_mb", (int) this.aocc_slider.value);
+    PlayerPrefs.SetInt("gfxsets_cc", (int) this.cc_slider.value);
+    PlayerPrefs.SetInt("gfxsets_hp", (int) this.hp_slider.value);
+    PlayerPrefs.SetInt("gfxsets_maxblood", int.Parse(this.blood_txt.text));
+    PlayerPrefs.SetInt("gfxsets_textures", (int) this.textures_slider.value);
     this.LoadSavedSettings();
   }
 
   public void LoadSavedSettings()
   {
     QualitySettings.SetQualityLevel(PlayerPrefs.GetInt("gfxsets_textures", 0));
-    QualitySettings.set_pixelLightCount(Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_pxlc", 4) + 6, 6, 12));
-    QualitySettings.set_shadows((ShadowQuality) Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_shadows", 3), 0, 3));
-    QualitySettings.set_shadowResolution((ShadowResolution) Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_shadres", 2), 0, 3));
-    QualitySettings.set_shadowDistance((float) Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_shaddis", 10) + 25, 25, 50));
-    QualitySettings.set_vSyncCount(Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_vsync", 1), 0, 1));
+    QualitySettings.pixelLightCount = Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_pxlc", 4) + 6, 6, 12);
+    QualitySettings.shadows = (ShadowQuality) Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_shadows", 3), 0, 3);
+    QualitySettings.shadowResolution = (ShadowResolution) Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_shadres", 2), 0, 3);
+    QualitySettings.shadowDistance = (float) Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_shaddis", 10) + 25, 25, 50);
+    QualitySettings.vSyncCount = Mathf.Clamp(PlayerPrefs.GetInt("gfxsets_vsync", 1), 0, 1);
     this.RefreshPPB();
     this.RefreshGUI();
   }
 
   private void RefreshPPB()
   {
-    foreach (PostProcessingBehaviour processingBehaviour in (PostProcessingBehaviour[]) Resources.FindObjectsOfTypeAll<PostProcessingBehaviour>())
+    foreach (PostProcessingBehaviour processingBehaviour in Resources.FindObjectsOfTypeAll<PostProcessingBehaviour>())
     {
-      if (Object.op_Inequality((Object) processingBehaviour.profile, (Object) null) && !processingBehaviour.profile.fog.enabled)
+      if ((Object) processingBehaviour.profile != (Object) null && !processingBehaviour.profile.fog.enabled)
       {
         processingBehaviour.profile.antialiasing.enabled = PlayerPrefs.GetInt("gfxsets_aa", 1) == 1;
         processingBehaviour.profile.motionBlur.enabled = false;

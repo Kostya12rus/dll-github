@@ -12,11 +12,6 @@ public class RandomItemSpawner : MonoBehaviour
   public RandomItemSpawner.PickupPositionRelation[] pickups;
   public RandomItemSpawner.PositionPosIdRelation[] posIds;
 
-  public RandomItemSpawner()
-  {
-    base.\u002Ector();
-  }
-
   public void RefreshIndexes()
   {
     for (int index = 0; index < this.posIds.Length; ++index)

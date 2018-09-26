@@ -10,29 +10,24 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Distortion/Lens")]
 public class CameraFilterPack_Distortion_Lens : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 3f)]
+  public float Distortion = 1f;
   public Shader SCShader;
-  private float TimeX;
   private Material SCMaterial;
   [Range(-1f, 1f)]
   public float CenterX;
   [Range(-1f, 1f)]
   public float CenterY;
-  [Range(0.0f, 3f)]
-  public float Distortion;
-
-  public CameraFilterPack_Distortion_Lens()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -41,23 +36,23 @@ public class CameraFilterPack_Distortion_Lens : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Distortion_Lens");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
       this.material.SetFloat("_CenterX", this.CenterX);
       this.material.SetFloat("_CenterY", this.CenterY);
       this.material.SetFloat("_Distortion", this.Distortion);
-      this.material.SetVector("_ScreenResolution", Vector4.op_Implicit(new Vector2((float) Screen.get_width(), (float) Screen.get_height())));
+      this.material.SetVector("_ScreenResolution", (Vector4) new Vector2((float) Screen.width, (float) Screen.height));
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -70,7 +65,7 @@ public class CameraFilterPack_Distortion_Lens : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

@@ -22,11 +22,6 @@ public class AlphaWarheadNukesitePanel : NetworkBehaviour
   [SyncVar(hook = "SetEnabled")]
   public bool enabled;
 
-  public AlphaWarheadNukesitePanel()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
     AlphaWarheadOutsitePanel.nukeside = this;
@@ -46,19 +41,18 @@ public class AlphaWarheadNukesitePanel : NetworkBehaviour
 
   private void UpdateLeverStatus()
   {
-    if (Object.op_Equality((Object) AlphaWarheadController.host, (Object) null))
+    if ((Object) AlphaWarheadController.host == (Object) null)
       return;
-    Color color;
-    ((Color) ref color).\u002Ector(0.2f, 0.3f, 0.5f);
-    this.led_detonationinprogress.SetColor("_EmissionColor", !AlphaWarheadController.host.inProgress ? Color.get_black() : color);
-    this.led_outsidedoor.SetColor("_EmissionColor", !this.outsideDoor.isOpen ? Color.get_black() : color);
-    this.led_blastdoors.SetColor("_EmissionColor", !this.blastDoor.isClosed ? Color.get_black() : color);
-    this.led_cancel.SetColor("_EmissionColor", (double) AlphaWarheadController.host.timeToDetonation <= 10.0 || !AlphaWarheadController.host.inProgress ? Color.get_black() : Color.get_red());
+    Color color = new Color(0.2f, 0.3f, 0.5f);
+    this.led_detonationinprogress.SetColor("_EmissionColor", !AlphaWarheadController.host.inProgress ? Color.black : color);
+    this.led_outsidedoor.SetColor("_EmissionColor", !this.outsideDoor.isOpen ? Color.black : color);
+    this.led_blastdoors.SetColor("_EmissionColor", !this.blastDoor.isClosed ? Color.black : color);
+    this.led_cancel.SetColor("_EmissionColor", (double) AlphaWarheadController.host.timeToDetonation <= 10.0 || !AlphaWarheadController.host.inProgress ? Color.black : Color.red);
     this._leverStatus += !this.enabled ? -0.04f : 0.04f;
     this._leverStatus = Mathf.Clamp01(this._leverStatus);
     for (int index = 0; index < 2; ++index)
-      this.onOffMaterial[index].SetColor("_EmissionColor", index != Mathf.RoundToInt(this._leverStatus) ? Color.get_black() : new Color(1.2f, 1.2f, 1.2f, 1f));
-    this.lever.set_localRotation(Quaternion.Euler(new Vector3(Mathf.Lerp(10f, -170f, this._leverStatus), -90f, 90f)));
+      this.onOffMaterial[index].SetColor("_EmissionColor", index != Mathf.RoundToInt(this._leverStatus) ? Color.black : new Color(1.2f, 1.2f, 1.2f, 1f));
+    this.lever.localRotation = Quaternion.Euler(new Vector3(Mathf.Lerp(10f, -170f, this._leverStatus), -90f, 90f));
   }
 
   public void SetEnabled(bool b)
@@ -81,17 +75,17 @@ public class AlphaWarheadNukesitePanel : NetworkBehaviour
       int num1 = value ? 1 : 0;
       ref bool local = ref this.enabled;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetEnabled(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<bool>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<bool>(num1 != 0, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -99,21 +93,21 @@ public class AlphaWarheadNukesitePanel : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.enabled);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

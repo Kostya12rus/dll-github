@@ -5,13 +5,12 @@
 // Assembly location: C:\Users\Kostya12rus\Desktop\Cheat\TextureLoger\Assembly-CSharp.dll
 
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class ConnInfoCanceler : ConnInfoButton
 {
   public override void UseButton()
   {
     base.UseButton();
-    ((NetworkManager) Object.FindObjectOfType<CustomNetworkManager>()).StopClient();
+    Object.FindObjectOfType<CustomNetworkManager>().StopClient();
   }
 }

@@ -35,7 +35,7 @@ public class CentralServerKeyCache
         if (ServerStatic.IsDedicated)
           ServerConsole.AddLog("Can't load central server public key from cache - " + ex.Message);
         else
-          GameConsole.Console.singleton.AddLog("Can't load central server public key from cache - " + ex.Message, Color32.op_Implicit(Color.get_magenta()), false);
+          GameConsole.Console.singleton.AddLog("Can't load central server public key from cache - " + ex.Message, (Color32) Color.magenta, false);
         return (string) null;
       }
     }

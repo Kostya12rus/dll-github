@@ -23,35 +23,27 @@ public class CursorManager : MonoBehaviour
   public static bool isNotFacility;
   public static bool isApplicationNotFocused;
 
-  public CursorManager()
-  {
-    base.\u002Ector();
-  }
-
   private void LateUpdate()
   {
     bool flag = CursorManager.eqOpen | CursorManager.pauseOpen | CursorManager.isServerOnly | CursorManager.consoleOpen | CursorManager.is079 | CursorManager.scp106 | CursorManager.roundStarted | CursorManager.raOp | CursorManager.plOp | CursorManager.isNotFacility | CursorManager.isApplicationNotFocused;
-    Cursor.set_lockState(!flag ? (CursorLockMode) 1 : (CursorLockMode) 0);
-    Cursor.set_visible(flag);
+    Cursor.lockState = !flag ? CursorLockMode.Locked : CursorLockMode.None;
+    Cursor.visible = flag;
   }
 
   private void OnEnable()
   {
-    // ISSUE: method pointer
-    SceneManager.add_sceneLoaded(new UnityAction<Scene, LoadSceneMode>((object) this, __methodptr(OnSceneWasLoaded)));
+    SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(this.OnSceneWasLoaded);
   }
 
   private void OnDisable()
   {
-    // ISSUE: method pointer
-    SceneManager.add_sceneLoaded(new UnityAction<Scene, LoadSceneMode>((object) this, __methodptr(OnSceneWasLoaded)));
+    SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(this.OnSceneWasLoaded);
   }
 
   private void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
   {
     CursorManager.UnsetAll();
-    Scene activeScene = SceneManager.GetActiveScene();
-    CursorManager.isNotFacility = ((Scene) ref activeScene).get_name() != "Facility";
+    CursorManager.isNotFacility = SceneManager.GetActiveScene().name != "Facility";
   }
 
   private void OnApplicationFocus(bool focus)

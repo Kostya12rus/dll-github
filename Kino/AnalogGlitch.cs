@@ -30,11 +30,6 @@ namespace Kino
     private Material _material;
     private float _verticalJumpTime;
 
-    public AnalogGlitch()
-    {
-      base.\u002Ector();
-    }
-
     public float scanLineJitter
     {
       get
@@ -85,20 +80,16 @@ namespace Kino
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-      if (Object.op_Equality((Object) this._material, (Object) null))
+      if ((Object) this._material == (Object) null)
       {
         this._material = new Material(this._shader);
-        ((Object) this._material).set_hideFlags((HideFlags) 52);
+        this._material.hideFlags = HideFlags.DontSave;
       }
-      this._verticalJumpTime += (float) ((double) Time.get_deltaTime() * (double) this._verticalJump * 11.3000001907349);
-      this._material.SetVector("_ScanLineJitter", Vector4.op_Implicit(new Vector2((float) (1.0 / 500.0 + (double) Mathf.Pow(this._scanLineJitter, 3f) * 0.0500000007450581), Mathf.Clamp01((float) (1.0 - (double) this._scanLineJitter * 1.20000004768372)))));
-      Vector2 vector2_1;
-      ((Vector2) ref vector2_1).\u002Ector(this._verticalJump, this._verticalJumpTime);
-      this._material.SetVector("_VerticalJump", Vector4.op_Implicit(vector2_1));
+      this._verticalJumpTime += (float) ((double) Time.deltaTime * (double) this._verticalJump * 11.3000001907349);
+      this._material.SetVector("_ScanLineJitter", (Vector4) new Vector2((float) (1.0 / 500.0 + (double) Mathf.Pow(this._scanLineJitter, 3f) * 0.0500000007450581), Mathf.Clamp01((float) (1.0 - (double) this._scanLineJitter * 1.20000004768372))));
+      this._material.SetVector("_VerticalJump", (Vector4) new Vector2(this._verticalJump, this._verticalJumpTime));
       this._material.SetFloat("_HorizontalShake", this._horizontalShake * 0.2f);
-      Vector2 vector2_2;
-      ((Vector2) ref vector2_2).\u002Ector(this._colorDrift * 0.04f, Time.get_time() * 606.11f);
-      this._material.SetVector("_ColorDrift", Vector4.op_Implicit(vector2_2));
+      this._material.SetVector("_ColorDrift", (Vector4) new Vector2(this._colorDrift * 0.04f, Time.time * 606.11f));
       Graphics.Blit((Texture) source, destination, this._material);
     }
   }

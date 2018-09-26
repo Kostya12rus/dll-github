@@ -10,32 +10,27 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/AAA/WaterDropPro")]
 public class CameraFilterPack_AAA_WaterDropPro : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
+  private float TimeX = 1f;
   [Range(8f, 64f)]
-  public float Distortion;
+  public float Distortion = 8f;
   [Range(0.0f, 7f)]
-  public float SizeX;
+  public float SizeX = 1f;
   [Range(0.0f, 7f)]
-  public float SizeY;
+  public float SizeY = 0.5f;
   [Range(0.0f, 10f)]
-  public float Speed;
+  public float Speed = 1f;
+  public Shader SCShader;
   private Material SCMaterial;
   private Texture2D Texture2;
-
-  public CameraFilterPack_AAA_WaterDropPro()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -45,16 +40,16 @@ public class CameraFilterPack_AAA_WaterDropPro : MonoBehaviour
   {
     this.Texture2 = Resources.Load("CameraFilterPack_WaterDrop") as Texture2D;
     this.SCShader = Shader.Find("CameraFilterPack/AAA_WaterDropPro");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -75,7 +70,7 @@ public class CameraFilterPack_AAA_WaterDropPro : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

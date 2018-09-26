@@ -14,6 +14,9 @@ using UnityEngine;
 public class SECTR_LOD : MonoBehaviour
 {
   private static List<SECTR_LOD> allLODs = new List<SECTR_LOD>(128);
+  private List<GameObject> toHide = new List<GameObject>(32);
+  private List<SECTR_LOD.LODEntry> toShow = new List<SECTR_LOD.LODEntry>(32);
+  public List<SECTR_LOD.LODSet> LODs = new List<SECTR_LOD.LODSet>();
   [HideInInspector]
   [SerializeField]
   private Vector3 boundsOffset;
@@ -26,16 +29,8 @@ public class SECTR_LOD : MonoBehaviour
   private int activeLOD;
   private bool siblingsDisabled;
   private SECTR_Member cachedMember;
-  private List<GameObject> toHide;
-  private List<SECTR_LOD.LODEntry> toShow;
-  public List<SECTR_LOD.LODSet> LODs;
   [SECTR_ToolTip("Determines which sibling components are disabled when the LOD is culled.", null, typeof (SECTR_LOD.SiblinglFlags))]
   public SECTR_LOD.SiblinglFlags CullSiblings;
-
-  public SECTR_LOD()
-  {
-    base.\u002Ector();
-  }
 
   public static List<SECTR_LOD> All
   {
@@ -47,14 +42,13 @@ public class SECTR_LOD : MonoBehaviour
 
   public void SelectLOD(Camera renderCamera)
   {
-    if (!Object.op_Implicit((Object) renderCamera))
+    if (!(bool) ((Object) renderCamera))
       return;
     if (!this.boundsUpdated)
       this._CalculateBounds();
-    Matrix4x4 localToWorldMatrix = ((Component) this).get_transform().get_localToWorldMatrix();
-    Vector3 vector3 = ((Matrix4x4) ref localToWorldMatrix).MultiplyPoint3x4(this.boundsOffset);
-    float num1 = Vector3.Distance(((Component) renderCamera).get_transform().get_position(), vector3);
-    float num2 = (float) ((double) this.boundsRadius / ((double) Mathf.Tan((float) ((double) renderCamera.get_fieldOfView() * 0.5 * (Math.PI / 180.0))) * (double) num1) * 2.0);
+    Vector3 b = this.transform.localToWorldMatrix.MultiplyPoint3x4(this.boundsOffset);
+    float num1 = Vector3.Distance(renderCamera.transform.position, b);
+    float num2 = (float) ((double) this.boundsRadius / ((double) Mathf.Tan((float) ((double) renderCamera.fieldOfView * 0.5 * (Math.PI / 180.0))) * (double) num1) * 2.0);
     int lodIndex = -1;
     int count = this.LODs.Count;
     for (int index = 0; index < count; ++index)
@@ -76,10 +70,10 @@ public class SECTR_LOD : MonoBehaviour
   private void OnEnable()
   {
     SECTR_LOD.allLODs.Add(this);
-    this.cachedMember = (SECTR_Member) ((Component) this).GetComponent<SECTR_Member>();
+    this.cachedMember = this.GetComponent<SECTR_Member>();
     SECTR_CullingCamera sectrCullingCamera = SECTR_CullingCamera.All.Count <= 0 ? (SECTR_CullingCamera) null : SECTR_CullingCamera.All[0];
-    if (Object.op_Implicit((Object) sectrCullingCamera))
-      this.SelectLOD((Camera) ((Component) sectrCullingCamera).GetComponent<Camera>());
+    if ((bool) ((Object) sectrCullingCamera))
+      this.SelectLOD(sectrCullingCamera.GetComponent<Camera>());
     else
       this._ActivateLOD(0);
   }
@@ -92,10 +86,9 @@ public class SECTR_LOD : MonoBehaviour
 
   private void OnDrawGizmosSelected()
   {
-    Gizmos.set_matrix(Matrix4x4.get_identity());
-    Gizmos.set_color(Color.get_yellow());
-    Matrix4x4 localToWorldMatrix = ((Component) this).get_transform().get_localToWorldMatrix();
-    Gizmos.DrawWireSphere(((Matrix4x4) ref localToWorldMatrix).MultiplyPoint(this.boundsOffset), this.boundsRadius);
+    Gizmos.matrix = Matrix4x4.identity;
+    Gizmos.color = Color.yellow;
+    Gizmos.DrawWireSphere(this.transform.localToWorldMatrix.MultiplyPoint(this.boundsOffset), this.boundsRadius);
   }
 
   private void _ActivateLOD(int lodIndex)
@@ -109,7 +102,7 @@ public class SECTR_LOD : MonoBehaviour
       for (int index = 0; index < count; ++index)
       {
         SECTR_LOD.LODEntry lodEntry = loD.LODEntries[index];
-        if (Object.op_Implicit((Object) lodEntry.gameObject))
+        if ((bool) ((Object) lodEntry.gameObject))
           this.toHide.Add(lodEntry.gameObject);
       }
     }
@@ -120,7 +113,7 @@ public class SECTR_LOD : MonoBehaviour
       for (int index = 0; index < count; ++index)
       {
         SECTR_LOD.LODEntry lodEntry = loD.LODEntries[index];
-        if (Object.op_Implicit((Object) lodEntry.gameObject))
+        if ((bool) ((Object) lodEntry.gameObject))
         {
           this.toHide.Remove(lodEntry.gameObject);
           this.toShow.Add(lodEntry);
@@ -135,13 +128,13 @@ public class SECTR_LOD : MonoBehaviour
     {
       SECTR_LOD.LODEntry lodEntry = this.toShow[index];
       lodEntry.gameObject.SetActive(true);
-      if (Object.op_Implicit((Object) lodEntry.lightmapSource))
+      if ((bool) ((Object) lodEntry.lightmapSource))
       {
-        Renderer component = (Renderer) lodEntry.gameObject.GetComponent<Renderer>();
-        if (Object.op_Implicit((Object) component))
+        Renderer component = lodEntry.gameObject.GetComponent<Renderer>();
+        if ((bool) ((Object) component))
         {
-          component.set_lightmapIndex(lodEntry.lightmapSource.get_lightmapIndex());
-          component.set_lightmapScaleOffset(lodEntry.lightmapSource.get_lightmapScaleOffset());
+          component.lightmapIndex = lodEntry.lightmapSource.lightmapIndex;
+          component.lightmapScaleOffset = lodEntry.lightmapSource.lightmapScaleOffset;
         }
       }
     }
@@ -151,39 +144,39 @@ public class SECTR_LOD : MonoBehaviour
       this.siblingsDisabled = this.activeLOD == -1;
       if ((this.CullSiblings & SECTR_LOD.SiblinglFlags.Behaviors) != (SECTR_LOD.SiblinglFlags) 0)
       {
-        MonoBehaviour[] components = (MonoBehaviour[]) ((Component) this).get_gameObject().GetComponents<MonoBehaviour>();
+        MonoBehaviour[] components = this.gameObject.GetComponents<MonoBehaviour>();
         int length = components.Length;
         for (int index = 0; index < length; ++index)
         {
           MonoBehaviour monoBehaviour = components[index];
-          if (Object.op_Inequality((Object) monoBehaviour, (Object) this) && Object.op_Inequality((Object) monoBehaviour, (Object) this.cachedMember))
-            ((Behaviour) monoBehaviour).set_enabled(!this.siblingsDisabled);
+          if ((Object) monoBehaviour != (Object) this && (Object) monoBehaviour != (Object) this.cachedMember)
+            monoBehaviour.enabled = !this.siblingsDisabled;
         }
       }
       if ((this.CullSiblings & SECTR_LOD.SiblinglFlags.Renderers) != (SECTR_LOD.SiblinglFlags) 0)
       {
-        Renderer[] components = (Renderer[]) ((Component) this).get_gameObject().GetComponents<Renderer>();
+        Renderer[] components = this.gameObject.GetComponents<Renderer>();
         int length = components.Length;
         for (int index = 0; index < length; ++index)
-          components[index].set_enabled(!this.siblingsDisabled);
+          components[index].enabled = !this.siblingsDisabled;
       }
       if ((this.CullSiblings & SECTR_LOD.SiblinglFlags.Lights) != (SECTR_LOD.SiblinglFlags) 0)
       {
-        Light[] components = (Light[]) ((Component) this).get_gameObject().GetComponents<Light>();
+        Light[] components = this.gameObject.GetComponents<Light>();
         int length = components.Length;
         for (int index = 0; index < length; ++index)
-          ((Behaviour) components[index]).set_enabled(!this.siblingsDisabled);
+          components[index].enabled = !this.siblingsDisabled;
       }
       if ((this.CullSiblings & SECTR_LOD.SiblinglFlags.Colliders) != (SECTR_LOD.SiblinglFlags) 0)
       {
-        Collider[] components = (Collider[]) ((Component) this).get_gameObject().GetComponents<Collider>();
+        Collider[] components = this.gameObject.GetComponents<Collider>();
         int length = components.Length;
         for (int index = 0; index < length; ++index)
-          components[index].set_enabled(!this.siblingsDisabled);
+          components[index].enabled = !this.siblingsDisabled;
       }
       if ((this.CullSiblings & SECTR_LOD.SiblinglFlags.RigidBodies) != (SECTR_LOD.SiblinglFlags) 0)
       {
-        Rigidbody[] components = (Rigidbody[]) ((Component) this).get_gameObject().GetComponents<Rigidbody>();
+        Rigidbody[] components = this.gameObject.GetComponents<Rigidbody>();
         int length = components.Length;
         for (int index = 0; index < length; ++index)
         {
@@ -199,7 +192,7 @@ public class SECTR_LOD : MonoBehaviour
 
   private void _CalculateBounds()
   {
-    Bounds bounds1 = (Bounds) null;
+    Bounds bounds = new Bounds();
     int count1 = this.LODs.Count;
     bool flag = false;
     for (int index1 = 0; index1 < count1; ++index1)
@@ -209,27 +202,21 @@ public class SECTR_LOD : MonoBehaviour
       for (int index2 = 0; index2 < count2; ++index2)
       {
         GameObject gameObject = loD.LODEntries[index2].gameObject;
-        Renderer renderer = !Object.op_Implicit((Object) gameObject) ? (Renderer) null : (Renderer) gameObject.GetComponent<Renderer>();
-        if (Object.op_Implicit((Object) renderer))
+        Renderer renderer = !(bool) ((Object) gameObject) ? (Renderer) null : gameObject.GetComponent<Renderer>();
+        if ((bool) ((Object) renderer) && renderer.bounds.extents != Vector3.zero)
         {
-          Bounds bounds2 = renderer.get_bounds();
-          if (Vector3.op_Inequality(((Bounds) ref bounds2).get_extents(), Vector3.get_zero()))
+          if (!flag)
           {
-            if (!flag)
-            {
-              bounds1 = renderer.get_bounds();
-              flag = true;
-            }
-            else
-              ((Bounds) ref bounds1).Encapsulate(renderer.get_bounds());
+            bounds = renderer.bounds;
+            flag = true;
           }
+          else
+            bounds.Encapsulate(renderer.bounds);
         }
       }
     }
-    Matrix4x4 worldToLocalMatrix = ((Component) this).get_transform().get_worldToLocalMatrix();
-    this.boundsOffset = ((Matrix4x4) ref worldToLocalMatrix).MultiplyPoint(((Bounds) ref bounds1).get_center());
-    Vector3 extents = ((Bounds) ref bounds1).get_extents();
-    this.boundsRadius = ((Vector3) ref extents).get_magnitude();
+    this.boundsOffset = this.transform.worldToLocalMatrix.MultiplyPoint(bounds.center);
+    this.boundsRadius = bounds.extents.magnitude;
     this.boundsUpdated = true;
   }
 
@@ -284,7 +271,7 @@ public class SECTR_LOD : MonoBehaviour
       int index = 0;
       while (index < this.lodEntries.Count)
       {
-        if (Object.op_Equality((Object) this.lodEntries[index].gameObject, (Object) gameObject))
+        if ((Object) this.lodEntries[index].gameObject == (Object) gameObject)
           this.lodEntries.RemoveAt(index);
         else
           ++index;
@@ -297,7 +284,7 @@ public class SECTR_LOD : MonoBehaviour
       for (int index = 0; index < count; ++index)
       {
         SECTR_LOD.LODEntry lodEntry = this.lodEntries[index];
-        if (Object.op_Equality((Object) lodEntry.gameObject, (Object) gameObject))
+        if ((Object) lodEntry.gameObject == (Object) gameObject)
           return lodEntry;
       }
       return (SECTR_LOD.LODEntry) null;

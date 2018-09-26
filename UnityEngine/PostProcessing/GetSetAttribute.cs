@@ -13,7 +13,6 @@ namespace UnityEngine.PostProcessing
 
     public GetSetAttribute(string name)
     {
-      this.\u002Ector();
       this.name = name;
     }
   }

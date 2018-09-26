@@ -8,13 +8,8 @@ using UnityEngine;
 
 public class LoadingCircle : MonoBehaviour
 {
+  public int framesToNextRotation = 10;
   private int i;
-  public int framesToNextRotation;
-
-  public LoadingCircle()
-  {
-    base.\u002Ector();
-  }
 
   private void FixedUpdate()
   {
@@ -22,6 +17,6 @@ public class LoadingCircle : MonoBehaviour
     if (this.i <= this.framesToNextRotation)
       return;
     this.i = 0;
-    ((Component) this).get_transform().Rotate(Vector3.op_Multiply(Vector3.get_forward(), -45f), (Space) 1);
+    this.transform.Rotate(Vector3.forward * -45f, Space.Self);
   }
 }

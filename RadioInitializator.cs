@@ -15,6 +15,7 @@ using UnityEngine.UI;
 public class RadioInitializator : NetworkBehaviour
 {
   private static RadioInitializator.VoiceIndicatorManager voiceIndicators = new RadioInitializator.VoiceIndicatorManager();
+  public float multipl = 3f;
   private PlayerManager pm;
   public ServerRoles serverRoles;
   public Radio radio;
@@ -25,20 +26,14 @@ public class RadioInitializator : NetworkBehaviour
   private VoiceBroadcastTrigger bct;
   public AnimationCurve noiseOverLoudness;
   public float curAmplitude;
-  public float multipl;
-
-  public RadioInitializator()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this.bct = (VoiceBroadcastTrigger) Object.FindObjectOfType<VoiceBroadcastTrigger>();
+    this.bct = Object.FindObjectOfType<VoiceBroadcastTrigger>();
     this.pm = PlayerManager.singleton;
     try
     {
-      this.parent = GameObject.Find("VoicechatPopups").get_transform();
+      this.parent = GameObject.Find("VoicechatPopups").transform;
     }
     catch
     {
@@ -47,24 +42,24 @@ public class RadioInitializator : NetworkBehaviour
 
   private void LateUpdate()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     foreach (GameObject player in this.pm.players)
     {
       try
       {
-        if (Object.op_Inequality((Object) player, (Object) ((Component) this).get_gameObject()))
+        if ((Object) player != (Object) this.gameObject)
         {
-          RadioInitializator component1 = (RadioInitializator) player.GetComponent<RadioInitializator>();
+          RadioInitializator component1 = player.GetComponent<RadioInitializator>();
           component1.radio.SetRelationship();
           string playerId = component1.hlapiPlayer.PlayerId;
-          if (Object.op_Inequality((Object) component1.radio.mySource, (Object) null))
+          if ((Object) component1.radio.mySource != (Object) null)
           {
-            VoicePlayback component2 = (VoicePlayback) ((Component) component1.radio.mySource).GetComponent<VoicePlayback>();
-            bool flag = (double) component1.radio.mySource.get_spatialBlend() == 0.0 && component2.get_Priority() != -2 && (component1.radio.ShouldBeVisible(((Component) this).get_gameObject()) || Object.op_Equality((Object) Intercom.host.speaker, (Object) player));
-            this.curAmplitude = component2.get_Amplitude() * this.multipl;
-            if (NetworkServer.get_active())
-              ((Scp939_VisionController) player.GetComponent<Scp939_VisionController>()).MakeNoise(this.noiseOverLoudness.Evaluate(this.curAmplitude));
+            VoicePlayback component2 = component1.radio.mySource.GetComponent<VoicePlayback>();
+            bool flag = (double) component1.radio.mySource.spatialBlend == 0.0 && component2.Priority != ChannelPriority.None && (component1.radio.ShouldBeVisible(this.gameObject) || (Object) Intercom.host.speaker == (Object) player);
+            this.curAmplitude = component2.Amplitude * this.multipl;
+            if (NetworkServer.active)
+              player.GetComponent<Scp939_VisionController>().MakeNoise(this.noiseOverLoudness.Evaluate(this.curAmplitude));
             if (RadioInitializator.voiceIndicators.ContainsId(playerId))
             {
               if (!flag)
@@ -76,19 +71,19 @@ public class RadioInitializator : NetworkBehaviour
                 RadioInitializator.VoiceIndicator fromId = RadioInitializator.voiceIndicators.GetFromId(playerId);
                 if (fromId != null)
                 {
-                  if (Object.op_Inequality((Object) fromId.indicator, (Object) null))
+                  if ((Object) fromId.indicator != (Object) null)
                   {
-                    ((Graphic) fromId.indicator.GetComponent<Image>()).set_color(component1.serverRoles.GetGradient()[0].Evaluate(component2.get_Amplitude() * 3f));
-                    ((Shadow) fromId.indicator.GetComponent<Outline>()).set_effectColor(component1.serverRoles.GetGradient()[1].Evaluate(component2.get_Amplitude() * 3f));
+                    fromId.indicator.GetComponent<Image>().color = component1.serverRoles.GetGradient()[0].Evaluate(component2.Amplitude * 3f);
+                    fromId.indicator.GetComponent<Outline>().effectColor = component1.serverRoles.GetGradient()[1].Evaluate(component2.Amplitude * 3f);
                   }
                 }
               }
             }
             else if (flag)
             {
-              GameObject indicator = (GameObject) Object.Instantiate<GameObject>((M0) this.prefab, this.parent);
-              indicator.get_transform().set_localScale(Vector3.get_one());
-              ((Text) indicator.GetComponentInChildren<Text>()).set_text(component1.nicknameSync.myNick);
+              GameObject indicator = Object.Instantiate<GameObject>(this.prefab, this.parent);
+              indicator.transform.localScale = Vector3.one;
+              indicator.GetComponentInChildren<Text>().text = component1.nicknameSync.myNick;
               RadioInitializator.voiceIndicators.Add(new RadioInitializator.VoiceIndicator(indicator, playerId));
             }
           }
@@ -104,7 +99,7 @@ public class RadioInitializator : NetworkBehaviour
   {
     try
     {
-      RadioInitializator.voiceIndicators.RemoveId(((HlapiPlayer) ((Component) this).GetComponent<HlapiPlayer>()).PlayerId);
+      RadioInitializator.voiceIndicators.RemoveId(this.GetComponent<HlapiPlayer>().PlayerId);
     }
     catch
     {
@@ -115,13 +110,13 @@ public class RadioInitializator : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 
@@ -187,7 +182,7 @@ public class RadioInitializator : NetworkBehaviour
     {
       if (voiceObject == null)
         return;
-      if (Object.op_Inequality((Object) voiceObject.indicator, (Object) null))
+      if ((Object) voiceObject.indicator != (Object) null)
         Object.Destroy((Object) voiceObject.indicator);
       this.voices.Remove(voiceObject);
     }

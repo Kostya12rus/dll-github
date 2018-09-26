@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class WMTablet : MonoBehaviour
 {
+  private List<Image> templates = new List<Image>();
   public GameObject[] submenus;
   public int curMenu;
   public int selectedWeapon;
@@ -22,30 +23,24 @@ public class WMTablet : MonoBehaviour
   public Text list_info;
   public Color list_normalColor;
   public Color list_selectedColor;
-  private List<Image> templates;
   private string translatedInfo;
-
-  public WMTablet()
-  {
-    base.\u002Ector();
-  }
 
   private void Start()
   {
-    this.wm = (WeaponManager) ((Component) this).GetComponent<WeaponManager>();
-    if (!this.wm.get_isLocalPlayer())
+    this.wm = this.GetComponent<WeaponManager>();
+    if (!this.wm.isLocalPlayer)
     {
       Object.Destroy((Object) this);
     }
     else
     {
-      this.inv = (Inventory) ((Component) this).GetComponent<Inventory>();
+      this.inv = this.GetComponent<Inventory>();
       for (int index = 0; index < this.wm.weapons.Length; ++index)
       {
-        GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) this.list_template, this.list_parent);
-        gameObject.get_transform().set_localScale(Vector3.get_one());
-        ((Text) gameObject.GetComponentInChildren<Text>()).set_text(this.inv.availableItems[this.wm.weapons[index].inventoryID].label);
-        this.templates.Add((Image) gameObject.GetComponent<Image>());
+        GameObject gameObject = Object.Instantiate<GameObject>(this.list_template, this.list_parent);
+        gameObject.transform.localScale = Vector3.one;
+        gameObject.GetComponentInChildren<Text>().text = this.inv.availableItems[this.wm.weapons[index].inventoryID].label;
+        this.templates.Add(gameObject.GetComponent<Image>());
       }
       Object.Destroy((Object) this.list_template);
     }
@@ -55,17 +50,17 @@ public class WMTablet : MonoBehaviour
   {
     if (this.inv.curItem != 19)
       return;
-    bool keyDown1 = Input.GetKeyDown((KeyCode) 273);
-    bool keyDown2 = Input.GetKeyDown((KeyCode) 274);
-    bool keyDown3 = Input.GetKeyDown((KeyCode) 276);
-    bool keyDown4 = Input.GetKeyDown((KeyCode) 275);
+    bool keyDown1 = Input.GetKeyDown(KeyCode.UpArrow);
+    bool keyDown2 = Input.GetKeyDown(KeyCode.DownArrow);
+    bool keyDown3 = Input.GetKeyDown(KeyCode.LeftArrow);
+    bool keyDown4 = Input.GetKeyDown(KeyCode.RightArrow);
     if (keyDown3)
       --this.curMenu;
     this.curMenu = Mathf.Clamp(this.curMenu, 0, 2);
     for (int index = 0; index < this.submenus.Length; ++index)
       this.submenus[index].SetActive(index == this.curMenu);
     WeaponManager.Weapon weapon = this.wm.weapons[this.selectedWeapon];
-    AmmoBox component = (AmmoBox) ((Component) this).GetComponent<AmmoBox>();
+    AmmoBox component = this.GetComponent<AmmoBox>();
     if (this.curMenu == 0 && (keyDown1 || keyDown4 || keyDown2))
       ++this.curMenu;
     else if (this.curMenu == 1)
@@ -82,10 +77,10 @@ public class WMTablet : MonoBehaviour
       else
       {
         for (int index = 0; index < this.templates.Count; ++index)
-          ((Graphic) this.templates[index]).set_color(index != this.selectedWeapon ? this.list_normalColor : this.list_selectedColor);
+          this.templates[index].color = index != this.selectedWeapon ? this.list_normalColor : this.list_selectedColor;
         if (string.IsNullOrEmpty(this.translatedInfo))
           this.translatedInfo = TranslationReader.Get("WeaponManager", 2);
-        this.list_info.set_text(this.translatedInfo.Replace("[var_name]", this.inv.availableItems[weapon.inventoryID].label).Replace("[var_atype]", component.types[weapon.ammoType].label).Replace("[var_ares]", component.GetAmmo(weapon.ammoType).ToString()).Replace("[var_mag]", weapon.maxAmmo.ToString()).Replace("[var_maxdmg]", (weapon.damageOverDistance.Evaluate(0.0f) * weapon.allEffects.damageMultiplier * this.wm.overallDamagerFactor).ToString()).Replace("[var_effdmg]", (weapon.damageOverDistance.Evaluate(10f) * weapon.allEffects.damageMultiplier * this.wm.overallDamagerFactor).ToString()).Replace("[var_sps]", weapon.shotsPerSecond.ToString()).Replace("[var_custs]", (weapon.mod_barrels.Length + weapon.mod_others.Length + weapon.mod_sights.Length - 3).ToString()));
+        this.list_info.text = this.translatedInfo.Replace("[var_name]", this.inv.availableItems[weapon.inventoryID].label).Replace("[var_atype]", component.types[weapon.ammoType].label).Replace("[var_ares]", component.GetAmmo(weapon.ammoType).ToString()).Replace("[var_mag]", weapon.maxAmmo.ToString()).Replace("[var_maxdmg]", (weapon.damageOverDistance.Evaluate(0.0f) * weapon.allEffects.damageMultiplier * this.wm.overallDamagerFactor).ToString()).Replace("[var_effdmg]", (weapon.damageOverDistance.Evaluate(10f) * weapon.allEffects.damageMultiplier * this.wm.overallDamagerFactor).ToString()).Replace("[var_sps]", weapon.shotsPerSecond.ToString()).Replace("[var_custs]", (weapon.mod_barrels.Length + weapon.mod_others.Length + weapon.mod_sights.Length - 3).ToString());
       }
     }
     else
@@ -95,11 +90,11 @@ public class WMTablet : MonoBehaviour
       if (component.GetAmmo(weapon.ammoType) >= 15)
       {
         this.ct_amountToDrop = Mathf.Clamp(this.ct_amountToDrop, 15, component.GetAmmo(weapon.ammoType));
-        this.ct_text.set_text(TranslationReader.Get("WeaponManager", 3).Replace("[var_nom]", "<b>" + (object) this.ct_amountToDrop + " x " + component.types[weapon.ammoType].label + "</b>"));
+        this.ct_text.text = TranslationReader.Get("WeaponManager", 3).Replace("[var_nom]", "<b>" + (object) this.ct_amountToDrop + " x " + component.types[weapon.ammoType].label + "</b>");
       }
       else
       {
-        this.ct_text.set_text(TranslationReader.Get("WeaponManager", 4).Replace("[var_nom]", component.types[weapon.ammoType].label));
+        this.ct_text.text = TranslationReader.Get("WeaponManager", 4).Replace("[var_nom]", component.types[weapon.ammoType].label);
         this.ct_amountToDrop = 0;
       }
       if (keyDown1)

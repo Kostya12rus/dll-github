@@ -10,19 +10,14 @@ using UnityEngine.UI;
 
 public class FPSCounter : MonoBehaviour
 {
+  private ushort k = 24;
   public Text text;
-  private ushort k;
   private double framerate;
   private double frametime;
 
-  public FPSCounter()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    float deltaTime = Time.get_deltaTime();
+    float deltaTime = Time.deltaTime;
     this.framerate = Math.Round(1.0 / (double) deltaTime, 1);
     this.frametime = Math.Round((double) deltaTime * 1000.0, 1);
   }
@@ -33,6 +28,6 @@ public class FPSCounter : MonoBehaviour
     if (this.k != (ushort) 25)
       return;
     this.k = (ushort) 0;
-    this.text.set_text("Framerate: " + (object) this.framerate + "   " + (object) this.frametime + "ms");
+    this.text.text = "Framerate: " + (object) this.framerate + "   " + (object) this.frametime + "ms";
   }
 }

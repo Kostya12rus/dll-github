@@ -8,25 +8,20 @@ namespace UnityEngine.PostProcessing
 {
   public class PostProcessingProfile : ScriptableObject
   {
-    public BuiltinDebugViewsModel debugViews;
-    public FogModel fog;
-    public AntialiasingModel antialiasing;
-    public AmbientOcclusionModel ambientOcclusion;
-    public ScreenSpaceReflectionModel screenSpaceReflection;
-    public DepthOfFieldModel depthOfField;
-    public MotionBlurModel motionBlur;
-    public EyeAdaptationModel eyeAdaptation;
-    public BloomModel bloom;
-    public ColorGradingModel colorGrading;
-    public UserLutModel userLut;
-    public ChromaticAberrationModel chromaticAberration;
-    public GrainModel grain;
-    public VignetteModel vignette;
-    public DitheringModel dithering;
-
-    public PostProcessingProfile()
-    {
-      base.\u002Ector();
-    }
+    public BuiltinDebugViewsModel debugViews = new BuiltinDebugViewsModel();
+    public FogModel fog = new FogModel();
+    public AntialiasingModel antialiasing = new AntialiasingModel();
+    public AmbientOcclusionModel ambientOcclusion = new AmbientOcclusionModel();
+    public ScreenSpaceReflectionModel screenSpaceReflection = new ScreenSpaceReflectionModel();
+    public DepthOfFieldModel depthOfField = new DepthOfFieldModel();
+    public MotionBlurModel motionBlur = new MotionBlurModel();
+    public EyeAdaptationModel eyeAdaptation = new EyeAdaptationModel();
+    public BloomModel bloom = new BloomModel();
+    public ColorGradingModel colorGrading = new ColorGradingModel();
+    public UserLutModel userLut = new UserLutModel();
+    public ChromaticAberrationModel chromaticAberration = new ChromaticAberrationModel();
+    public GrainModel grain = new GrainModel();
+    public VignetteModel vignette = new VignetteModel();
+    public DitheringModel dithering = new DitheringModel();
   }
 }

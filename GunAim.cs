@@ -15,24 +15,19 @@ public class GunAim : MonoBehaviour
   private Camera parentCamera;
   private bool isOutOfBounds;
 
-  public GunAim()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    this.parentCamera = (Camera) ((Component) this).GetComponentInParent<Camera>();
+    this.parentCamera = this.GetComponentInParent<Camera>();
   }
 
   private void Update()
   {
-    float x = (float) Input.get_mousePosition().x;
-    float y = (float) Input.get_mousePosition().y;
-    this.isOutOfBounds = (double) x <= (double) this.borderLeft || (double) x >= (double) (Screen.get_width() - this.borderRight) || ((double) y <= (double) this.borderBottom || (double) y >= (double) (Screen.get_height() - this.borderTop));
+    float x = Input.mousePosition.x;
+    float y = Input.mousePosition.y;
+    this.isOutOfBounds = (double) x <= (double) this.borderLeft || (double) x >= (double) (Screen.width - this.borderRight) || ((double) y <= (double) this.borderBottom || (double) y >= (double) (Screen.height - this.borderTop));
     if (this.isOutOfBounds)
       return;
-    ((Component) this).get_transform().LookAt(this.parentCamera.ScreenToWorldPoint(new Vector3(x, y, 5f)));
+    this.transform.LookAt(this.parentCamera.ScreenToWorldPoint(new Vector3(x, y, 5f)));
   }
 
   public bool GetIsOutOfBounds()

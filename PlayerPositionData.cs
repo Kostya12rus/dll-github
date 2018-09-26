@@ -22,8 +22,8 @@ public struct PlayerPositionData
 
   public PlayerPositionData(GameObject _player)
   {
-    this.playerID = ((QueryProcessor) _player.GetComponent<QueryProcessor>()).PlayerId;
-    PlyMovementSync component = (PlyMovementSync) _player.GetComponent<PlyMovementSync>();
+    this.playerID = _player.GetComponent<QueryProcessor>().PlayerId;
+    PlyMovementSync component = _player.GetComponent<PlyMovementSync>();
     this.position = component.position;
     this.rotation = component.rotation;
   }

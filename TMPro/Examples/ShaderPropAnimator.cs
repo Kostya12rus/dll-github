@@ -17,15 +17,10 @@ namespace TMPro.Examples
     public AnimationCurve GlowCurve;
     public float m_frame;
 
-    public ShaderPropAnimator()
-    {
-      base.\u002Ector();
-    }
-
     private void Awake()
     {
-      this.m_Renderer = (Renderer) ((Component) this).GetComponent<Renderer>();
-      this.m_Material = this.m_Renderer.get_material();
+      this.m_Renderer = this.GetComponent<Renderer>();
+      this.m_Material = this.m_Renderer.material;
     }
 
     private void Start()

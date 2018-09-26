@@ -12,7 +12,6 @@ namespace UnityEngine.PostProcessing
 
     public MinAttribute(float min)
     {
-      this.\u002Ector();
       this.min = min;
     }
   }

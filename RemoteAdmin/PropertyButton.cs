@@ -17,15 +17,10 @@ namespace RemoteAdmin
     public int argumentId;
     public string value;
 
-    public PropertyButton()
-    {
-      base.\u002Ector();
-    }
-
     private void Start()
     {
-      this._color = ((SubmenuSelector) ((Component) this).GetComponentInParent<SubmenuSelector>()).c_selected;
-      this._otherbuttons = (PropertyButton[]) ((Component) ((Component) this).get_transform().get_parent()).GetComponentsInChildren<PropertyButton>(true);
+      this._color = this.GetComponentInParent<SubmenuSelector>().c_selected;
+      this._otherbuttons = this.transform.parent.GetComponentsInChildren<PropertyButton>(true);
     }
 
     public void Click()
@@ -42,12 +37,12 @@ namespace RemoteAdmin
 
     private void SetStatus(bool b)
     {
-      if (Object.op_Equality((Object) this._outline, (Object) null))
-        this._outline = (Outline) ((Component) this).GetComponent<Outline>();
-      ((Shadow) this._outline).set_effectColor(!b ? Color.get_white() : this._color);
+      if ((Object) this._outline == (Object) null)
+        this._outline = this.GetComponent<Outline>();
+      this._outline.effectColor = !b ? Color.white : this._color;
       if (!b)
         return;
-      ((SubmenuSelector) ((Component) this).GetComponentInParent<SubmenuSelector>()).SetProperty(this.argumentId, this.value);
+      this.GetComponentInParent<SubmenuSelector>().SetProperty(this.argumentId, this.value);
     }
   }
 }

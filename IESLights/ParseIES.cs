@@ -260,9 +260,9 @@ namespace IESLights
     private static void NormalizeValues(IESData iesData, bool squashHistogram)
     {
       iesData.NormalizedValues = new List<List<float>>();
-      float num = iesData.CandelaValues.SelectMany<List<float>, float>((Func<List<float>, IEnumerable<float>>) (v => (IEnumerable<float>) v)).Max();
+      float f = iesData.CandelaValues.SelectMany<List<float>, float>((Func<List<float>, IEnumerable<float>>) (v => (IEnumerable<float>) v)).Max();
       if (squashHistogram)
-        num = Mathf.Log(num);
+        f = Mathf.Log(f);
       foreach (List<float> candelaValue in iesData.CandelaValues)
       {
         List<float> floatList1 = new List<float>();
@@ -277,7 +277,7 @@ namespace IESLights
         {
           List<float> floatList2;
           int index2;
-          (floatList2 = floatList1)[index2 = index1] = floatList2[index2] / num;
+          (floatList2 = floatList1)[index2 = index1] = floatList2[index2] / f;
           floatList1[index1] = Mathf.Clamp01(floatList1[index1]);
         }
         iesData.NormalizedValues.Add(floatList1);

@@ -18,7 +18,7 @@ public static class SECTR_Graph
   public static void DepthWalk(ref List<SECTR_Graph.Node> nodes, SECTR_Sector root, SECTR_Portal.PortalFlags stopFlags, int maxDepth)
   {
     nodes.Clear();
-    if (Object.op_Equality((Object) root, (Object) null))
+    if ((Object) root == (Object) null)
       return;
     if (maxDepth == 0)
     {
@@ -48,10 +48,10 @@ public static class SECTR_Graph
           for (int index = 0; index < count2; ++index)
           {
             SECTR_Portal portal = node.Sector.Portals[index];
-            if (Object.op_Implicit((Object) portal) && (portal.Flags & stopFlags) == (SECTR_Portal.PortalFlags) 0)
+            if ((bool) ((Object) portal) && (portal.Flags & stopFlags) == (SECTR_Portal.PortalFlags) 0)
             {
-              SECTR_Sector sectrSector = !Object.op_Equality((Object) portal.FrontSector, (Object) node.Sector) ? portal.FrontSector : portal.BackSector;
-              if (Object.op_Implicit((Object) sectrSector) && !sectrSector.Visited)
+              SECTR_Sector sectrSector = !((Object) portal.FrontSector == (Object) node.Sector) ? portal.FrontSector : portal.BackSector;
+              if ((bool) ((Object) sectrSector) && !sectrSector.Visited)
               {
                 nodeStack.Push(new SECTR_Graph.Node()
                 {
@@ -72,7 +72,7 @@ public static class SECTR_Graph
   public static void BreadthWalk(ref List<SECTR_Graph.Node> nodes, SECTR_Sector root, SECTR_Portal.PortalFlags stopFlags, int maxDepth)
   {
     nodes.Clear();
-    if (Object.op_Equality((Object) root, (Object) null))
+    if ((Object) root == (Object) null)
       return;
     if (maxDepth == 0)
     {
@@ -102,10 +102,10 @@ public static class SECTR_Graph
           for (int index = 0; index < count2; ++index)
           {
             SECTR_Portal portal = node.Sector.Portals[index];
-            if (Object.op_Implicit((Object) portal) && (portal.Flags & stopFlags) == (SECTR_Portal.PortalFlags) 0)
+            if ((bool) ((Object) portal) && (portal.Flags & stopFlags) == (SECTR_Portal.PortalFlags) 0)
             {
-              SECTR_Sector sectrSector = !Object.op_Equality((Object) portal.FrontSector, (Object) node.Sector) ? portal.FrontSector : portal.BackSector;
-              if (Object.op_Implicit((Object) sectrSector) && !sectrSector.Visited)
+              SECTR_Sector sectrSector = !((Object) portal.FrontSector == (Object) node.Sector) ? portal.FrontSector : portal.BackSector;
+              if ((bool) ((Object) sectrSector) && !sectrSector.Visited)
               {
                 nodeQueue.Enqueue(new SECTR_Graph.Node()
                 {
@@ -151,9 +151,9 @@ public static class SECTR_Graph
           SECTR_Graph.Node node = new SECTR_Graph.Node();
           node.Portal = portal;
           node.Sector = initialSector;
-          node.ForwardTraversal = Object.op_Equality((Object) initialSector, (Object) portal.FrontSector);
-          node.Cost = Vector3.Magnitude(Vector3.op_Subtraction(start, ((Component) portal).get_transform().get_position()));
-          float num = Vector3.Magnitude(Vector3.op_Subtraction(goal, ((Component) portal).get_transform().get_position()));
+          node.ForwardTraversal = (Object) initialSector == (Object) portal.FrontSector;
+          node.Cost = Vector3.Magnitude(start - portal.transform.position);
+          float num = Vector3.Magnitude(goal - portal.transform.position);
           node.CostPlusEstimate = node.Cost + num;
           SECTR_Graph.openSet.Enqueue(node);
         }
@@ -163,7 +163,7 @@ public static class SECTR_Graph
     {
       SECTR_Graph.Node currentNode = SECTR_Graph.openSet.Dequeue();
       SECTR_Sector sectrSector = !currentNode.ForwardTraversal ? currentNode.Portal.FrontSector : currentNode.Portal.BackSector;
-      if (Object.op_Implicit((Object) sectrSector))
+      if ((bool) ((Object) sectrSector))
       {
         if (SECTR_Graph.goalSectors.Contains(sectrSector))
         {
@@ -174,17 +174,11 @@ public static class SECTR_Graph
         for (int index1 = 0; index1 < count2; ++index1)
         {
           SECTR_Portal portal = sectrSector.Portals[index1];
-          if (Object.op_Inequality((Object) portal, (Object) currentNode.Portal) && (portal.Flags & stopFlags) == (SECTR_Portal.PortalFlags) 0)
+          if ((Object) portal != (Object) currentNode.Portal && (portal.Flags & stopFlags) == (SECTR_Portal.PortalFlags) 0)
           {
-            SECTR_Graph.Node node1 = new SECTR_Graph.Node()
-            {
-              Parent = currentNode,
-              Portal = portal,
-              Sector = sectrSector,
-              ForwardTraversal = Object.op_Equality((Object) sectrSector, (Object) portal.FrontSector)
-            };
-            node1.Cost = currentNode.Cost + Vector3.Magnitude(Vector3.op_Subtraction(((Component) node1.Portal).get_transform().get_position(), ((Component) currentNode.Portal).get_transform().get_position()));
-            float num = Vector3.Magnitude(Vector3.op_Subtraction(goal, ((Component) node1.Portal).get_transform().get_position()));
+            SECTR_Graph.Node node1 = new SECTR_Graph.Node() { Parent = currentNode, Portal = portal, Sector = sectrSector, ForwardTraversal = (Object) sectrSector == (Object) portal.FrontSector };
+            node1.Cost = currentNode.Cost + Vector3.Magnitude(node1.Portal.transform.position - currentNode.Portal.transform.position);
+            float num = Vector3.Magnitude(goal - node1.Portal.transform.position);
             node1.CostPlusEstimate = node1.Cost + num;
             SECTR_Graph.Node node2 = (SECTR_Graph.Node) null;
             SECTR_Graph.closedSet.TryGetValue(node1.Portal, out node2);
@@ -193,7 +187,7 @@ public static class SECTR_Graph
               SECTR_Graph.Node node3 = (SECTR_Graph.Node) null;
               for (int index2 = 0; index2 < SECTR_Graph.openSet.Count; ++index2)
               {
-                if (Object.op_Equality((Object) SECTR_Graph.openSet[index2].Portal, (Object) node1.Portal))
+                if ((Object) SECTR_Graph.openSet[index2].Portal == (Object) node1.Portal)
                 {
                   node3 = SECTR_Graph.openSet[index2];
                   break;
@@ -216,33 +210,33 @@ public static class SECTR_Graph
     foreach (SECTR_Portal sectrPortal in SECTR_Portal.All)
     {
       str += "\t";
-      str += (string) (object) ((Object) sectrPortal).GetInstanceID();
+      str += (string) (object) sectrPortal.GetInstanceID();
       str += " [";
-      str = str + "label=" + ((Object) sectrPortal).get_name();
+      str = str + "label=" + sectrPortal.name;
       str += ",shape=hexagon";
       str += "];\n";
     }
     foreach (SECTR_Sector sectrSector in SECTR_Sector.All)
     {
       str += "\t";
-      str += (string) (object) ((Object) sectrSector).GetInstanceID();
+      str += (string) (object) sectrSector.GetInstanceID();
       str += " [";
-      str = str + "label=" + ((Object) sectrSector).get_name();
+      str = str + "label=" + sectrSector.name;
       str += ",shape=box";
       str += "];\n";
     }
     foreach (SECTR_Portal sectrPortal in SECTR_Portal.All)
     {
-      if (Object.op_Implicit((Object) sectrPortal.FrontSector))
+      if ((bool) ((Object) sectrPortal.FrontSector))
       {
         str += "\t";
-        str = str + (object) ((Object) sectrPortal).GetInstanceID() + " -- " + (object) ((Object) sectrPortal.FrontSector).GetInstanceID();
+        str = str + (object) sectrPortal.GetInstanceID() + " -- " + (object) sectrPortal.FrontSector.GetInstanceID();
         str += ";\n";
       }
-      if (Object.op_Implicit((Object) sectrPortal.BackSector))
+      if ((bool) ((Object) sectrPortal.BackSector))
       {
         str += "\t";
-        str = str + (object) ((Object) sectrPortal).GetInstanceID() + " -- " + (object) ((Object) sectrPortal.BackSector).GetInstanceID();
+        str = str + (object) sectrPortal.GetInstanceID() + " -- " + (object) sectrPortal.BackSector.GetInstanceID();
         str += ";\n";
       }
     }

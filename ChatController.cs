@@ -16,30 +16,23 @@ public class ChatController : MonoBehaviour
   public TMP_Text TMP_ChatOutput;
   public Scrollbar ChatScrollbar;
 
-  public ChatController()
-  {
-    base.\u002Ector();
-  }
-
   private void OnEnable()
   {
-    // ISSUE: method pointer
-    ((UnityEvent<string>) this.TMP_ChatInput.get_onSubmit()).AddListener(new UnityAction<string>((object) this, __methodptr(AddToChatOutput)));
+    this.TMP_ChatInput.onSubmit.AddListener(new UnityAction<string>(this.AddToChatOutput));
   }
 
   private void OnDisable()
   {
-    // ISSUE: method pointer
-    ((UnityEvent<string>) this.TMP_ChatInput.get_onSubmit()).RemoveListener(new UnityAction<string>((object) this, __methodptr(AddToChatOutput)));
+    this.TMP_ChatInput.onSubmit.RemoveListener(new UnityAction<string>(this.AddToChatOutput));
   }
 
   private void AddToChatOutput(string newText)
   {
-    this.TMP_ChatInput.set_text(string.Empty);
+    this.TMP_ChatInput.text = string.Empty;
     DateTime now = DateTime.Now;
     TMP_Text tmpChatOutput = this.TMP_ChatOutput;
-    tmpChatOutput.set_text(tmpChatOutput.get_text() + "[<#FFFF80>" + now.Hour.ToString("d2") + ":" + now.Minute.ToString("d2") + ":" + now.Second.ToString("d2") + "</color>] " + newText + "\n");
+    tmpChatOutput.text = tmpChatOutput.text + "[<#FFFF80>" + now.Hour.ToString("d2") + ":" + now.Minute.ToString("d2") + ":" + now.Second.ToString("d2") + "</color>] " + newText + "\n";
     this.TMP_ChatInput.ActivateInputField();
-    this.ChatScrollbar.set_value(0.0f);
+    this.ChatScrollbar.value = 0.0f;
   }
 }

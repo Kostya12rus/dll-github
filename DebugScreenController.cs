@@ -14,16 +14,10 @@ public class DebugScreenController : MonoBehaviour
   public static int errors;
   public static int exceptions;
 
-  public DebugScreenController()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    Object.DontDestroyOnLoad((Object) ((Component) this).get_gameObject());
-    // ISSUE: method pointer
-    Application.add_logMessageReceived(new Application.LogCallback((object) this, __methodptr(LogMessage)));
+    Object.DontDestroyOnLoad((Object) this.gameObject);
+    Application.logMessageReceived += new Application.LogCallback(this.LogMessage);
     if (Process.GetProcessesByName("SharpMonoInjector").Length <= 0)
       return;
     Application.Quit();
@@ -31,24 +25,24 @@ public class DebugScreenController : MonoBehaviour
 
   private void LogMessage(string condition, string stackTrace, LogType type)
   {
-    if (type == 1)
-      ++DebugScreenController.asserts;
-    else if (type == null)
+    switch (type)
     {
-      ++DebugScreenController.errors;
-    }
-    else
-    {
-      if (type != 4)
-        return;
-      ++DebugScreenController.exceptions;
+      case LogType.Error:
+        ++DebugScreenController.errors;
+        break;
+      case LogType.Assert:
+        ++DebugScreenController.asserts;
+        break;
+      case LogType.Exception:
+        ++DebugScreenController.exceptions;
+        break;
     }
   }
 
   private void Update()
   {
-    if (!Input.GetKeyDown((KeyCode) 284))
+    if (!Input.GetKeyDown(KeyCode.F3))
       return;
-    this.GUI.SetActive(!this.GUI.get_activeSelf());
+    this.GUI.SetActive(!this.GUI.activeSelf);
   }
 }

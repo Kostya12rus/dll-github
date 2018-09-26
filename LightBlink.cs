@@ -8,31 +8,26 @@ using UnityEngine;
 
 public class LightBlink : MonoBehaviour
 {
+  public float noshadowIntensMultiplier = 1f;
+  public float innerVariationPercent = 10f;
+  private float outerVaration = 0.1f;
+  public float FREQ = 12f;
   private float startIntes;
-  public float noshadowIntensMultiplier;
-  public float innerVariationPercent;
-  private float outerVaration;
   private float curOut;
   private float curIn;
   private float innerVariation;
-  public float FREQ;
   private Light l;
   public bool disabled;
   private int i;
 
-  public LightBlink()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (QualitySettings.get_shadows() != null)
+    if (QualitySettings.shadows != ShadowQuality.Disable)
       this.noshadowIntensMultiplier = 1f;
-    this.startIntes = ((Light) ((Component) this).GetComponent<Light>()).get_intensity() * 1.2f;
+    this.startIntes = this.GetComponent<Light>().intensity * 1.2f;
     this.outerVaration = (float) ((double) this.startIntes * (double) this.noshadowIntensMultiplier / 10.0);
     this.innerVariation = (float) ((double) this.startIntes * (double) this.noshadowIntensMultiplier * ((double) this.innerVariationPercent / 100.0));
-    this.l = (Light) ((Component) this).GetComponent<Light>();
+    this.l = this.GetComponent<Light>();
     this.RandomOuter();
     if ((double) this.innerVariationPercent >= 100.0)
       return;
@@ -47,10 +42,10 @@ public class LightBlink : MonoBehaviour
       if (this.i <= 3)
         return;
       this.i = 0;
-      ((Behaviour) this.l).set_enabled(!((Behaviour) this.l).get_enabled());
+      this.l.enabled = !this.l.enabled;
     }
     else
-      ((Behaviour) this.l).set_enabled(true);
+      this.l.enabled = true;
   }
 
   private void RandomOuter()
@@ -64,12 +59,12 @@ public class LightBlink : MonoBehaviour
     if (!this.disabled)
     {
       this.curIn = Random.Range(this.startIntes * this.noshadowIntensMultiplier + this.innerVariation, this.startIntes * this.noshadowIntensMultiplier - this.innerVariation);
-      this.l.set_intensity(this.curIn + this.curOut);
+      this.l.intensity = this.curIn + this.curOut;
     }
     else
     {
-      ((Behaviour) this.l).set_enabled(true);
-      this.l.set_intensity(this.startIntes);
+      this.l.enabled = true;
+      this.l.intensity = this.startIntes;
     }
   }
 }

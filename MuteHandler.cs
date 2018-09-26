@@ -15,11 +15,6 @@ public class MuteHandler : NetworkBehaviour
   private static string _path;
   private static List<string> mutes;
 
-  public MuteHandler()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     MuteHandler._path = FileManager.AppFolder + "mutes.txt";
@@ -61,13 +56,13 @@ public class MuteHandler : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

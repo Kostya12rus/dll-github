@@ -138,7 +138,7 @@ namespace UnityEngine.PostProcessing
       {
         get
         {
-          return new ColorGradingModel.LogWheelsSettings() { slope = Color.get_clear(), power = Color.get_clear(), offset = Color.get_clear() };
+          return new ColorGradingModel.LogWheelsSettings() { slope = Color.clear, power = Color.clear, offset = Color.clear };
         }
       }
     }
@@ -157,7 +157,7 @@ namespace UnityEngine.PostProcessing
       {
         get
         {
-          return new ColorGradingModel.LinearWheelsSettings() { lift = Color.get_clear(), gamma = Color.get_clear(), gain = Color.get_clear() };
+          return new ColorGradingModel.LinearWheelsSettings() { lift = Color.clear, gamma = Color.clear, gain = Color.clear };
         }
       }
     }

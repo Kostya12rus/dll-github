@@ -23,15 +23,10 @@ public class SoundtrackManager : MonoBehaviour
   private bool seeSomeone;
   public static SoundtrackManager singleton;
 
-  public SoundtrackManager()
-  {
-    base.\u002Ector();
-  }
-
   private void FixedUpdate()
   {
     bool flag = false;
-    if (Object.op_Inequality((Object) AlphaWarheadController.host, (Object) null))
+    if ((Object) AlphaWarheadController.host != (Object) null)
       flag = AlphaWarheadController.host.inProgress;
     if ((double) this.nooneSawTime > 140.0 && !this.overlayPlaying)
     {
@@ -63,17 +58,17 @@ public class SoundtrackManager : MonoBehaviour
 
   private void Update()
   {
-    if (Object.op_Equality((Object) this.player, (Object) null))
+    if ((Object) this.player == (Object) null)
       return;
     if (this.seeSomeone)
       this.nooneSawTime = 0.0f;
     else
-      this.nooneSawTime += Time.get_deltaTime();
+      this.nooneSawTime += Time.deltaTime;
   }
 
   private void Start()
   {
-    Timing.RunCoroutine(this._Start(), (Segment) 1);
+    Timing.RunCoroutine(this._Start(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
@@ -120,14 +115,13 @@ public class SoundtrackManager : MonoBehaviour
 
     public void Update(int speed = 1)
     {
-      if (this.restartOnPlay && (double) this.source.get_volume() == 0.0 && this.playing)
+      if (this.restartOnPlay && (double) this.source.volume == 0.0 && this.playing)
       {
         this.source.Stop();
         this.source.Play();
       }
-      AudioSource source = this.source;
-      source.set_volume(source.get_volume() + (float) (0.0199999995529652 * (double) speed * (!this.playing ? -1.0 / (double) this.exitFadeDuration : 1.0 / (double) this.enterFadeDuration)) * this.maxVolume);
-      this.source.set_volume(Mathf.Clamp(this.source.get_volume(), 0.0f, this.maxVolume));
+      this.source.volume += (float) (0.0199999995529652 * (double) speed * (!this.playing ? -1.0 / (double) this.exitFadeDuration : 1.0 / (double) this.enterFadeDuration)) * this.maxVolume;
+      this.source.volume = Mathf.Clamp(this.source.volume, 0.0f, this.maxVolume);
     }
   }
 }

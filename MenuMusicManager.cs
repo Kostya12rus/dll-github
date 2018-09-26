@@ -8,8 +8,8 @@ using UnityEngine;
 
 public class MenuMusicManager : MonoBehaviour
 {
+  public float lerpSpeed = 1f;
   private float curState;
-  public float lerpSpeed;
   private bool creditsChanged;
   [Space(15f)]
   public AudioSource mainSource;
@@ -17,19 +17,14 @@ public class MenuMusicManager : MonoBehaviour
   [Space(8f)]
   public GameObject creditsHolder;
 
-  public MenuMusicManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    this.curState = Mathf.Lerp(this.curState, !this.creditsHolder.get_activeSelf() ? 0.0f : 1f, this.lerpSpeed * Time.get_deltaTime());
-    this.mainSource.set_volume(1f - this.curState);
-    this.creditsSource.set_volume(this.curState);
-    if (this.creditsChanged == this.creditsHolder.get_activeSelf())
+    this.curState = Mathf.Lerp(this.curState, !this.creditsHolder.activeSelf ? 0.0f : 1f, this.lerpSpeed * Time.deltaTime);
+    this.mainSource.volume = 1f - this.curState;
+    this.creditsSource.volume = this.curState;
+    if (this.creditsChanged == this.creditsHolder.activeSelf)
       return;
-    this.creditsChanged = this.creditsHolder.get_activeSelf();
+    this.creditsChanged = this.creditsHolder.activeSelf;
     if (!this.creditsChanged)
       return;
     this.creditsSource.Play();

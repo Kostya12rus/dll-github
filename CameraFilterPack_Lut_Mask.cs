@@ -10,32 +10,27 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Lut/Mask")]
 public class CameraFilterPack_Lut_Mask : MonoBehaviour
 {
+  private float TimeX = 1f;
+  [Range(0.0f, 1f)]
+  public float Blend = 1f;
+  [Range(0.0f, 1f)]
+  public float Inverse = 1f;
   public Shader SCShader;
-  private float TimeX;
   private Vector4 ScreenResolution;
   private Material SCMaterial;
   public Texture2D LutTexture;
   private Texture3D converted3DLut;
-  [Range(0.0f, 1f)]
-  public float Blend;
   public Texture2D Mask;
-  [Range(0.0f, 1f)]
-  public float Inverse;
   private string MemoPath;
-
-  public CameraFilterPack_Lut_Mask()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -44,50 +39,50 @@ public class CameraFilterPack_Lut_Mask : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Lut_Mask");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   public void SetIdentityLut()
   {
     int num1 = 16;
-    Color[] colorArray = new Color[num1 * num1 * num1];
+    Color[] colors = new Color[num1 * num1 * num1];
     float num2 = (float) (1.0 / (1.0 * (double) num1 - 1.0));
     for (int index1 = 0; index1 < num1; ++index1)
     {
       for (int index2 = 0; index2 < num1; ++index2)
       {
         for (int index3 = 0; index3 < num1; ++index3)
-          colorArray[index1 + index2 * num1 + index3 * num1 * num1] = new Color((float) index1 * 1f * num2, (float) index2 * 1f * num2, (float) index3 * 1f * num2, 1f);
+          colors[index1 + index2 * num1 + index3 * num1 * num1] = new Color((float) index1 * 1f * num2, (float) index2 * 1f * num2, (float) index3 * 1f * num2, 1f);
       }
     }
-    if (Object.op_Implicit((Object) this.converted3DLut))
+    if ((bool) ((Object) this.converted3DLut))
       Object.DestroyImmediate((Object) this.converted3DLut);
-    this.converted3DLut = new Texture3D(num1, num1, num1, (TextureFormat) 5, false);
-    this.converted3DLut.SetPixels(colorArray);
+    this.converted3DLut = new Texture3D(num1, num1, num1, TextureFormat.ARGB32, false);
+    this.converted3DLut.SetPixels(colors);
     this.converted3DLut.Apply();
   }
 
   public bool ValidDimensions(Texture2D tex2d)
   {
-    return Object.op_Implicit((Object) tex2d) && ((Texture) tex2d).get_height() == Mathf.FloorToInt(Mathf.Sqrt((float) ((Texture) tex2d).get_width()));
+    return (bool) ((Object) tex2d) && tex2d.height == Mathf.FloorToInt(Mathf.Sqrt((float) tex2d.width));
   }
 
   public void Convert(Texture2D temp2DTex)
   {
-    if (Object.op_Implicit((Object) temp2DTex))
+    if ((bool) ((Object) temp2DTex))
     {
-      int num1 = ((Texture) temp2DTex).get_width() * ((Texture) temp2DTex).get_height();
-      int height = ((Texture) temp2DTex).get_height();
+      int num1 = temp2DTex.width * temp2DTex.height;
+      int height = temp2DTex.height;
       if (!this.ValidDimensions(temp2DTex))
       {
-        Debug.LogWarning((object) ("The given 2D texture " + ((Object) temp2DTex).get_name() + " cannot be used as a 3D LUT."));
+        Debug.LogWarning((object) ("The given 2D texture " + temp2DTex.name + " cannot be used as a 3D LUT."));
       }
       else
       {
         Color[] pixels = temp2DTex.GetPixels();
-        Color[] colorArray = new Color[pixels.Length];
+        Color[] colors = new Color[pixels.Length];
         for (int index1 = 0; index1 < height; ++index1)
         {
           for (int index2 = 0; index2 < height; ++index2)
@@ -95,14 +90,14 @@ public class CameraFilterPack_Lut_Mask : MonoBehaviour
             for (int index3 = 0; index3 < height; ++index3)
             {
               int num2 = height - index2 - 1;
-              colorArray[index1 + index2 * height + index3 * height * height] = pixels[index3 * height + index1 + num2 * height * height];
+              colors[index1 + index2 * height + index3 * height * height] = pixels[index3 * height + index1 + num2 * height * height];
             }
           }
         }
-        if (Object.op_Implicit((Object) this.converted3DLut))
+        if ((bool) ((Object) this.converted3DLut))
           Object.DestroyImmediate((Object) this.converted3DLut);
-        this.converted3DLut = new Texture3D(height, height, height, (TextureFormat) 5, false);
-        this.converted3DLut.SetPixels(colorArray);
+        this.converted3DLut = new Texture3D(height, height, height, TextureFormat.ARGB32, false);
+        this.converted3DLut.SetPixels(colors);
         this.converted3DLut.Apply();
       }
     }
@@ -112,19 +107,19 @@ public class CameraFilterPack_Lut_Mask : MonoBehaviour
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null) || !SystemInfo.get_supports3DTextures())
+    if ((Object) this.SCShader != (Object) null || !SystemInfo.supports3DTextures)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
-      if (Object.op_Equality((Object) this.converted3DLut, (Object) null))
+      if ((Object) this.converted3DLut == (Object) null)
         this.Convert(this.LutTexture);
-      ((Texture) this.converted3DLut).set_wrapMode((TextureWrapMode) 1);
+      this.converted3DLut.wrapMode = TextureWrapMode.Clamp;
       this.material.SetFloat("_Blend", this.Blend);
       this.material.SetTexture("_LutTex", (Texture) this.converted3DLut);
       this.material.SetTexture("_MaskTex", (Texture) this.Mask);
       this.material.SetFloat("_Inverse", this.Inverse);
-      Graphics.Blit((Texture) sourceTexture, destTexture, this.material, QualitySettings.get_activeColorSpace() != 1 ? 0 : 1);
+      Graphics.Blit((Texture) sourceTexture, destTexture, this.material, QualitySettings.activeColorSpace != ColorSpace.Linear ? 0 : 1);
     }
     else
       Graphics.Blit((Texture) sourceTexture, destTexture);
@@ -140,7 +135,7 @@ public class CameraFilterPack_Lut_Mask : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

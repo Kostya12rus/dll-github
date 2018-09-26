@@ -13,13 +13,8 @@ using UnityEngine;
 
 public class MarkupReader : MonoBehaviour
 {
-  public List<MarkupReader.TagStyleRelation> relations;
+  public List<MarkupReader.TagStyleRelation> relations = new List<MarkupReader.TagStyleRelation>();
   public static MarkupReader singleton;
-
-  public MarkupReader()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
@@ -38,11 +33,7 @@ public class MarkupReader : MonoBehaviour
   private IEnumerator<float> _DownloadStyle(string url)
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new MarkupReader.\u003C_DownloadStyle\u003Ec__Iterator0()
-    {
-      url = url,
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new MarkupReader.\u003C_DownloadStyle\u003Ec__Iterator0() { url = url, \u0024this = this };
   }
 
   private void LoadStyle(string _style, string _url)
@@ -177,31 +168,31 @@ public class MarkupReader : MonoBehaviour
     {
       case 0:
         Color color1;
-        if (!ColorUtility.TryParseHtmlString(_value, ref color1))
+        if (!ColorUtility.TryParseHtmlString(_value, out color1))
           break;
         this.relations[index1].style.mainColor = color1;
         break;
       case 1:
         Color color2;
-        if (!ColorUtility.TryParseHtmlString(_value, ref color2))
+        if (!ColorUtility.TryParseHtmlString(_value, out color2))
           break;
         this.relations[index1].style.outlineColor = color2;
         break;
       case 2:
         Color color3;
-        if (!ColorUtility.TryParseHtmlString(_value, ref color3))
+        if (!ColorUtility.TryParseHtmlString(_value, out color3))
           break;
         this.relations[index1].style.textColor = color3;
         break;
       case 3:
         Color color4;
-        if (!ColorUtility.TryParseHtmlString(_value, ref color4))
+        if (!ColorUtility.TryParseHtmlString(_value, out color4))
           break;
         this.relations[index1].style.textOutlineColor = color4;
         break;
       case 4:
         Color color5;
-        if (!ColorUtility.TryParseHtmlString(_value, ref color5))
+        if (!ColorUtility.TryParseHtmlString(_value, out color5))
           break;
         this.relations[index1].style.imageColor = color5;
         break;

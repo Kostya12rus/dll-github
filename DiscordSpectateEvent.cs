@@ -10,8 +10,4 @@ using UnityEngine.Events;
 [Serializable]
 public class DiscordSpectateEvent : UnityEvent<string>
 {
-  public DiscordSpectateEvent()
-  {
-    base.\u002Ector();
-  }
 }

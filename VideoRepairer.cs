@@ -9,11 +9,6 @@ using UnityEngine.Video;
 
 public class VideoRepairer : MonoBehaviour
 {
-  public VideoRepairer()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.Invoke("Repair", 5f);
@@ -21,6 +16,6 @@ public class VideoRepairer : MonoBehaviour
 
   private void Repair()
   {
-    ((VideoPlayer) ((Component) this).GetComponent<VideoPlayer>()).set_targetMaterialProperty("_EmissionMap");
+    this.GetComponent<VideoPlayer>().targetMaterialProperty = "_EmissionMap";
   }
 }

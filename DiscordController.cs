@@ -30,11 +30,6 @@ public class DiscordController : MonoBehaviour
   public Animator joinAnimator;
   private DiscordRpc.EventHandlers handlers;
 
-  public DiscordController()
-  {
-    base.\u002Ector();
-  }
-
   public void RequestRespondYes()
   {
     this.joinAnimator.SetBool("Requested", false);
@@ -77,14 +72,14 @@ public class DiscordController : MonoBehaviour
     string str = Encoding.UTF8.GetString(Convert.FromBase64String(secret));
     try
     {
-      CustomNetworkManager component = (CustomNetworkManager) ((Component) this).GetComponent<CustomNetworkManager>();
+      CustomNetworkManager component = this.GetComponent<CustomNetworkManager>();
       string[] ipAndPort = str.Split(':');
       int result = 0;
       if (!int.TryParse(ipAndPort[1], out result))
         throw new Exception();
-      component.set_networkAddress(ipAndPort[0]);
+      component.networkAddress = ipAndPort[0];
       CustomNetworkManager.ConnectionIp = ipAndPort[0];
-      component.set_networkPort(result);
+      component.networkPort = result;
       if (((IEnumerable<string>) component.CompatibleVersions).Any<string>((Func<string, bool>) (item => item == ipAndPort[2])))
       {
         component.ShowLog(13);
@@ -111,7 +106,7 @@ public class DiscordController : MonoBehaviour
   {
     ++this.callbackCalls;
     this.joinAnimator.SetBool("Requested", true);
-    ((TMP_Text) this.joinText).set_text(string.Format("<b><color=#7289DA>{0}<color=#99AAB5>#</color>{1}</color></b> would like to join your match!", (object) request.username, (object) request.discriminator));
+    this.joinText.text = string.Format("<b><color=#7289DA>{0}<color=#99AAB5>#</color>{1}</color></b> would like to join your match!", (object) request.username, (object) request.discriminator);
     this.console.AddLog(string.Format("Discord: join request {0}#{1}: {2}", (object) request.username, (object) request.discriminator, (object) request.userId), new Color32((byte) 114, (byte) 137, (byte) 218, byte.MaxValue), false);
     this.joinRequest = request;
     this.onJoinRequest.Invoke(request);

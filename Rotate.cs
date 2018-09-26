@@ -10,13 +10,8 @@ public class Rotate : MonoBehaviour
 {
   private Vector3 speed;
 
-  public Rotate()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
-    ((Component) this).get_transform().Rotate(Vector3.op_Multiply(this.speed, Time.get_deltaTime()));
+    this.transform.Rotate(this.speed * Time.deltaTime);
   }
 }

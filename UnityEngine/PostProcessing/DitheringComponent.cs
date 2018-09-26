@@ -31,21 +31,21 @@ namespace UnityEngine.PostProcessing
     {
       this.noiseTextures = new Texture2D[64];
       for (int index = 0; index < 64; ++index)
-        this.noiseTextures[index] = (Texture2D) Resources.Load<Texture2D>("Bluenoise64/LDR_LLL1_" + (object) index);
+        this.noiseTextures[index] = Resources.Load<Texture2D>("Bluenoise64/LDR_LLL1_" + (object) index);
     }
 
     public override void Prepare(Material uberMaterial)
     {
       if (++this.textureIndex >= 64)
         this.textureIndex = 0;
-      float num1 = Random.get_value();
-      float num2 = Random.get_value();
+      float z = Random.value;
+      float w = Random.value;
       if (this.noiseTextures == null)
         this.LoadNoiseTextures();
       Texture2D noiseTexture = this.noiseTextures[this.textureIndex];
       uberMaterial.EnableKeyword("DITHERING");
       uberMaterial.SetTexture(DitheringComponent.Uniforms._DitheringTex, (Texture) noiseTexture);
-      uberMaterial.SetVector(DitheringComponent.Uniforms._DitheringCoords, new Vector4((float) this.context.width / (float) ((Texture) noiseTexture).get_width(), (float) this.context.height / (float) ((Texture) noiseTexture).get_height(), num1, num2));
+      uberMaterial.SetVector(DitheringComponent.Uniforms._DitheringCoords, new Vector4((float) this.context.width / (float) noiseTexture.width, (float) this.context.height / (float) noiseTexture.height, z, w));
     }
 
     private static class Uniforms

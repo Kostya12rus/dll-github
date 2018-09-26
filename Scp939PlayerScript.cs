@@ -35,18 +35,13 @@ public class Scp939PlayerScript : NetworkBehaviour
   private static int kCmdCmdShoot;
   private static int kRpcRpcShoot;
 
-  public Scp939PlayerScript()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     this.speechKey = NewInput.GetKey("939's speech");
     Scp939PlayerScript.instances = new List<Scp939PlayerScript>();
-    this.plyCam = (Camera) ((Scp049PlayerScript) ((Component) this).GetComponent<Scp049PlayerScript>()).plyCam.GetComponent<Camera>();
+    this.plyCam = this.GetComponent<Scp049PlayerScript>().plyCam.GetComponent<Camera>();
   }
 
   public void Init(int classID, Class c)
@@ -55,15 +50,15 @@ public class Scp939PlayerScript : NetworkBehaviour
     this.iAm939 = c.fullName.Contains("939");
     if (this.iAm939 && !Scp939PlayerScript.instances.Contains(this))
       Scp939PlayerScript.instances.Add(this);
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     foreach (Behaviour visualEffect in this.visualEffects)
-      visualEffect.set_enabled(this.iAm939);
-    this.plyCam.set_renderingPath(!this.iAm939 ? (RenderingPath) 3 : (RenderingPath) 0);
-    this.plyCam.set_cullingMask(LayerMask.op_Implicit(!this.iAm939 ? this.normalVision : this.scpVision));
-    ((Component) this.visionCamera).get_gameObject().SetActive(this.iAm939);
-    this.visionCamera.set_fieldOfView(this.plyCam.get_fieldOfView());
-    this.visionCamera.set_farClipPlane(this.plyCam.get_farClipPlane());
+      visualEffect.enabled = this.iAm939;
+    this.plyCam.renderingPath = !this.iAm939 ? RenderingPath.DeferredShading : RenderingPath.VertexLit;
+    this.plyCam.cullingMask = (int) (!this.iAm939 ? this.normalVision : this.scpVision);
+    this.visionCamera.gameObject.SetActive(this.iAm939);
+    this.visionCamera.fieldOfView = this.plyCam.fieldOfView;
+    this.visionCamera.farClipPlane = this.plyCam.farClipPlane;
   }
 
   private void Update()
@@ -76,14 +71,14 @@ public class Scp939PlayerScript : NetworkBehaviour
 
   private void ServersideCode()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       return;
     if ((double) this.cooldown >= 0.0)
-      this.cooldown -= Time.get_deltaTime();
+      this.cooldown -= Time.deltaTime;
     if ((double) this.speedMultiplier > 1.0)
     {
       Scp939PlayerScript scp939PlayerScript = this;
-      scp939PlayerScript.NetworkspeedMultiplier = scp939PlayerScript.speedMultiplier - Time.get_deltaTime() / 3f;
+      scp939PlayerScript.NetworkspeedMultiplier = scp939PlayerScript.speedMultiplier - Time.deltaTime / 3f;
     }
     if ((double) this.speedMultiplier >= 1.0)
       return;
@@ -92,17 +87,17 @@ public class Scp939PlayerScript : NetworkBehaviour
 
   private void ClientsideMisc()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     if (this.iAm939)
-      FirstPersonController.speedMultiplier939 = (__Null) (double) this.speedMultiplier;
+      FirstPersonController.speedMultiplier939 = this.speedMultiplier;
     else
-      FirstPersonController.speedMultiplier939 = (__Null) 1.0;
+      FirstPersonController.speedMultiplier939 = 1f;
   }
 
   private void CheckForInput()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
     if (this.iAm939 && Input.GetKey(NewInput.GetKey("Shoot")))
       this.Shoot();
@@ -111,7 +106,7 @@ public class Scp939PlayerScript : NetworkBehaviour
       return;
     this.prevuhc = newValue;
     this.CallCmdChangeHumanchatThing(newValue);
-    VoiceBroadcastTrigger.is939Speaking = (__Null) (newValue ? 1 : 0);
+    VoiceBroadcastTrigger.is939Speaking = newValue;
   }
 
   [Command]
@@ -125,31 +120,31 @@ public class Scp939PlayerScript : NetworkBehaviour
 
   private void Shoot()
   {
-    RaycastHit raycastHit;
-    if (!Physics.Raycast(new Ray(((Component) this.plyCam).get_transform().get_position(), ((Component) this.plyCam).get_transform().get_forward()), ref raycastHit, this.attackDistance))
+    RaycastHit hitInfo;
+    if (!Physics.Raycast(new Ray(this.plyCam.transform.position, this.plyCam.transform.forward), out hitInfo, this.attackDistance))
       return;
-    Scp939PlayerScript componentInParent = (Scp939PlayerScript) ((Component) ((RaycastHit) ref raycastHit).get_collider()).GetComponentInParent<Scp939PlayerScript>();
-    if (!Object.op_Inequality((Object) componentInParent, (Object) null) || componentInParent.sameClass)
+    Scp939PlayerScript componentInParent = hitInfo.collider.GetComponentInParent<Scp939PlayerScript>();
+    if (!((Object) componentInParent != (Object) null) || componentInParent.sameClass)
       return;
-    this.CallCmdShoot(((Component) componentInParent).get_gameObject());
+    this.CallCmdShoot(componentInParent.gameObject);
   }
 
   [Command]
   private void CmdShoot(GameObject attacker)
   {
-    if (!this.iAm939 || (double) Vector3.Distance(attacker.get_transform().get_position(), ((Component) this).get_transform().get_position()) >= (double) this.attackDistance * 1.20000004768372 || (double) this.cooldown > 0.0)
+    if (!this.iAm939 || (double) Vector3.Distance(attacker.transform.position, this.transform.position) >= (double) this.attackDistance * 1.20000004768372 || (double) this.cooldown > 0.0)
       return;
     this.cooldown = 1f;
-    ((PlayerStats) ((Component) this).GetComponent<PlayerStats>()).HurtPlayer(new PlayerStats.HitInfo((float) Random.Range(50, 80), "SCP:939", "SCP:939", ((QueryProcessor) ((Component) this).GetComponent<QueryProcessor>()).PlayerId), attacker);
+    this.GetComponent<PlayerStats>().HurtPlayer(new PlayerStats.HitInfo((float) Random.Range(50, 80), "SCP:939", "SCP:939", this.GetComponent<QueryProcessor>().PlayerId), attacker);
     this.CallRpcShoot();
   }
 
   [ClientRpc]
   private void RpcShoot()
   {
-    Animator component = (Animator) ((CharacterClassManager) ((Component) this).GetComponent<CharacterClassManager>()).myModel.GetComponent<Animator>();
-    ((AudioSource) ((Component) component).GetComponent<AudioSource>()).PlayOneShot(this.attackSounds[Random.Range(0, this.attackSounds.Length)]);
-    if (this.get_isLocalPlayer())
+    Animator component = this.GetComponent<CharacterClassManager>().myModel.GetComponent<Animator>();
+    component.GetComponent<AudioSource>().PlayOneShot(this.attackSounds[Random.Range(0, this.attackSounds.Length)]);
+    if (this.isLocalPlayer)
       Hitmarker.Hit(1.5f);
     else
       component.SetTrigger("Attack");
@@ -157,11 +152,11 @@ public class Scp939PlayerScript : NetworkBehaviour
 
   private void CheckInstances()
   {
-    if (!(((Object) this).get_name() == "Host"))
+    if (!(this.name == "Host"))
       return;
     foreach (Scp939PlayerScript instance in Scp939PlayerScript.instances)
     {
-      if (Object.op_Equality((Object) instance, (Object) null) || !instance.iAm939)
+      if ((Object) instance == (Object) null || !instance.iAm939)
       {
         Scp939PlayerScript.instances.Remove(instance);
         break;
@@ -171,14 +166,11 @@ public class Scp939PlayerScript : NetworkBehaviour
 
   static Scp939PlayerScript()
   {
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp939PlayerScript), Scp939PlayerScript.kCmdCmdChangeHumanchatThing, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdChangeHumanchatThing)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp939PlayerScript), Scp939PlayerScript.kCmdCmdChangeHumanchatThing, new NetworkBehaviour.CmdDelegate(Scp939PlayerScript.InvokeCmdCmdChangeHumanchatThing));
     Scp939PlayerScript.kCmdCmdShoot = -1473386604;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp939PlayerScript), Scp939PlayerScript.kCmdCmdShoot, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeCmdCmdShoot)));
+    NetworkBehaviour.RegisterCommandDelegate(typeof (Scp939PlayerScript), Scp939PlayerScript.kCmdCmdShoot, new NetworkBehaviour.CmdDelegate(Scp939PlayerScript.InvokeCmdCmdShoot));
     Scp939PlayerScript.kRpcRpcShoot = -1725253250;
-    // ISSUE: method pointer
-    NetworkBehaviour.RegisterRpcDelegate(typeof (Scp939PlayerScript), Scp939PlayerScript.kRpcRpcShoot, new NetworkBehaviour.CmdDelegate((object) null, __methodptr(InvokeRpcRpcShoot)));
+    NetworkBehaviour.RegisterRpcDelegate(typeof (Scp939PlayerScript), Scp939PlayerScript.kRpcRpcShoot, new NetworkBehaviour.CmdDelegate(Scp939PlayerScript.InvokeRpcRpcShoot));
     NetworkCRC.RegisterBehaviour(nameof (Scp939PlayerScript), 0);
   }
 
@@ -194,7 +186,7 @@ public class Scp939PlayerScript : NetworkBehaviour
     }
     [param: In] set
     {
-      this.SetSyncVar<float>((M0) (double) value, (M0&) ref this.speedMultiplier, 1U);
+      this.SetSyncVar<float>(value, ref this.speedMultiplier, 1U);
     }
   }
 
@@ -206,13 +198,13 @@ public class Scp939PlayerScript : NetworkBehaviour
     }
     [param: In] set
     {
-      this.SetSyncVar<bool>((M0) (value ? 1 : 0), (M0&) ref this.usingHumanChat, 2U);
+      this.SetSyncVar<bool>(value, ref this.usingHumanChat, 2U);
     }
   }
 
   protected static void InvokeCmdCmdChangeHumanchatThing(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdChangeHumanchatThing called on client.");
     else
       ((Scp939PlayerScript) obj).CmdChangeHumanchatThing(reader.ReadBoolean());
@@ -220,55 +212,55 @@ public class Scp939PlayerScript : NetworkBehaviour
 
   protected static void InvokeCmdCmdShoot(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
       Debug.LogError((object) "Command CmdShoot called on client.");
     else
-      ((Scp939PlayerScript) obj).CmdShoot((GameObject) reader.ReadGameObject());
+      ((Scp939PlayerScript) obj).CmdShoot(reader.ReadGameObject());
   }
 
   public void CallCmdChangeHumanchatThing(bool newValue)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdChangeHumanchatThing called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdChangeHumanchatThing(newValue);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Scp939PlayerScript.kCmdCmdChangeHumanchatThing);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write(newValue);
-      this.SendCommandInternal(networkWriter, 0, "CmdChangeHumanchatThing");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Scp939PlayerScript.kCmdCmdChangeHumanchatThing);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(newValue);
+      this.SendCommandInternal(writer, 0, "CmdChangeHumanchatThing");
     }
   }
 
   public void CallCmdShoot(GameObject attacker)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "Command function CmdShoot called on server.");
-    else if (this.get_isServer())
+    else if (this.isServer)
     {
       this.CmdShoot(attacker);
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 5);
-      networkWriter.WritePackedUInt32((uint) Scp939PlayerScript.kCmdCmdShoot);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      networkWriter.Write((GameObject) attacker);
-      this.SendCommandInternal(networkWriter, 0, "CmdShoot");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 5);
+      writer.WritePackedUInt32((uint) Scp939PlayerScript.kCmdCmdShoot);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      writer.Write(attacker);
+      this.SendCommandInternal(writer, 0, "CmdShoot");
     }
   }
 
   protected static void InvokeRpcRpcShoot(NetworkBehaviour obj, NetworkReader reader)
   {
-    if (!NetworkClient.get_active())
+    if (!NetworkClient.active)
       Debug.LogError((object) "RPC RpcShoot called on server.");
     else
       ((Scp939PlayerScript) obj).RpcShoot();
@@ -276,22 +268,22 @@ public class Scp939PlayerScript : NetworkBehaviour
 
   public void CallRpcShoot()
   {
-    if (!NetworkServer.get_active())
+    if (!NetworkServer.active)
     {
       Debug.LogError((object) "RPC Function RpcShoot called on client.");
     }
     else
     {
-      NetworkWriter networkWriter = new NetworkWriter();
-      networkWriter.Write((short) 0);
-      networkWriter.Write((short) 2);
-      networkWriter.WritePackedUInt32((uint) Scp939PlayerScript.kRpcRpcShoot);
-      networkWriter.Write(((NetworkIdentity) ((Component) this).GetComponent<NetworkIdentity>()).get_netId());
-      this.SendRPCInternal(networkWriter, 0, "RpcShoot");
+      NetworkWriter writer = new NetworkWriter();
+      writer.Write((short) 0);
+      writer.Write((short) 2);
+      writer.WritePackedUInt32((uint) Scp939PlayerScript.kRpcRpcShoot);
+      writer.Write(this.GetComponent<NetworkIdentity>().netId);
+      this.SendRPCInternal(writer, 0, "RpcShoot");
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -300,30 +292,30 @@ public class Scp939PlayerScript : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.speedMultiplier);
     }
-    if (((int) this.get_syncVarDirtyBits() & 2) != 0)
+    if (((int) this.syncVarDirtyBits & 2) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.Write(this.usingHumanChat);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

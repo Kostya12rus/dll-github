@@ -17,17 +17,12 @@ public class SteamManager : MonoBehaviour
   private bool m_bInitialized;
   private SteamAPIWarningMessageHook_t m_SteamAPIWarningMessageHook;
 
-  public SteamManager()
-  {
-    base.\u002Ector();
-  }
-
   private static SteamManager Instance
   {
     get
     {
-      if (Object.op_Equality((Object) SteamManager.s_instance, (Object) null))
-        return (SteamManager) new GameObject(nameof (SteamManager)).AddComponent<SteamManager>();
+      if ((Object) SteamManager.s_instance == (Object) null)
+        return new GameObject(nameof (SteamManager)).AddComponent<SteamManager>();
       return SteamManager.s_instance;
     }
   }
@@ -47,23 +42,23 @@ public class SteamManager : MonoBehaviour
 
   private void Awake()
   {
-    if (Object.op_Inequality((Object) SteamManager.s_instance, (Object) null))
+    if ((Object) SteamManager.s_instance != (Object) null)
     {
-      Object.Destroy((Object) ((Component) this).get_gameObject());
+      Object.Destroy((Object) this.gameObject);
     }
     else
     {
       SteamManager.s_instance = this;
       if (SteamManager.s_EverInialized)
         throw new Exception("Tried to Initialize the SteamAPI twice in one session!");
-      Object.DontDestroyOnLoad((Object) ((Component) this).get_gameObject());
+      Object.DontDestroyOnLoad((Object) this.gameObject);
       if (!Packsize.Test())
         Debug.LogError((object) "[Steamworks.NET] Packsize Test returned false, the wrong version of Steamworks.NET is being run in this platform.", (Object) this);
       if (!DllCheck.Test())
         Debug.LogError((object) "[Steamworks.NET] DllCheck Test returned false, One or more of the Steamworks binaries seems to be the wrong version.", (Object) this);
       try
       {
-        if (SteamAPI.RestartAppIfNecessary((AppId_t) AppId_t.Invalid))
+        if (SteamAPI.RestartAppIfNecessary(AppId_t.Invalid))
         {
           Application.Quit();
           return;
@@ -85,18 +80,17 @@ public class SteamManager : MonoBehaviour
 
   private void OnEnable()
   {
-    if (Object.op_Equality((Object) SteamManager.s_instance, (Object) null))
+    if ((Object) SteamManager.s_instance == (Object) null)
       SteamManager.s_instance = this;
     if (!this.m_bInitialized || this.m_SteamAPIWarningMessageHook != null)
       return;
-    // ISSUE: method pointer
-    this.m_SteamAPIWarningMessageHook = new SteamAPIWarningMessageHook_t((object) null, __methodptr(SteamAPIDebugTextHook));
+    this.m_SteamAPIWarningMessageHook = new SteamAPIWarningMessageHook_t(SteamManager.SteamAPIDebugTextHook);
     SteamClient.SetWarningMessageHook(this.m_SteamAPIWarningMessageHook);
   }
 
   private void OnDestroy()
   {
-    if (Object.op_Inequality((Object) SteamManager.s_instance, (Object) this))
+    if ((Object) SteamManager.s_instance != (Object) this)
       return;
     SteamManager.s_instance = (SteamManager) null;
     if (!this.m_bInitialized)

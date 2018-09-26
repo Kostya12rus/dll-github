@@ -8,11 +8,6 @@ using UnityEngine;
 
 public class WeaponAnimator : MonoBehaviour
 {
-  public WeaponAnimator()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
   }

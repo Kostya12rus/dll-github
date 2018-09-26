@@ -10,11 +10,6 @@ using UnityEngine.Networking;
 
 public class BanPlayer : NetworkBehaviour
 {
-  public BanPlayer()
-  {
-    base.\u002Ector();
-  }
-
   public string BanUser(GameObject user, int duration, string reason, string issuer)
   {
     string str1 = "good";
@@ -25,13 +20,13 @@ public class BanPlayer : NetworkBehaviour
       if (duration > 0)
       {
         str1 = "Setting nick";
-        string nick = ((NicknameSync) user.GetComponent<NicknameSync>()).myNick;
+        string nick = user.GetComponent<NicknameSync>().myNick;
         str1 = "Online ban";
         if (ConfigFile.ServerConfig.GetBool("online_mode", false))
           str2 = BanHandler.IssueBan(new BanDetails()
           {
             OriginalName = nick,
-            Id = ((CharacterClassManager) user.GetComponent<CharacterClassManager>()).SteamId,
+            Id = user.GetComponent<CharacterClassManager>().SteamId,
             IssuanceTime = TimeBehaviour.CurrentTimestamp(),
             Expires = DateTime.UtcNow.AddMinutes((double) duration).Ticks,
             Reason = reason,
@@ -44,7 +39,7 @@ public class BanPlayer : NetworkBehaviour
           str3 = BanHandler.IssueBan(new BanDetails()
           {
             OriginalName = nick,
-            Id = (string) ((NetworkIdentity) user.GetComponent<NetworkIdentity>()).get_connectionToClient().address,
+            Id = user.GetComponent<NetworkIdentity>().connectionToClient.address,
             IssuanceTime = TimeBehaviour.CurrentTimestamp(),
             Expires = DateTime.UtcNow.AddMinutes((double) duration).Ticks,
             Reason = reason,
@@ -72,13 +67,13 @@ public class BanPlayer : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

@@ -14,14 +14,9 @@ namespace IESLights
     private Material _iesMaterial;
     private Material _horizontalMirrorMaterial;
 
-    public IESToCubemap()
-    {
-      base.\u002Ector();
-    }
-
     private void OnDestroy()
     {
-      if (!Object.op_Inequality((Object) this._horizontalMirrorMaterial, (Object) null))
+      if (!((Object) this._horizontalMirrorMaterial != (Object) null))
         return;
       Object.DestroyImmediate((Object) this._horizontalMirrorMaterial);
     }
@@ -38,21 +33,21 @@ namespace IESLights
       RenderTexture[] renderTextureArray = new RenderTexture[6];
       for (int index = 0; index < 6; ++index)
       {
-        renderTextureArray[index] = RenderTexture.GetTemporary(resolution, resolution, 0, (RenderTextureFormat) 11, (RenderTextureReadWrite) 1);
-        ((Texture) renderTextureArray[index]).set_filterMode((FilterMode) 2);
+        renderTextureArray[index] = RenderTexture.GetTemporary(resolution, resolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        renderTextureArray[index].filterMode = FilterMode.Trilinear;
       }
-      Camera[] componentsInChildren = (Camera[]) ((Component) ((Component) this).get_transform().GetChild(0)).GetComponentsInChildren<Camera>();
+      Camera[] componentsInChildren = this.transform.GetChild(0).GetComponentsInChildren<Camera>();
       for (int index = 0; index < 6; ++index)
       {
-        componentsInChildren[index].set_targetTexture(renderTextureArray[index]);
+        componentsInChildren[index].targetTexture = renderTextureArray[index];
         componentsInChildren[index].Render();
-        componentsInChildren[index].set_targetTexture((RenderTexture) null);
+        componentsInChildren[index].targetTexture = (RenderTexture) null;
       }
-      RenderTexture temporary = RenderTexture.GetTemporary(resolution * 6, resolution, 0, (RenderTextureFormat) 11, (RenderTextureReadWrite) 1);
-      ((Texture) temporary).set_filterMode((FilterMode) 2);
-      if (Object.op_Equality((Object) this._horizontalMirrorMaterial, (Object) null))
+      RenderTexture temporary = RenderTexture.GetTemporary(resolution * 6, resolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+      temporary.filterMode = FilterMode.Trilinear;
+      if ((Object) this._horizontalMirrorMaterial == (Object) null)
         this._horizontalMirrorMaterial = new Material(Shader.Find("Hidden/IES/HorizontalFlip"));
-      RenderTexture.set_active(temporary);
+      RenderTexture.active = temporary;
       for (int index = 0; index < 6; ++index)
       {
         GL.PushMatrix();
@@ -60,14 +55,14 @@ namespace IESLights
         Graphics.DrawTexture(new Rect((float) (index * resolution), 0.0f, (float) resolution, (float) resolution), (Texture) renderTextureArray[index], this._horizontalMirrorMaterial);
         GL.PopMatrix();
       }
-      Texture2D texture2D1 = new Texture2D(resolution * 6, resolution, (TextureFormat) 20, false, true);
-      ((Texture) texture2D1).set_filterMode((FilterMode) 2);
+      Texture2D texture2D1 = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false, true);
+      texture2D1.filterMode = FilterMode.Trilinear;
       Texture2D texture2D2 = texture2D1;
-      texture2D2.ReadPixels(new Rect(0.0f, 0.0f, (float) ((Texture) texture2D2).get_width(), (float) ((Texture) texture2D2).get_height()), 0, 0);
+      texture2D2.ReadPixels(new Rect(0.0f, 0.0f, (float) texture2D2.width, (float) texture2D2.height), 0, 0);
       Color[] pixels = texture2D2.GetPixels();
-      RenderTexture.set_active((RenderTexture) null);
-      foreach (RenderTexture renderTexture in renderTextureArray)
-        RenderTexture.ReleaseTemporary(renderTexture);
+      RenderTexture.active = (RenderTexture) null;
+      foreach (RenderTexture temp in renderTextureArray)
+        RenderTexture.ReleaseTemporary(temp);
       RenderTexture.ReleaseTemporary(temporary);
       Object.DestroyImmediate((Object) texture2D2);
       return pixels;
@@ -75,9 +70,9 @@ namespace IESLights
 
     private void PrepMaterial(Texture2D iesTexture, IESData iesData)
     {
-      if (Object.op_Equality((Object) this._iesMaterial, (Object) null))
-        this._iesMaterial = ((Renderer) ((Component) this).GetComponent<Renderer>()).get_sharedMaterial();
-      this._iesMaterial.set_mainTexture((Texture) iesTexture);
+      if ((Object) this._iesMaterial == (Object) null)
+        this._iesMaterial = this.GetComponent<Renderer>().sharedMaterial;
+      this._iesMaterial.mainTexture = (Texture) iesTexture;
       this.SetShaderKeywords(iesData, this._iesMaterial);
     }
 
@@ -132,11 +127,11 @@ namespace IESLights
     private void CreateCubemap(int resolution, out Cubemap cubemap)
     {
       ref Cubemap local = ref cubemap;
-      Cubemap cubemap1 = new Cubemap(resolution, (TextureFormat) 5, false);
-      ((Texture) cubemap1).set_filterMode((FilterMode) 2);
+      Cubemap cubemap1 = new Cubemap(resolution, TextureFormat.ARGB32, false);
+      cubemap1.filterMode = FilterMode.Trilinear;
       Cubemap cubemap2 = cubemap1;
       local = cubemap2;
-      ((Camera) ((Component) this).GetComponent<Camera>()).RenderToCubemap(cubemap);
+      this.GetComponent<Camera>().RenderToCubemap(cubemap);
     }
   }
 }

@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerList : MonoBehaviour
 {
@@ -20,22 +19,17 @@ public class PlayerList : MonoBehaviour
   private static Transform s_template;
   private KeyCode openKey;
 
-  public PlayerList()
-  {
-    base.\u002Ector();
-  }
-
   private void Update()
   {
     if (Input.GetKeyDown(this.openKey))
     {
-      if (this.panel.get_activeSelf())
+      if (this.panel.activeSelf)
         this.panel.SetActive(false);
-      else if (!Cursor.get_visible())
+      else if (!Cursor.visible)
         this.panel.SetActive(true);
-      CursorManager.plOp = this.panel.get_activeSelf();
+      CursorManager.plOp = this.panel.activeSelf;
     }
-    if (!Input.GetKeyDown((KeyCode) 27))
+    if (!Input.GetKeyDown(KeyCode.Escape))
       return;
     CursorManager.plOp = false;
     this.panel.SetActive(false);
@@ -50,10 +44,10 @@ public class PlayerList : MonoBehaviour
 
   public static void AddPlayer(GameObject instance)
   {
-    GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) ((Component) PlayerList.s_template).get_gameObject(), PlayerList.s_parent);
-    gameObject.get_transform().set_localScale(Vector3.get_one());
-    ((TMP_Text) gameObject.GetComponentInChildren<TextMeshProUGUI>()).set_text(((NicknameSync) instance.GetComponent<NicknameSync>()).myNick);
-    ((PlayerListElement) gameObject.GetComponent<PlayerListElement>()).instance = instance;
+    GameObject gameObject = Object.Instantiate<GameObject>(PlayerList.s_template.gameObject, PlayerList.s_parent);
+    gameObject.transform.localScale = Vector3.one;
+    gameObject.GetComponentInChildren<TextMeshProUGUI>().text = instance.GetComponent<NicknameSync>().myNick;
+    gameObject.GetComponent<PlayerListElement>().instance = instance;
     PlayerList.instances.Add(new PlayerList.Instance()
     {
       owner = instance,
@@ -66,10 +60,10 @@ public class PlayerList : MonoBehaviour
   {
     foreach (PlayerList.Instance instance1 in PlayerList.instances)
     {
-      if (!Object.op_Inequality((Object) instance, (Object) instance1.owner))
+      if (!((Object) instance != (Object) instance1.owner))
       {
-        ((Graphic) instance1.text.GetComponentInChildren<TextMeshProUGUI>()).set_color(((ServerRoles) instance.GetComponent<ServerRoles>()).GetColor());
-        ((TMP_Text) instance1.text.GetComponentInChildren<TextMeshProUGUI>()).set_text(((NicknameSync) instance.GetComponent<NicknameSync>()).myNick + " <size=12>" + ((ServerRoles) instance.GetComponent<ServerRoles>()).GetColoredRoleString(false) + "</size>");
+        instance1.text.GetComponentInChildren<TextMeshProUGUI>().color = instance.GetComponent<ServerRoles>().GetColor();
+        instance1.text.GetComponentInChildren<TextMeshProUGUI>().text = instance.GetComponent<NicknameSync>().myNick + " <size=12>" + instance.GetComponent<ServerRoles>().GetColoredRoleString(false) + "</size>";
       }
     }
   }
@@ -78,9 +72,9 @@ public class PlayerList : MonoBehaviour
   {
     foreach (PlayerList.Instance instance1 in PlayerList.instances)
     {
-      if (!Object.op_Inequality((Object) instance1.owner, (Object) instance))
+      if (!((Object) instance1.owner != (Object) instance))
       {
-        Object.Destroy((Object) instance1.text.get_gameObject());
+        Object.Destroy((Object) instance1.text.gameObject);
         PlayerList.instances.Remove(instance1);
         break;
       }

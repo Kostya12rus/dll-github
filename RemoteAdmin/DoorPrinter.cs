@@ -18,11 +18,6 @@ namespace RemoteAdmin
     public Transform Parent;
     public static string SelectedDoors;
 
-    public DoorPrinter()
-    {
-      base.\u002Ector();
-    }
-
     [DebuggerHidden]
     private IEnumerator Start()
     {

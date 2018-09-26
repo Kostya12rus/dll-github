@@ -15,27 +15,21 @@ using UnityEngine.UI;
 public class TutorialManager : MonoBehaviour
 {
   public static int curlog = -1;
+  private List<TutorialManager.Log> logs = new List<TutorialManager.Log>();
   public static bool status;
   public static int levelID;
   private FirstPersonController fpc;
   private TextMeshProUGUI txt;
   public TutorialManager.TutorialScene[] tutorials;
-  private List<TutorialManager.Log> logs;
   private AudioSource src;
   private float timeToNext;
   private int npcKills;
   private int reloads;
   private int burns;
 
-  public TutorialManager()
-  {
-    base.\u002Ector();
-  }
-
   private void Awake()
   {
-    Scene activeScene = SceneManager.GetActiveScene();
-    string name = ((Scene) ref activeScene).get_name();
+    string name = SceneManager.GetActiveScene().name;
     TutorialManager.status = name.Contains("Tutorial");
     if (!TutorialManager.status)
       return;
@@ -48,29 +42,29 @@ public class TutorialManager : MonoBehaviour
     if (!TutorialManager.status)
       return;
     TutorialManager.curlog = -1;
-    this.fpc = (FirstPersonController) ((Component) this).GetComponent<FirstPersonController>();
-    this.src = (AudioSource) GameObject.Find("Lector").GetComponent<AudioSource>();
-    this.txt = (TextMeshProUGUI) GameObject.FindGameObjectWithTag("Respawn").GetComponent<TextMeshProUGUI>();
+    this.fpc = this.GetComponent<FirstPersonController>();
+    this.src = GameObject.Find("Lector").GetComponent<AudioSource>();
+    this.txt = GameObject.FindGameObjectWithTag("Respawn").GetComponent<TextMeshProUGUI>();
   }
 
   private void LateUpdate()
   {
     if (!TutorialManager.status)
       return;
-    this.fpc.tutstop = (__Null) 0;
+    this.fpc.tutstop = false;
     if (TutorialManager.curlog >= 0 && this.logs[TutorialManager.curlog].stopPlayer)
-      this.fpc.tutstop = (__Null) 1;
+      this.fpc.tutstop = true;
     if ((double) this.timeToNext > 0.0)
     {
-      if (Input.GetKeyDown((KeyCode) 13))
+      if (Input.GetKeyDown(KeyCode.Return))
       {
         this.timeToNext = 0.0f;
         this.src.Stop();
       }
-      this.timeToNext -= Time.get_deltaTime();
+      this.timeToNext -= Time.deltaTime;
       if ((double) this.timeToNext <= 0.0 && TutorialManager.curlog != -1)
       {
-        ((TMP_Text) this.txt).set_text(string.Empty);
+        this.txt.text = string.Empty;
         if (this.logs[TutorialManager.curlog].jumpforward)
           this.Trigger(TutorialManager.curlog + 1);
         else
@@ -80,11 +74,11 @@ public class TutorialManager : MonoBehaviour
     if (TutorialManager.curlog == -1 || (double) this.timeToNext > 0.0)
       return;
     this.timeToNext = this.logs[TutorialManager.curlog].duration_en;
-    if (Object.op_Inequality((Object) this.logs[TutorialManager.curlog].clip_en, (Object) null))
+    if ((Object) this.logs[TutorialManager.curlog].clip_en != (Object) null)
       this.src.PlayOneShot(this.logs[TutorialManager.curlog].clip_en);
     if ((double) this.logs[TutorialManager.curlog].duration_en <= 0.0)
       return;
-    ((TMP_Text) this.txt).set_text(TranslationReader.Get("Tutorial_" + TutorialManager.levelID.ToString("00"), TutorialManager.curlog));
+    this.txt.text = TranslationReader.Get("Tutorial_" + TutorialManager.levelID.ToString("00"), TutorialManager.curlog);
   }
 
   public void Trigger(int id)
@@ -93,11 +87,11 @@ public class TutorialManager : MonoBehaviour
     if ((double) this.logs[id].duration_en == -100.0)
     {
       PlayerPrefs.SetInt("TutorialProgress", Mathf.Max(TutorialManager.levelID + 1, PlayerPrefs.GetInt("TutorialProgress", 1)));
-      ((NetworkManager) NetworkManager.singleton).StopHost();
+      NetworkManager.singleton.StopHost();
     }
     if ((double) this.logs[id].duration_en == -200.0)
     {
-      ((Component) this).SendMessage(this.logs[id].content_en);
+      this.SendMessage(this.logs[id].content_en);
       if (!this.logs[id].jumpforward)
         return;
       this.Trigger(id + 1);
@@ -105,7 +99,7 @@ public class TutorialManager : MonoBehaviour
     else
     {
       this.src.Stop();
-      ((TMP_Text) this.txt).set_text(string.Empty);
+      this.txt.text = string.Empty;
       this.timeToNext = 0.0f;
     }
   }
@@ -125,14 +119,14 @@ public class TutorialManager : MonoBehaviour
   public void KillNPC()
   {
     ++this.npcKills;
-    KillTrigger[] objectsOfType = (KillTrigger[]) Object.FindObjectsOfType<KillTrigger>();
+    KillTrigger[] objectsOfType = Object.FindObjectsOfType<KillTrigger>();
     KillTrigger killTrigger1 = (KillTrigger) null;
     foreach (KillTrigger killTrigger2 in objectsOfType)
     {
-      if (Object.op_Equality((Object) killTrigger1, (Object) null) || killTrigger2.prioirty < killTrigger1.prioirty)
+      if ((Object) killTrigger1 == (Object) null || killTrigger2.prioirty < killTrigger1.prioirty)
         killTrigger1 = killTrigger2;
     }
-    if (!Object.op_Inequality((Object) killTrigger1, (Object) null))
+    if (!((Object) killTrigger1 != (Object) null))
       return;
     killTrigger1.Trigger(this.npcKills);
   }
@@ -144,29 +138,29 @@ public class TutorialManager : MonoBehaviour
 
   private void Tutorial2_GiveNTFRifle()
   {
-    Object.Destroy((Object) ((Component) Object.FindObjectOfType<NoammoTrigger>()).get_gameObject());
-    ((Inventory) GameObject.Find("Host").GetComponent<Inventory>()).SetPickup(20, 0.0f, GameObject.Find("ItemPos").get_transform().get_position(), Quaternion.Euler(-90f, 0.0f, 0.0f));
+    Object.Destroy((Object) Object.FindObjectOfType<NoammoTrigger>().gameObject);
+    GameObject.Find("Host").GetComponent<Inventory>().SetPickup(20, 0.0f, GameObject.Find("ItemPos").transform.position, Quaternion.Euler(-90f, 0.0f, 0.0f));
     this.Invoke("Tutorial2_GiveSFA", 1f);
   }
 
   private void Tutorial2_GiveAmmo()
   {
-    foreach (Pickup pickup in (Pickup[]) Object.FindObjectsOfType<Pickup>())
+    foreach (Pickup pickup in Object.FindObjectsOfType<Pickup>())
     {
       if (pickup.info.itemId == 29)
         return;
     }
-    ((Inventory) GameObject.Find("Host").GetComponent<Inventory>()).SetPickup(29, 12f, GameObject.Find("ItemPos").get_transform().get_position(), (Quaternion) null);
+    GameObject.Find("Host").GetComponent<Inventory>().SetPickup(29, 12f, GameObject.Find("ItemPos").transform.position, new Quaternion());
   }
 
   private void Tutorial2_MoreAmmo()
   {
-    foreach (Pickup pickup in (Pickup[]) Object.FindObjectsOfType<Pickup>())
+    foreach (Pickup pickup in Object.FindObjectsOfType<Pickup>())
     {
       if (pickup.info.itemId == 29)
         return;
     }
-    ((Inventory) GameObject.Find("Host").GetComponent<Inventory>()).SetPickup(29, 12f, GameObject.Find("ItemPos").get_transform().get_position(), (Quaternion) null);
+    GameObject.Find("Host").GetComponent<Inventory>().SetPickup(29, 12f, GameObject.Find("ItemPos").transform.position, new Quaternion());
     this.Trigger(5);
   }
 
@@ -177,23 +171,23 @@ public class TutorialManager : MonoBehaviour
 
   private void Tutorial2_Curtain()
   {
-    ((AudioSource) GameObject.Find("Curtain").GetComponent<AudioSource>()).Play();
-    ((Animator) GameObject.Find("Curtain").GetComponent<Animator>()).SetBool("Open", !((Animator) GameObject.Find("Curtain").GetComponent<Animator>()).GetBool("Open"));
+    GameObject.Find("Curtain").GetComponent<AudioSource>().Play();
+    GameObject.Find("Curtain").GetComponent<Animator>().SetBool("Open", !GameObject.Find("Curtain").GetComponent<Animator>().GetBool("Open"));
   }
 
   private void Tutorial2_GiveSFA()
   {
-    ((Inventory) GameObject.Find("Host").GetComponent<Inventory>()).SetPickup(22, 9999f, GameObject.Find("ItemPos").get_transform().get_position(), (Quaternion) null);
+    GameObject.Find("Host").GetComponent<Inventory>().SetPickup(22, 9999f, GameObject.Find("ItemPos").transform.position, new Quaternion());
   }
 
   private void Tutorial2_ResultText()
   {
-    ((Text) GameObject.Find("ResultText").GetComponent<Text>()).set_text((this.npcKills - 9).ToString("00"));
+    GameObject.Find("ResultText").GetComponent<Text>().text = (this.npcKills - 9).ToString("00");
   }
 
   public void Tutorial2_Preset()
   {
-    ((MainMenuScript) Object.FindObjectOfType<MainMenuScript>()).ChangeMenu(((MainMenuScript) Object.FindObjectOfType<MainMenuScript>()).CurMenu + 1);
+    Object.FindObjectOfType<MainMenuScript>().ChangeMenu(Object.FindObjectOfType<MainMenuScript>().CurMenu + 1);
   }
 
   public void Tutorial2_Result()
@@ -209,7 +203,7 @@ public class TutorialManager : MonoBehaviour
 
   private void Tutorial3_GiveKeycard()
   {
-    ((Inventory) GameObject.Find("Host").GetComponent<Inventory>()).SetPickup(0, 0.0f, GameObject.Find("ItemPos").get_transform().get_position(), (Quaternion) null);
+    GameObject.Find("Host").GetComponent<Inventory>().SetPickup(0, 0.0f, GameObject.Find("ItemPos").transform.position, new Quaternion());
   }
 
   public void Tutorial3_KeycardBurnt()

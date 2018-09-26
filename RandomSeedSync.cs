@@ -12,44 +12,33 @@ using UnityEngine.Networking;
 public class RandomSeedSync : NetworkBehaviour
 {
   [SyncVar(hook = "SetSeed")]
-  public int seed;
+  public int seed = -1;
   private static int staticSeed;
   public static bool generated;
 
-  public RandomSeedSync()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
-    if (!this.get_isLocalPlayer())
+    if (!this.isLocalPlayer)
       return;
-    if (NetworkServer.get_active())
+    if (NetworkServer.active)
     {
-      foreach (WorkStation workStation1 in (WorkStation[]) Object.FindObjectsOfType<WorkStation>())
-      {
-        WorkStation workStation2 = workStation1;
-        Offset offset = new Offset();
-        offset.position = ((Component) workStation1).get_transform().get_localPosition();
-        ref Offset local = ref offset;
-        Quaternion localRotation = ((Component) workStation1).get_transform().get_localRotation();
-        Vector3 eulerAngles = ((Quaternion) ref localRotation).get_eulerAngles();
-        local.rotation = eulerAngles;
-        offset.scale = Vector3.get_one();
-        Offset pos = offset;
-        workStation2.SetPosition(pos);
-      }
+      foreach (WorkStation workStation in Object.FindObjectsOfType<WorkStation>())
+        workStation.SetPosition(new Offset()
+        {
+          position = workStation.transform.localPosition,
+          rotation = workStation.transform.localRotation.eulerAngles,
+          scale = Vector3.one
+        });
     }
     RandomSeedSync.generated = false;
     this.Networkseed = ConfigFile.ServerConfig.GetInt("map_seed", -1);
-    while (NetworkServer.get_active() && this.seed == -1)
+    while (NetworkServer.active && this.seed == -1)
       this.Networkseed = Random.Range(-999999999, 999999999);
   }
 
   private void Update()
   {
-    if (RandomSeedSync.generated || !(((Object) this).get_name() == "Host") || this.seed == -1)
+    if (RandomSeedSync.generated || !(this.name == "Host") || this.seed == -1)
       return;
     RandomSeedSync.staticSeed = this.seed;
     RandomSeedSync.generated = true;
@@ -63,12 +52,12 @@ public class RandomSeedSync : NetworkBehaviour
 
   public static void GenerateLevel()
   {
-    Console objectOfType = (Console) Object.FindObjectOfType<Console>();
+    Console objectOfType = Object.FindObjectOfType<Console>();
     objectOfType.AddLog("Initializing generator...", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
     ImageGenerator imageGenerator1 = (ImageGenerator) null;
     ImageGenerator imageGenerator2 = (ImageGenerator) null;
     ImageGenerator imageGenerator3 = (ImageGenerator) null;
-    foreach (ImageGenerator imageGenerator4 in (ImageGenerator[]) Object.FindObjectsOfType<ImageGenerator>())
+    foreach (ImageGenerator imageGenerator4 in Object.FindObjectsOfType<ImageGenerator>())
     {
       if (imageGenerator4.height == 0)
         imageGenerator1 = imageGenerator4;
@@ -82,28 +71,28 @@ public class RandomSeedSync : NetworkBehaviour
       imageGenerator1.GenerateMap(RandomSeedSync.staticSeed);
       imageGenerator2.GenerateMap(RandomSeedSync.staticSeed + 1);
       imageGenerator3.GenerateMap(RandomSeedSync.staticSeed + 2);
-      foreach (Door door in (Door[]) Object.FindObjectsOfType<Door>())
+      foreach (Door door in Object.FindObjectsOfType<Door>())
         door.UpdatePos();
     }
     foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("DoorButton"))
     {
       try
       {
-        ((ButtonWallAdjuster) gameObject.GetComponent<ButtonWallAdjuster>()).Adjust();
-        foreach (MonoBehaviour componentsInChild in (ButtonWallAdjuster[]) gameObject.GetComponentsInChildren<ButtonWallAdjuster>())
+        gameObject.GetComponent<ButtonWallAdjuster>().Adjust();
+        foreach (MonoBehaviour componentsInChild in gameObject.GetComponentsInChildren<ButtonWallAdjuster>())
           componentsInChild.Invoke("Adjust", 4f);
       }
       catch
       {
       }
     }
-    foreach (Lift lift in (Lift[]) Object.FindObjectsOfType<Lift>())
+    foreach (Lift lift in Object.FindObjectsOfType<Lift>())
     {
       foreach (Lift.Elevator elevator in lift.elevators)
         elevator.SetPosition();
     }
     objectOfType.AddLog("Spawning items...", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
-    foreach (Door door in (Door[]) Object.FindObjectsOfType<Door>())
+    foreach (Door door in Object.FindObjectsOfType<Door>())
     {
       if (door.destroyed)
       {
@@ -116,16 +105,16 @@ public class RandomSeedSync : NetworkBehaviour
       }
       door.SetState(door.isOpen);
     }
-    if (NetworkServer.get_active())
-      ((HostItemSpawner) PlayerManager.localPlayer.GetComponent<HostItemSpawner>()).Spawn(RandomSeedSync.staticSeed);
-    foreach (SECTR_Member sectrMember in (SECTR_Member[]) Object.FindObjectsOfType<SECTR_Member>())
+    if (NetworkServer.active)
+      PlayerManager.localPlayer.GetComponent<HostItemSpawner>().Spawn(RandomSeedSync.staticSeed);
+    foreach (SECTR_Member sectrMember in Object.FindObjectsOfType<SECTR_Member>())
       sectrMember.UpdateViaScript();
-    foreach (Pickup pickup in (Pickup[]) Object.FindObjectsOfType<Pickup>())
+    foreach (Pickup pickup in Object.FindObjectsOfType<Pickup>())
     {
-      ((Component) pickup).get_transform().set_position(pickup.info.position);
-      ((Component) pickup).get_transform().set_rotation(pickup.info.rotation);
+      pickup.transform.position = pickup.info.position;
+      pickup.transform.rotation = pickup.info.rotation;
     }
-    ((LCZ_LabelManager) Object.FindObjectOfType<LCZ_LabelManager>()).RefreshLabels();
+    Object.FindObjectOfType<LCZ_LabelManager>().RefreshLabels();
     objectOfType.AddLog("The scene is ready! Good luck!", new Color32((byte) 0, byte.MaxValue, (byte) 0, byte.MaxValue), false);
   }
 
@@ -144,17 +133,17 @@ public class RandomSeedSync : NetworkBehaviour
       int num1 = value;
       ref int local = ref this.seed;
       int num2 = 1;
-      if (NetworkServer.get_localClientActive() && !this.get_syncVarHookGuard())
+      if (NetworkServer.localClientActive && !this.syncVarHookGuard)
       {
-        this.set_syncVarHookGuard(true);
+        this.syncVarHookGuard = true;
         this.SetSeed(value);
-        this.set_syncVarHookGuard(false);
+        this.syncVarHookGuard = false;
       }
-      this.SetSyncVar<int>((M0) num1, (M0&) ref local, (uint) num2);
+      this.SetSyncVar<int>(num1, ref local, (uint) num2);
     }
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     if (forceAll)
     {
@@ -162,21 +151,21 @@ public class RandomSeedSync : NetworkBehaviour
       return true;
     }
     bool flag = false;
-    if (((int) this.get_syncVarDirtyBits() & 1) != 0)
+    if (((int) this.syncVarDirtyBits & 1) != 0)
     {
       if (!flag)
       {
-        writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+        writer.WritePackedUInt32(this.syncVarDirtyBits);
         flag = true;
       }
       writer.WritePackedUInt32((uint) this.seed);
     }
     if (!flag)
-      writer.WritePackedUInt32(this.get_syncVarDirtyBits());
+      writer.WritePackedUInt32(this.syncVarDirtyBits);
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
     if (initialState)
     {

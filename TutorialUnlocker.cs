@@ -11,14 +11,9 @@ public class TutorialUnlocker : MonoBehaviour
 {
   public Button[] buttons;
 
-  public TutorialUnlocker()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     for (int index = 0; index < Mathf.Clamp(PlayerPrefs.GetInt("TutorialProgress", 1), 1, this.buttons.Length); ++index)
-      ((Selectable) this.buttons[index]).set_interactable(true);
+      this.buttons[index].interactable = true;
   }
 }

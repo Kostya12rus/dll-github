@@ -16,31 +16,23 @@ public class DistanceTo : NetworkBehaviour
   public float distanceToLocalPlayer;
   public GameObject spectCamera;
 
-  public DistanceTo()
-  {
-    base.\u002Ector();
-  }
-
   [DebuggerHidden]
   private IEnumerator Start()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator) new DistanceTo.\u003CStart\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator) new DistanceTo.\u003CStart\u003Ec__Iterator0() { \u0024this = this };
   }
 
   public void CalculateDistanceToLocalPlayer()
   {
-    this.distanceToLocalPlayer = Vector3.Distance(((Component) this).get_transform().get_position(), ((Component) DistanceTo.localPlayerCcm).get_transform().get_position());
+    this.distanceToLocalPlayer = Vector3.Distance(this.transform.position, DistanceTo.localPlayerCcm.transform.position);
   }
 
   public bool IsInRange()
   {
-    if (Object.op_Inequality((Object) DistanceTo.localPlayerCcm, (Object) null) && DistanceTo.localPlayerCcm.curClass == 2)
+    if ((Object) DistanceTo.localPlayerCcm != (Object) null && DistanceTo.localPlayerCcm.curClass == 2)
       return true;
-    if (((Component) this).get_transform().get_position().y > 800.0)
+    if ((double) this.transform.position.y > 800.0)
       return (double) this.distanceToLocalPlayer < 500.0;
     return (double) this.distanceToLocalPlayer < 70.0;
   }
@@ -49,13 +41,13 @@ public class DistanceTo : NetworkBehaviour
   {
   }
 
-  public virtual bool OnSerialize(NetworkWriter writer, bool forceAll)
+  public override bool OnSerialize(NetworkWriter writer, bool forceAll)
   {
     bool flag;
     return flag;
   }
 
-  public virtual void OnDeserialize(NetworkReader reader, bool initialState)
+  public override void OnDeserialize(NetworkReader reader, bool initialState)
   {
   }
 }

@@ -13,20 +13,15 @@ using UnityEngine.UI;
 [RequireComponent(typeof (AudioSource))]
 public class HintManager : MonoBehaviour
 {
+  public List<HintManager.Hint> hintQueue = new List<HintManager.Hint>();
   public static HintManager singleton;
   [SerializeField]
   private Image box;
   public HintManager.Hint[] hints;
-  public List<HintManager.Hint> hintQueue;
-
-  public HintManager()
-  {
-    base.\u002Ector();
-  }
 
   private void Awake()
   {
-    ((Graphic) this.box).get_canvasRenderer().SetAlpha(0.0f);
+    this.box.canvasRenderer.SetAlpha(0.0f);
     HintManager.singleton = this;
     for (int v = 0; v < this.hints.Length; ++v)
       this.hints[v].content_en = TranslationReader.Get("Hints", v);
@@ -34,7 +29,7 @@ public class HintManager : MonoBehaviour
 
   private void Start()
   {
-    ((Graphic) this.box).get_canvasRenderer().SetAlpha(0.0f);
+    this.box.canvasRenderer.SetAlpha(0.0f);
   }
 
   [DebuggerHidden]

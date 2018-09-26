@@ -24,11 +24,6 @@ namespace TMPro.Examples
     private Material m_material01;
     private Material m_material02;
 
-    public Benchmark01_UGUI()
-    {
-      base.\u002Ector();
-    }
-
     [DebuggerHidden]
     private IEnumerator Start()
     {

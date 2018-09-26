@@ -23,11 +23,6 @@ namespace TMPro.Examples
     private Material m_material01;
     private Material m_material02;
 
-    public Benchmark01()
-    {
-      base.\u002Ector();
-    }
-
     [DebuggerHidden]
     private IEnumerator Start()
     {

@@ -10,11 +10,15 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CameraFilterPack_Colors_Adjust_FullColors : MonoBehaviour
 {
-  public Shader SCShader;
-  private float TimeX;
-  private Material SCMaterial;
+  private float TimeX = 1f;
   [Range(-200f, 200f)]
-  public float Red_R;
+  public float Red_R = 100f;
+  [Range(-200f, 200f)]
+  public float Green_G = 100f;
+  [Range(-200f, 200f)]
+  public float Blue_B = 100f;
+  public Shader SCShader;
+  private Material SCMaterial;
   [Range(-200f, 200f)]
   public float Red_G;
   [Range(-200f, 200f)]
@@ -24,8 +28,6 @@ public class CameraFilterPack_Colors_Adjust_FullColors : MonoBehaviour
   [Range(-200f, 200f)]
   public float Green_R;
   [Range(-200f, 200f)]
-  public float Green_G;
-  [Range(-200f, 200f)]
   public float Green_B;
   [Range(-200f, 200f)]
   public float Green_Constant;
@@ -34,23 +36,16 @@ public class CameraFilterPack_Colors_Adjust_FullColors : MonoBehaviour
   [Range(-200f, 200f)]
   public float Blue_G;
   [Range(-200f, 200f)]
-  public float Blue_B;
-  [Range(-200f, 200f)]
   public float Blue_Constant;
-
-  public CameraFilterPack_Colors_Adjust_FullColors()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -59,16 +54,16 @@ public class CameraFilterPack_Colors_Adjust_FullColors : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/Colors_Adjust_FullColors");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -84,7 +79,7 @@ public class CameraFilterPack_Colors_Adjust_FullColors : MonoBehaviour
       this.material.SetFloat("_Red_C", this.Red_Constant / 100f);
       this.material.SetFloat("_Green_C", this.Green_Constant / 100f);
       this.material.SetFloat("_Blue_C", this.Blue_Constant / 100f);
-      this.material.SetVector("_ScreenResolution", new Vector4((float) ((Texture) sourceTexture).get_width(), (float) ((Texture) sourceTexture).get_height(), 0.0f, 0.0f));
+      this.material.SetVector("_ScreenResolution", new Vector4((float) sourceTexture.width, (float) sourceTexture.height, 0.0f, 0.0f));
       Graphics.Blit((Texture) sourceTexture, destTexture, this.material);
     }
     else
@@ -93,13 +88,13 @@ public class CameraFilterPack_Colors_Adjust_FullColors : MonoBehaviour
 
   private void Update()
   {
-    if (Application.get_isPlaying())
+    if (Application.isPlaying)
       ;
   }
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

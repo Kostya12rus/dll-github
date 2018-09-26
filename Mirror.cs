@@ -8,8 +8,4 @@ using UnityEngine;
 
 public class Mirror : MonoBehaviour
 {
-  public Mirror()
-  {
-    base.\u002Ector();
-  }
 }

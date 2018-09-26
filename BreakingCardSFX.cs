@@ -13,29 +13,21 @@ using UnityEngine.UI;
 
 public class BreakingCardSFX : MonoBehaviour
 {
+  public float waitTime = 1.3f;
   public string[] texts;
-  public float waitTime;
   private TextMeshProUGUI text;
   private Text txt;
 
-  public BreakingCardSFX()
-  {
-    base.\u002Ector();
-  }
-
   private void OnEnable()
   {
-    Timing.KillCoroutines(((Component) this).get_gameObject());
-    Timing.RunCoroutine(this._DoAnimation(), (Segment) 1);
+    Timing.KillCoroutines(this.gameObject);
+    Timing.RunCoroutine(this._DoAnimation(), Segment.FixedUpdate);
   }
 
   [DebuggerHidden]
   private IEnumerator<float> _DoAnimation()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new BreakingCardSFX.\u003C_DoAnimation\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new BreakingCardSFX.\u003C_DoAnimation\u003Ec__Iterator0() { \u0024this = this };
   }
 }

@@ -13,48 +13,39 @@ using UnityEngine.UI;
 
 public class Credits : MonoBehaviour
 {
-  public Transform maskPosition;
   [Range(0.2f, 2.5f)]
-  public float speed;
+  public float speed = 1f;
+  private List<GameObject> spawnedLogs = new List<GameObject>();
+  public Transform maskPosition;
   public Credits.CreditLogType[] logTypes;
   public Credits.CreditLog[] logQueue;
-  private List<GameObject> spawnedLogs;
-
-  public Credits()
-  {
-    base.\u002Ector();
-  }
 
   private void SpawnType(Credits.CreditLogType l, string txt1, string txt2)
   {
-    GameObject gameObject = (GameObject) Object.Instantiate<GameObject>((M0) l.preset, this.maskPosition);
-    Text[] componentsInChildren = (Text[]) gameObject.GetComponentsInChildren<Text>();
-    componentsInChildren[0].set_text(txt1);
+    GameObject gameObject = Object.Instantiate<GameObject>(l.preset, this.maskPosition);
+    Text[] componentsInChildren = gameObject.GetComponentsInChildren<Text>();
+    componentsInChildren[0].text = txt1;
     if (componentsInChildren.Length > 1)
-      componentsInChildren[1].set_text(txt2);
+      componentsInChildren[1].text = txt2;
     Object.Destroy((Object) gameObject, 12f / this.speed);
     this.spawnedLogs.Add(gameObject);
-    CreditText component = (CreditText) gameObject.GetComponent<CreditText>();
+    CreditText component = gameObject.GetComponent<CreditText>();
     component.move = true;
     component.speed *= this.speed;
   }
 
   private void OnEnable()
   {
-    Timing.RunCoroutine(this._Play(), (Segment) 1);
+    Timing.RunCoroutine(this._Play(), Segment.FixedUpdate);
   }
 
   private void OnDisable()
   {
     this.StopAllCoroutines();
-    using (List<GameObject>.Enumerator enumerator = this.spawnedLogs.GetEnumerator())
+    foreach (GameObject spawnedLog in this.spawnedLogs)
     {
-      while (enumerator.MoveNext())
-      {
-        GameObject current = enumerator.Current;
-        if (Object.op_Inequality((Object) current, (Object) null))
-          Object.Destroy((Object) current);
-      }
+      if ((Object) spawnedLog != (Object) null)
+        Object.Destroy((Object) spawnedLog);
     }
     this.spawnedLogs.Clear();
   }
@@ -63,10 +54,7 @@ public class Credits : MonoBehaviour
   private IEnumerator<float> _Play()
   {
     // ISSUE: object of a compiler-generated type is created
-    return (IEnumerator<float>) new Credits.\u003C_Play\u003Ec__Iterator0()
-    {
-      \u0024this = this
-    };
+    return (IEnumerator<float>) new Credits.\u003C_Play\u003Ec__Iterator0() { \u0024this = this };
   }
 
   [Serializable]

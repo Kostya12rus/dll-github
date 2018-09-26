@@ -11,11 +11,6 @@ public class DetectorBlink : MonoBehaviour
   public Material mat;
   private bool state;
 
-  public DetectorBlink()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     this.Blink();

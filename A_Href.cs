@@ -8,11 +8,6 @@ using UnityEngine;
 
 public class A_Href : MonoBehaviour
 {
-  public A_Href()
-  {
-    base.\u002Ector();
-  }
-
   public void Click(string url)
   {
     Application.OpenURL(url);

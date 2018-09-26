@@ -27,11 +27,6 @@ namespace RemoteAdmin
     public bool textBasedVersion;
     public static UIController singleton;
 
-    public UIController()
-    {
-      base.\u002Ector();
-    }
-
     private void Awake()
     {
       UIController.singleton = this;
@@ -46,9 +41,9 @@ namespace RemoteAdmin
 
     public bool IsAnyInputFieldFocused()
     {
-      foreach (InputField componentsInChild in (InputField[]) ((Component) this).GetComponentsInChildren<InputField>())
+      foreach (InputField componentsInChild in this.GetComponentsInChildren<InputField>())
       {
-        if (componentsInChild.get_isFocused())
+        if (componentsInChild.isFocused)
           return true;
       }
       return false;
@@ -62,7 +57,7 @@ namespace RemoteAdmin
 
     public void CallSendPassword()
     {
-      Timing.RunCoroutine(this._SendPassword(), (Segment) 1);
+      Timing.RunCoroutine(this._SendPassword(), Segment.FixedUpdate);
     }
 
     public void ChangeTextMode(bool b)
@@ -80,7 +75,7 @@ namespace RemoteAdmin
       this.root_tbra.SetActive(this.opened && this.loggedIn && this.textBasedVersion);
       this.root_login.SetActive(this.opened && !this.loggedIn);
       this.root_root.SetActive(this.opened);
-      FirstPersonController.usingRemoteAdmin = (__Null) (this.opened ? 1 : 0);
+      FirstPersonController.usingRemoteAdmin = this.opened;
     }
 
     public void ActivateRemoteAdmin()

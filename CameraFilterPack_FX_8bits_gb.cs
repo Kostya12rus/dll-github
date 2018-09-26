@@ -10,25 +10,20 @@ using UnityEngine;
 [AddComponentMenu("Camera Filter Pack/Pixel/8bits_gb")]
 public class CameraFilterPack_FX_8bits_gb : MonoBehaviour
 {
+  private float TimeX = 1f;
   public Shader SCShader;
-  private float TimeX;
   private Material SCMaterial;
   [Range(-1f, 1f)]
   public float Brightness;
-
-  public CameraFilterPack_FX_8bits_gb()
-  {
-    base.\u002Ector();
-  }
 
   private Material material
   {
     get
     {
-      if (Object.op_Equality((Object) this.SCMaterial, (Object) null))
+      if ((Object) this.SCMaterial == (Object) null)
       {
         this.SCMaterial = new Material(this.SCShader);
-        ((Object) this.SCMaterial).set_hideFlags((HideFlags) 61);
+        this.SCMaterial.hideFlags = HideFlags.HideAndDontSave;
       }
       return this.SCMaterial;
     }
@@ -37,16 +32,16 @@ public class CameraFilterPack_FX_8bits_gb : MonoBehaviour
   private void Start()
   {
     this.SCShader = Shader.Find("CameraFilterPack/FX_8bits_gb");
-    if (SystemInfo.get_supportsImageEffects())
+    if (SystemInfo.supportsImageEffects)
       return;
-    ((Behaviour) this).set_enabled(false);
+    this.enabled = false;
   }
 
   private void OnRenderImage(RenderTexture sourceTexture, RenderTexture destTexture)
   {
-    if (Object.op_Inequality((Object) this.SCShader, (Object) null))
+    if ((Object) this.SCShader != (Object) null)
     {
-      this.TimeX += Time.get_deltaTime();
+      this.TimeX += Time.deltaTime;
       if ((double) this.TimeX > 100.0)
         this.TimeX = 0.0f;
       this.material.SetFloat("_TimeX", this.TimeX);
@@ -55,7 +50,7 @@ public class CameraFilterPack_FX_8bits_gb : MonoBehaviour
       this.material.SetFloat("_Distortion", this.Brightness);
       RenderTexture temporary = RenderTexture.GetTemporary(160, 144, 0);
       Graphics.Blit((Texture) sourceTexture, temporary, this.material);
-      ((Texture) temporary).set_filterMode((FilterMode) 0);
+      temporary.filterMode = FilterMode.Point;
       Graphics.Blit((Texture) temporary, destTexture);
       RenderTexture.ReleaseTemporary(temporary);
     }
@@ -69,7 +64,7 @@ public class CameraFilterPack_FX_8bits_gb : MonoBehaviour
 
   private void OnDisable()
   {
-    if (!Object.op_Implicit((Object) this.SCMaterial))
+    if (!(bool) ((Object) this.SCMaterial))
       return;
     Object.DestroyImmediate((Object) this.SCMaterial);
   }

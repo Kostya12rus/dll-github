@@ -12,11 +12,6 @@ using UnityEngine;
 
 public class BanHandler : MonoBehaviour
 {
-  public BanHandler()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
     try
@@ -175,15 +170,7 @@ public class BanHandler : MonoBehaviour
     string[] strArray = ban.Split(';');
     if (strArray.Length != 6)
       return (BanDetails) null;
-    return new BanDetails()
-    {
-      OriginalName = strArray[0],
-      Id = strArray[1].Trim(),
-      Expires = Convert.ToInt64(strArray[2].Trim()),
-      Reason = strArray[3],
-      Issuer = strArray[4],
-      IssuanceTime = Convert.ToInt64(strArray[5].Trim())
-    };
+    return new BanDetails() { OriginalName = strArray[0], Id = strArray[1].Trim(), Expires = Convert.ToInt64(strArray[2].Trim()), Reason = strArray[3], Issuer = strArray[4], IssuanceTime = Convert.ToInt64(strArray[5].Trim()) };
   }
 
   public static string GetPath(int selector)

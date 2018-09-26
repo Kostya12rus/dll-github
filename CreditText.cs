@@ -11,15 +11,10 @@ public class CreditText : MonoBehaviour
   public bool move;
   public float speed;
 
-  public CreditText()
-  {
-    base.\u002Ector();
-  }
-
   private void FixedUpdate()
   {
     if (!this.move)
       return;
-    ((Component) this).get_transform().Translate(Vector3.op_Multiply(Vector3.get_up(), this.speed));
+    this.transform.Translate(Vector3.up * this.speed);
   }
 }

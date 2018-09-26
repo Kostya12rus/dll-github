@@ -8,11 +8,6 @@ using UnityEngine;
 
 public class YRotSpine : MonoBehaviour
 {
-  public YRotSpine()
-  {
-    base.\u002Ector();
-  }
-
   private void Start()
   {
   }
